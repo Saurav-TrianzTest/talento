@@ -201,7 +201,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         designationMaster.Practice = formcollection["Practice"];
                         designationMaster.JobDescription = formcollection["JobDescription"];
                         designationMaster.CreatedBy = Convert.ToInt32(EmployeeID.EmployeeId);
-                        designationMaster.CreatedDate = DateTime.Now;
+                        designationMaster.CreatedDate = DateTime.UtcNow;
                         db.DesignationMasters.Add(designationMaster);
                         db.SaveChanges();
                         return RedirectToAction("Index");
@@ -338,7 +338,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         //designationMaster.CreatedBy = Convert.ToInt32(formcollection["CreatedBy"]);
                         //designationMaster.CreatedDate = Convert.ToDateTime(formcollection["CreatedDate"]);
                         designationMaster.ModifiedBy = Convert.ToInt32(EmployeeID.EmployeeId);
-                        designationMaster.ModifiedDate = DateTime.Now;
+                        designationMaster.ModifiedDate = DateTime.UtcNow;
                         db.Entry(designationMaster).State = EntityState.Modified;
                         db.SaveChanges();
                         return RedirectToAction("Index");

@@ -301,7 +301,7 @@ new SelectListItem { Text = "Not Yet Started", Value="NotYet" },
         <br />*@
 
     <div id="divGridContent1" class="table table-responsive" style="overflow:auto;padding:0 20px 0 0">
-        @Html.Partial("_ProjectAssignmentPartialView", Model)
+        { Html.RenderPartial("_ProjectAssignmentPartialView", Model); }
     </div>
 
 </div>

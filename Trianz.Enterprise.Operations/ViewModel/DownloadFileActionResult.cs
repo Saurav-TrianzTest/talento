@@ -5,18 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 
 namespace Trianz.Enterprise.Operations.ViewModel
 {
     public class DownloadFileActionResult : ActionResult 
     {
-        public GridView ExcelGridView { get; set; }
+        public object ExcelGridView { get; set; }
         public string fileName { get; set; }
 
 
-        public DownloadFileActionResult(GridView gv, string pFileName)
+        public DownloadFileActionResult(object gv, string pFileName)
         {
             ExcelGridView = gv;
             fileName = pFileName;
@@ -26,7 +24,7 @@ namespace Trianz.Enterprise.Operations.ViewModel
         public override void ExecuteResult(ControllerContext context)
         {
             //Create a response stream to create and write the Excel file
-            HttpContext curContext = HttpContext.Current;
+            HttpContext curContext = context.HttpContext;
             curContext.Response.Clear();
             curContext.Response.AddHeader("content-disposition", "attachment;filename=" + fileName);
             curContext.Response.Charset = "";
@@ -34,22 +32,26 @@ namespace Trianz.Enterprise.Operations.ViewModel
             curContext.Response.ContentType = "application/vnd.ms-excel";
 
             //Convert the rendering of the gridview to a string representation 
-            StringWriter sw = new StringWriter();
-            HtmlTextWriter htw = new HtmlTextWriter(sw);
-            ExcelGridView.RenderControl(htw);
-
-            //Open a memory stream that you can use to write back to the response
-            if (sw.ToString() == "<div>\r\n\r\n</div>")
+            StringBuilder sb = new StringBuilder();
+            sb.Append("<table>");
+            // Build HTML table from data source
+            if (ExcelGridView is IEnumerable<object>)
             {
-                StringBuilder sb = sw.GetStringBuilder();
-                sb.Remove(0, sb.Length);
+                foreach (var item in (IEnumerable<object>)ExcelGridView)
+                {
+                    sb.Append("<tr>");
+                    var props = item.GetType().GetProperties();
+                    foreach (var prop in props)
+                    {
+                        sb.AppendFormat("<td>{0}</td>", HttpUtility.HtmlEncode(prop.GetValue(item)));
+                    }
+                    sb.Append("</tr>");
+                }
             }
-            byte[] byteArray = Encoding.ASCII.GetBytes(sw.ToString());
-            MemoryStream s = new MemoryStream(byteArray);
-            StreamReader sr = new StreamReader(s, Encoding.ASCII);
+            sb.Append("</table>");
 
             //Write the stream back to the response
-            curContext.Response.Write(sr.ReadToEnd());
+            curContext.Response.Write(sb.ToString());
             curContext.Response.End();
 
         }

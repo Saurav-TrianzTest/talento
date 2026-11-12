@@ -11,7 +11,6 @@ using Trianz.Enterprise.Operations.Models;
 using Trianz.Enterprise.Operations.ViewModel;
 using System.Data.Common;
 using System.Data;
-using System.Web.UI.WebControls;
 
 
 namespace Trianz.Enterprise.Operations.Controllers
@@ -49,7 +48,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         public JsonResult Autocomplete(string term)
         {
             var result = new List<KeyValuePair<string, string>>();
-            DateTime currentDate = System.DateTime.Now.Date;
+            DateTime currentDate = System.DateTime.UtcNow.Date;
             IList<SelectListItem> List = new List<SelectListItem>();
 
             var Projects = (from pro in db.Projects
@@ -71,7 +70,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         public JsonResult Autocompletename(string term)
         {
             var result = new List<KeyValuePair<string, string>>();
-            DateTime currentDate = System.DateTime.Now.Date;
+            DateTime currentDate = System.DateTime.UtcNow.Date;
             IList<SelectListItem> List = new List<SelectListItem>();
 
             var Projects = (from pro in db.Projects
@@ -282,7 +281,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
                 Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=" + "Bench-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                Response.AddHeader("content-disposition", "attachment;filename=" + "Bench-Report" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                 Response.Charset = "";
                 Response.ContentType = "application/vnd.ms-excel";
@@ -445,7 +444,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
                 Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=" + "Shadow-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                Response.AddHeader("content-disposition", "attachment;filename=" + "Shadow-Report" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                 Response.Charset = "";
                 Response.ContentType = "application/vnd.ms-excel";
@@ -607,7 +606,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
                 Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=" + "Internal-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                Response.AddHeader("content-disposition", "attachment;filename=" + "Internal-Report" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                 Response.Charset = "";
                 Response.ContentType = "application/vnd.ms-excel";
@@ -776,7 +775,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
                 Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=" + "Contractors-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                Response.AddHeader("content-disposition", "attachment;filename=" + "Contractors-Report" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                 Response.Charset = "";
                 Response.ContentType = "application/vnd.ms-excel";
@@ -936,7 +935,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
                 Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=" + "Internal-SpecificReport" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                Response.AddHeader("content-disposition", "attachment;filename=" + "Internal-SpecificReport" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                 Response.Charset = "";
                 Response.ContentType = "application/vnd.ms-excel";
@@ -1149,7 +1148,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
                 Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=" + "Raw-Data" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                Response.AddHeader("content-disposition", "attachment;filename=" + "Raw-Data" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                 Response.Charset = "";
                 Response.ContentType = "application/vnd.ms-excel";

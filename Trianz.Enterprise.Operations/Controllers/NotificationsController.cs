@@ -997,7 +997,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 TempData["TimesheetID"] = id;
                 //return RedirectToAction("MyTimeSheetWeekWise", "MyTimeSheetWeekWise");
                 //return Redirect("http://172.16.0.217/Timesheet/MyTimeSheetWeekWise/MyTimeSheetWeekWise?TimesheetID="+ id);
-                return Redirect("http://172.16.0.217/Timesheet/AllTimeSheets/AllTimeSheets");
+                return Redirect(System.Configuration.ConfigurationManager.AppSettings["TimesheetURL"].ToString());
             }
             }
             catch (Exception ex)
@@ -1076,7 +1076,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //                                }).FirstOrDefault();
                 //        Notification tblNotification = new Notification();
                 //        tblNotification.NotificationType = ConfigurationManager.AppSettings["_Reject"];
-                //        tblNotification.NotificationDate = System.DateTime.Now;
+                //        tblNotification.NotificationDate = System.DateTime.UtcNow;
                 //        tblNotification.NotificationFrom = (from s in db.Timesheets where s.TimesheetID == TimesheetID select s.ProjectManagerID).FirstOrDefault();
                 //        tblNotification.NotificationTo = (from s in db.Timesheets where s.TimesheetID == TimesheetID select s.EmployeeId).FirstOrDefault();
                 //        var Body = ConfigurationManager.AppSettings["ApprovePrefix"] + TimesheetDetails.FromDate.Date.ToString("MM/dd/yyyy") + " - " + TimesheetDetails.ToDate.Date.ToString("MM/dd/yyyy") + ConfigurationManager.AppSettings["rejectSuffix"] + ". </br> </br> Remsrks: " + _Remarks;
@@ -1084,7 +1084,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        tblNotification.AssetID = Convert.ToString(TimesheetID);
                 //        tblNotification.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTimesheet"].ToString();
                 //        string body = string.Empty;
-                //        using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+                //        using (StreamReader reader = new StreamReader(Common.DownloadFromS3Stream("Views/Shared/EmailTemplate.html")))
                 //        {
                 //            body = reader.ReadToEnd();
                 //        }
@@ -1108,7 +1108,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 //        TimesheetComments comments = new TimesheetComments();
                 //        comments.TimesheetID = TimesheetID;
-                //        comments.CommentedDate = System.DateTime.Now;
+                //        comments.CommentedDate = System.DateTime.UtcNow;
                 //        var ManagerName = (from s in db.Employees
                 //                           where s.EmployeeId == GetTimeSheetForApproval.ProjectManagerID
                 //                           select new
@@ -1122,7 +1122,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        {
                 //            TimesheetComments tscomments = new TimesheetComments();
                 //            tscomments.TimesheetID = TimesheetID;
-                //            tscomments.CommentedDate = System.DateTime.Now;
+                //            tscomments.CommentedDate = System.DateTime.UtcNow;
                 //            tscomments.Comments = ConfigurationManager.AppSettings["rejectcomments"] + _Remarks;
                 //            db.TimesheetComment.Add(tscomments);
                 //        }
@@ -1153,7 +1153,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //hrrfAcceptReject.ApprovalStatus = ConfigurationManager.AppSettings["_Reject"] ;
                     //hrrfAcceptReject.Remarks = _Remarks; // needs to get from popup
                     //hrrfAcceptReject.ApprovedBy = EmployeeID.EmployeeId.ToString(); //need to get logged in user id
-                    //hrrfAcceptReject.ApprovedDate = DateTime.Now;
+                    //hrrfAcceptReject.ApprovedDate = DateTime.UtcNow;
                     // db.Entry(hrrfAcceptReject).State = System.Data.Entity.EntityState.Modified;
 
                     //string HRRFNumber = Session["hrrfno"].ToString();
@@ -1163,7 +1163,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     hrrfAcceptReject.ApprovalStatus = ConfigurationManager.AppSettings["_Reject"];
                     hrrfAcceptReject.Remarks = _Remarks; // needs to get from popup
                     hrrfAcceptReject.ApprovedBy = objHRRF.HRRFCreatedBy.ToString(); //need to get logged in user id
-                    hrrfAcceptReject.ApprovedDate = DateTime.Now;
+                    hrrfAcceptReject.ApprovedDate = DateTime.UtcNow;
                     db.Entry(hrrfAcceptReject).State = System.Data.Entity.EntityState.Modified;
                     // hrrf request type Status
                     objHRRF.RequestType = ConfigurationManager.AppSettings["I_RequestType"].ToString();
@@ -1174,7 +1174,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     objHrrfHistory.HRRFNumber = HRRFNumber;
                     objHrrfHistory.HistoryDescription = HRRFNumber + "-" + "has been Rejected for External";
                     objHrrfHistory.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                    objHrrfHistory.ModifiedDate = DateTime.Now;
+                    objHrrfHistory.ModifiedDate = DateTime.UtcNow;
                     db.HRRFHistories.Add(objHrrfHistory);
 
 
@@ -1182,7 +1182,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     Notification tblNotification = new Notification();
                     tblNotification.NotificationType = ConfigurationManager.AppSettings["TrExtFulfilRej_NOtification"].ToString();
-                    tblNotification.NotificationDate = System.DateTime.Now;
+                    tblNotification.NotificationDate = System.DateTime.UtcNow;
 
                     var raisedby = db.HRRFs.Where(r => r.HRRFNumber == AppId).FirstOrDefault();
                     tblNotification.NotificationFrom = EmployeeID.EmployeeId;
@@ -1193,7 +1193,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     tblNotification.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTR"].ToString();
 
                     string body = string.Empty;
-                    using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+                    using (StreamReader reader = new StreamReader(Common.DownloadFromS3Stream("Views/Shared/EmailTemplate.html")))
                     {
                         body = reader.ReadToEnd();
                     }
@@ -1247,7 +1247,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 //        Notification tblNotification = new Notification();
                 //        tblNotification.NotificationType = ConfigurationManager.AppSettings["_Approve"];
-                //        tblNotification.NotificationDate = System.DateTime.Now;
+                //        tblNotification.NotificationDate = System.DateTime.UtcNow;
                 //        tblNotification.NotificationFrom = (from s in db.Timesheets where s.TimesheetID == TimeSheetID select s.ProjectManagerID).FirstOrDefault();
                 //        tblNotification.NotificationTo = (from s in db.Timesheets where s.TimesheetID == TimeSheetID select s.EmployeeId).FirstOrDefault();
                 //        var Body = ConfigurationManager.AppSettings["ApprovePrefix"] + TimesheetDetails.FromDate.Date.ToString("MM/dd/yyyy") + "-" + TimesheetDetails.ToDate.Date.ToString("MM/dd/yyyy") + ConfigurationManager.AppSettings["ApproveSuffix"];
@@ -1255,7 +1255,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        tblNotification.AssetID = Convert.ToString(TimeSheetID);
                 //        tblNotification.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTimesheet"];
                 //        string body = string.Empty;
-                //        using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+                //        using (StreamReader reader = new StreamReader(Common.DownloadFromS3Stream("Views/Shared/EmailTemplate.html")))
                 //        {
                 //            body = reader.ReadToEnd();
                 //        }
@@ -1270,7 +1270,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 //        TimesheetComments comments = new TimesheetComments();
                 //        comments.TimesheetID = TimeSheetID;
-                //        comments.CommentedDate = System.DateTime.Now;
+                //        comments.CommentedDate = System.DateTime.UtcNow;
                 //        var ManagerName = (from name in db.Employees
                 //                           where name.EmployeeId == GetTimeSheetForApproval.ProjectManagerID
                 //                           select new
@@ -1312,7 +1312,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //hrrfAcceptReject.ApprovalStatus = ConfigurationManager.AppSettings["_Accept"]; 
                     //hrrfAcceptReject.Remarks = _Remarks; // needs to get from popup
                     //hrrfAcceptReject.ApprovedBy = EmployeeID.EmployeeId.ToString(); //need to get logged in user id
-                    //hrrfAcceptReject.ApprovedDate = DateTime.Now;
+                    //hrrfAcceptReject.ApprovedDate = DateTime.UtcNow;
                     //db.Entry(hrrfAcceptReject).State = System.Data.Entity.EntityState.Modified;
 
 
@@ -1327,7 +1327,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     ExternalFulfillment hrrfAcceptReject = db.ExternalFulfillments.Where(h => h.HRRFNumber == HRRFNumber).FirstOrDefault();
                     hrrfAcceptReject.ApprovalStatus = ConfigurationManager.AppSettings["ExternalAccepted"].ToString();
                     hrrfAcceptReject.ApprovedBy = objHRRF.HRRFCreatedBy.ToString(); //need to get logged in user id
-                    hrrfAcceptReject.ApprovedDate = DateTime.Now;
+                    hrrfAcceptReject.ApprovedDate = DateTime.UtcNow;
                     hrrfAcceptReject.Remarks = _Remarks;
 
                     db.Entry(hrrfAcceptReject).State = System.Data.Entity.EntityState.Modified;
@@ -1337,14 +1337,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                     objHrrfHistory.HRRFNumber = HRRFNumber;
                     objHrrfHistory.HistoryDescription = HRRFNumber + "-" + "has been Accepted for External";
                     objHrrfHistory.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                    objHrrfHistory.ModifiedDate = DateTime.Now;
+                    objHrrfHistory.ModifiedDate = DateTime.UtcNow;
 
                     db.HRRFHistories.Add(objHrrfHistory);
 
                     //notifications
                     Notification tblNotification = new Notification();
                     tblNotification.NotificationType = ConfigurationManager.AppSettings["TrExtFulfilAcep_NOtification"];
-                    tblNotification.NotificationDate = System.DateTime.Now;
+                    tblNotification.NotificationDate = System.DateTime.UtcNow;
 
                     var raisedby = db.HRRFs.Where(r => r.HRRFNumber == AppId).FirstOrDefault();
                     tblNotification.NotificationFrom = EmployeeID.EmployeeId;
@@ -1354,7 +1354,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     tblNotification.AssetID = Convert.ToString(HRRFNumber);
                     tblNotification.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTR"];
                     string body = string.Empty;
-                    using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+                    using (StreamReader reader = new StreamReader(Common.DownloadFromS3Stream("Views/Shared/EmailTemplate.html")))
                     {
                         body = reader.ReadToEnd();
                     }

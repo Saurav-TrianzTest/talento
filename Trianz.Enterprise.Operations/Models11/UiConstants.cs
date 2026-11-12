@@ -20,7 +20,7 @@ namespace Trianz.Enterprise.Operations.Models
 
         public static string GetMasterLookupData = "Enterprise/Lookup/{lookuptype}";
 
-        public static string GetLookupService = strGetLookupService; //"http://172.16.0.217/EnterpriseServices/MasterLookupService/MasterLookupService.svc";
+        public static string GetLookupService = strGetLookupService;
         public static string GetAllLookUpMethods = "/Enterprise/Lookup";
         public static string GetBasedOnLookupType = "/Enterprise/Lookup/{LOOKUPTYPE}";
         public static string GetApplicationSetting = "/Enterprise/Application/Setting";

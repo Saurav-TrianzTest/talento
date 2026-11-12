@@ -180,7 +180,7 @@
 <div id="divReportGrid" style="margin-top:10px;margin-bottom:30px;">
     @if (Model != null)
     {
-        @Html.Partial("_GenerateReport", Model)
+        { Html.RenderPartial("_GenerateReport", Model); }
     }
 
 </div>

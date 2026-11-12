@@ -94,7 +94,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     var  practice = tms.GroupBy(x => x.Practice).Select(x => x.FirstOrDefault()).ToList();
 
                     var projectNames = (from projects in _db.Projects
-                                        where projects.SOWEndDate >= DateTime.Now
+                                        where projects.SOWEndDate >= DateTime.UtcNow
                                         select new
                                         {
                                             ProjectName = projects.ProjectCode + "-" + projects.ProjectName,
@@ -132,7 +132,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     var projectNames = (from ps in _db.ProjectAssignments
                                         join pt in _db.Projects on ps.ProjectCode equals pt.ProjectCode
                                         join emp in _db.Employees on ps.EmployeeId equals emp.EmployeeId
-                                        where pt.SOWEndDate >= DateTime.Now && emp.SupervisorId == empID
+                                        where pt.SOWEndDate >= DateTime.UtcNow && emp.SupervisorId == empID
                                         && emp.IsActive == true && ps.IsActive == true
                                         select new
                                         {
@@ -177,7 +177,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         var trackNewData = trackData[i].TrackNewData;
                         var data = _db.Employees.Where(k => k.EmployeeId == employeeid).FirstOrDefault();
                         data.Track = trackNewData;
-                        data.ModifiedDate = DateTime.Now;
+                        data.ModifiedDate = DateTime.UtcNow;
                         var result = new TeamTrackHistory()
                         {
 
@@ -185,7 +185,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             Track_Old = trackOldData,
                             Track_New = trackNewData,
                             ModifiedBy = empID,
-                            ModifiedDate = DateTime.Now
+                            ModifiedDate = DateTime.UtcNow
 
                         };
                         _db.TeamTrackHistories.Add(result);
@@ -361,7 +361,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
                     Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=" + "Team Track Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    Response.AddHeader("content-disposition", "attachment;filename=" + "Team Track Report" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                     Response.Charset = "";
                     Response.ContentType = "application/vnd.ms-excel";

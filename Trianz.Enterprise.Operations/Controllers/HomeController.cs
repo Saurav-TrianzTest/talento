@@ -12,7 +12,6 @@ using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
 using System.Web.Security;
-using System.Web.UI;
 //using Trianz.Enterprise.Operations.EmployeeService;
 using Trianz.Enterprise.Operations.Models;
 using Trianz.Enterprise.Operations.General;
@@ -169,7 +168,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 Session.Clear();
                 Session.Abandon();
                 Session.RemoveAll();
-                FormsAuthentication.SignOut();
+                Session.Abandon(); Response.Cookies.Clear(); Response.Redirect("~/Login/Index");;
             }
             catch (Exception ex)
             {
@@ -290,7 +289,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     objHRRFExportToExcel.HRRFNumber = item.HRRFNumber;
                     objHRRFExportToExcel.OldHRRFNumber = item.OldHRRFNumber;
                     objHRRFExportToExcel.CreatedDate = Convert.ToDateTime(item.HRRFCreatedDate);
-                    objHRRFExportToExcel.Ageing = (item.HRRFCreatedDate == null) ? 0 : ((DateTime.Today - Convert.ToDateTime(Convert.ToDateTime(item.HRRFCreatedDate).ToString("dd MMM yyyy"))).Days);
+                    objHRRFExportToExcel.Ageing = (item.HRRFCreatedDate == null) ? 0 : ((DateTime.UtcNow.Date - Convert.ToDateTime(Convert.ToDateTime(item.HRRFCreatedDate).ToString("dd MMM yyyy"))).Days);
                     objHRRFExportToExcel.AgeingBucket = (objHRRFExportToExcel.Ageing < 30) ? "0 - 29 D" : (objHRRFExportToExcel.Ageing < 60) ? "30 - 59 D" : (objHRRFExportToExcel.Ageing < 90) ? "60 - 89 D" : ">=90 D";
                     objHRRFExportToExcel.Purpose = item.Purpose;
                     objHRRFExportToExcel.ProjectNameWithCode = (item.Purpose.ToLower() == "proactive hire" || item.Purpose.ToLower() == "opportunity") ? "" : item.ProjectName + " --- " + item.ProjectCode;
@@ -330,7 +329,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             && item.RequestStatus.ToLower() != "terminated" && item.RequestStatus.ToLower() != "fulfilled")
                         {
                             DateTime dtAssignmentStartDate = Convert.ToDateTime(item.AssignmentStartDate);
-                            DateTime dtCurrentDate = DateTime.Today;
+                            DateTime dtCurrentDate = DateTime.UtcNow.Date;
 
                             int result = DateTime.Compare(dtCurrentDate, dtAssignmentStartDate);
 
@@ -688,7 +687,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
                     Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=TR-Details" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    Response.AddHeader("content-disposition", "attachment;filename=TR-Details" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                     Response.Charset = "";
                     Response.ContentType = "application/vnd.ms-excel";
@@ -781,7 +780,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //                            grid.Column("DateOfHold", "Date of Hold")
                 //                       )).ToString();
                 //Response.ClearContent();
-                //Response.AddHeader("content-disposition", "attachment; filename=HRRFInfo" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xls");
+                //Response.AddHeader("content-disposition", "attachment; filename=HRRFInfo" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xls");
                 //Response.ContentType = "application/excel";
                 //Response.Write(gridData);
                 //Response.End();
@@ -1218,7 +1217,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //    Session.Clear();
         //    Session.Abandon();
         //    ViewBag.state = "expired";
-        //    //FormsAuthentication.SignOut(); //you write this when you use FormsAuthentication
+        //    //Session.Abandon(); Response.Cookies.Clear(); Response.Redirect("~/Login/Index");; //you write this when you use FormsAuthentication
         //    return View("SessionExpire_Msg");
         //    /* return RedirectToAction("Login", "Account");*/// redirect to page that states "Session Expired.Please re login to continue".
         //}

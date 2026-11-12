@@ -117,7 +117,7 @@ selectionFieldName: "SelectedRow", ajaxUpdateContainerId: "gridContent");
 <br />
 <br />
 <div id="divGridContent1" class="table table-responsive" style="margin-bottom: 0px;">
-    @Html.Partial("_EmployeeAssignments", Model)
+    { Html.RenderPartial("_EmployeeAssignments", Model); }
 </div>
 <div id="dialog-view-ProjectAutoAssignment" style="display: none">
     <form class="form-horizontal" role="form" id="frmAutoAssignment">

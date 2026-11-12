@@ -356,7 +356,7 @@ format: @<text>
                 </text>),*@
 
 grid.Column("Resume", "Resume", format: item => (item.empdoc.Empcv == null)
-? new HtmlString(string.Empty)
+? new HtmlString(HtmlSanitizerHelper.Sanitize(string.Empty))
 : Html.ActionLink("Download", "FileDownload", new { id = item.employee.EmployeeId }))
 
             @*grid.Column("ProjectName",

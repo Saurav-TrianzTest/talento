@@ -75,8 +75,8 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         //            if (fileExtension == ".xls" || fileExtension == ".xlsx")
         //            {
-        //                //string fileLocation = Server.MapPath("~/Content/") + Request.Files["file"].FileName;
-        //                string fileLocation = Server.MapPath("~/Content/") + string.Format(@"{0}.xlsx","Training"+DateTime.Now.Ticks);
+        //                //string fileLocation = Common.GetS3TempFilePath("Content") + Request.Files["file"].FileName;
+        //                string fileLocation = Common.GetS3TempFilePath("Content") + string.Format(@"{0}.xlsx","Training"+DateTime.UtcNow.Ticks);
         //                if (System.IO.File.Exists(fileLocation))
         //                {
 
@@ -285,8 +285,8 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     if (fileExtension == ".xls" || fileExtension == ".xlsx")
                     {
-                        //string fileLocation = Server.MapPath("~/Content/") + Request.Files["file"].FileName;
-                        string fileLocation = Server.MapPath("~/Content/") + string.Format(@"{0}.xlsx", "Training" + DateTime.Now.Ticks);
+                        //string fileLocation = Common.GetS3TempFilePath("Content") + Request.Files["file"].FileName;
+                        string fileLocation = Common.GetS3TempFilePath("Content") + string.Format(@"{0}.xlsx", "Training" + DateTime.UtcNow.Ticks);
                         if (System.IO.File.Exists(fileLocation))
                         {
 
@@ -480,7 +480,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                             else
                                                             {
                                                                 
-                                                                    if (Convert.ToDateTime(cell.Text) > DateTime.Now.Date)
+                                                                    if (Convert.ToDateTime(cell.Text) > DateTime.UtcNow.Date)
                                                                         checkstrtdateformat = false;
                                                             }
                                                         }
@@ -496,7 +496,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                             else
                                                             {
 
-                                                                if (Convert.ToDateTime(cell.Text) > DateTime.Now.Date)
+                                                                if (Convert.ToDateTime(cell.Text) > DateTime.UtcNow.Date)
                                                                     checkenddateformat = false;
                                                             }
                                                         }
@@ -1335,7 +1335,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
                     Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=" + "Training Data" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    Response.AddHeader("content-disposition", "attachment;filename=" + "Training Data" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                     Response.Charset = "";
                     Response.ContentType = "application/vnd.ms-excel";
@@ -1391,7 +1391,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         public FileResult DownloadTainingReportTemplate()
         {
-            byte[] fileBytes = System.IO.File.ReadAllBytes(Server.MapPath(@"~\Content\Document\Training Sample Template.xlsx"));
+            byte[] fileBytes = Common.DownloadFromS3("Content/Document/Training Sample Template.xlsx");
             string fileName = "Training Sample Template.xlsx";
             return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
         }

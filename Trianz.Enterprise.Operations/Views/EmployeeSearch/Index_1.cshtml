@@ -217,7 +217,7 @@
                         @((item.SkillName != "" && item.SkillName != null) ? item.SkillName.Length < 30 ? item.SkillName : item.SkillName.Substring(0, 25) + " ..." : string.Empty)
                     </td>
                     @*<td>
-            @(item.ResumeFlag == 0 ? new HtmlString(string.Empty) : Html.ActionLink("Download", "FileDownload", new { EmployeeID = item.EmployeeId }))
+            @(item.ResumeFlag == 0 ? new HtmlString(HtmlSanitizerHelper.Sanitize(string.Empty)) : Html.ActionLink("Download", "FileDownload", new { EmployeeID = item.EmployeeId }))
         </td>*@
                     <td>
                         @if (item.ResumeFlag == 0)

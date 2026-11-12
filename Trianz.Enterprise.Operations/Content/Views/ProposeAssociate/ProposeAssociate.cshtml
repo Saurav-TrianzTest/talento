@@ -869,7 +869,7 @@ else if (TempData["Message"] != null)
                             <div class="col-md-12 nopadding text-left">
                                 <div id="gridContent" class="table">
                                     <div>
-                                        @Html.Partial("_PartialProposeAssociate")
+                                        { Html.RenderPartial("_PartialProposeAssociate"); }
                                     </div>
                                 </div>
                             </div>
@@ -916,7 +916,7 @@ else if (TempData["Message"] != null)
                             <div class="col-md-12 nopadding text-left">
                                 <div id="gridContent" class="table">
                                     <div>
-                                        @Html.Partial("_PartialProposeAssociate")
+                                        { Html.RenderPartial("_PartialProposeAssociate"); }
                                     </div>
                                 </div>
                             </div>
@@ -934,7 +934,7 @@ else if (TempData["Message"] != null)
                                 <div id="gridprosedContent" class="table">
                                     <div>
                                         <script>$("#searchbtn").css("display", "block");</script>
-                                        @Html.Partial("_PartialProposedAssociate")
+                                        { Html.RenderPartial("_PartialProposedAssociate"); }
                                         @*@Html.Partial("_PartialProposeAssociate")*@
                                     </div>
                                 </div>
@@ -1445,7 +1445,7 @@ else if (TempData["Message"] != null)
                                 {
                                     @*<p>Bill Rate: @Html.Label(modelItem.BILLRATE.ToString())</p>*@
                                     @*<p>Bill Rate: @Html.Label(Decimal.TryParse(modelItem.BILLRATE.ToString()))</p>*@
-                                    <p>Bill Rate: <b style="margin-left:116px" ;>@Html.Raw(Convert.ToDecimal(modelItem.BILLRATE).ToString("0.00")) </b></p>
+                                    <p>Bill Rate: <b style="margin-left:116px" ;>@Html.Raw(HtmlSanitizerHelper.Sanitize(Convert.ToDecimal(modelItem.BILLRATE)).ToString("0.00")) </b></p>
 
                                 }
                                 else
@@ -1983,7 +1983,7 @@ else if (TempData["Message"] != null)
                         <div class="row1">
                             <div class="col-md-12 nopadding" style="margin-left: 17px;background-color: #ffffff;width: 97%;">
                                 <div id="gridprosedContent" class="table table-responsive">
-                                    @Html.Partial("_PartialProposedAssociate")
+                                    { Html.RenderPartial("_PartialProposedAssociate"); }
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -2083,7 +2083,7 @@ else if (TempData["Message"] != null)
 
 
 <div id="test">
-    @Html.Partial("HRRFHistory", ViewData["HRRFHistory"])
+    { Html.RenderPartial("HRRFHistory", ViewData["HRRFHistory"]); }
 </div>
 
 <style type="text/css">

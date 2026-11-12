@@ -156,17 +156,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                     em.PreviousStatus = empskill.SkillStatus;
                     em.Comments = empskill.SkillStatus + " " + Remarks;
                     em.Expertiselevel = empskill.Expertiselevel;
-                    em.ModifiedDate = DateTime.Now;
+                    em.ModifiedDate = DateTime.UtcNow;
                     em.SkillID = empskill.SkillId;
                     em.TechnologyLastUsed = empskill.TechnologyLastUsed;
                     em.UpdateStatus = status;
                     em.ApproverID = Loginuser;
-                    em.ApprovalDate = DateTime.Now;
+                    em.ApprovalDate = DateTime.UtcNow;
                     db.EmployeeSkillHistories.Add(em);
 
                     empskill.SkillStatus = status;
                     empskill.Remarks = Remarks;
-                    //empskill.ApprovalDate = DateTime.Now;
+                    //empskill.ApprovalDate = DateTime.UtcNow;
                     //empskill.ApproverId = Loginuser;
                     var empcount = db.Employees.Where(e => e.EmployeeId == EmployeeId && e.IsActive == true).ToList();
 
@@ -181,8 +181,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                         {
                             empskill.IsReviewed = true;
                             empskill.ReviewerId = Loginuser;
-                            empskill.LastReviewdDate = DateTime.Now;
-                            empskill.ApprovalDate = DateTime.Now;
+                            empskill.LastReviewdDate = DateTime.UtcNow;
+                            empskill.ApprovalDate = DateTime.UtcNow;
                             empskill.ApproverId = Loginuser;
                             //  db.EmployeeSkills_New.Add(empskill);
                         }
@@ -190,12 +190,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                         {
                             empskill.IsReviewed = true;
                             empskill.ReviewerId = Loginuser;
-                            empskill.LastReviewdDate = DateTime.Now;
+                            empskill.LastReviewdDate = DateTime.UtcNow;
                         }
                     }
                     else if (empcount[0].SupervisorId == Loginuser)
                     {
-                        empskill.ApprovalDate = DateTime.Now;
+                        empskill.ApprovalDate = DateTime.UtcNow;
                         empskill.ApproverId = Loginuser;
                     }
                 }
@@ -205,7 +205,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 Employee emp = db.Employees.Where(e => e.EmployeeId == EmployeeId).FirstOrDefault();
                 Notification tblNotification = new Notification();
                 tblNotification.NotificationType = ConfigurationManager.AppSettings["SkillApprovalResponse_NotificationType"].ToString() + status;
-                tblNotification.NotificationDate = System.DateTime.Now;
+                tblNotification.NotificationDate = System.DateTime.UtcNow;
                 tblNotification.NotificationFrom = emp.SupervisorId;
                 tblNotification.NotificationTo = emp.EmployeeId;
                 if (status.ToLower() == "rejected")
@@ -221,7 +221,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 string LinktoOpen = "Please Click on link to View the status of skills " + talentoURL;
                 string body = string.Empty;
 
-                using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+                using (StreamReader reader = new StreamReader(Common.DownloadFromS3Stream("Views/Shared/EmailTemplate.html")))
                 {
                     body = reader.ReadToEnd();
                 }
@@ -287,23 +287,23 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                em.PreviousStatus = empskill.SkillStatus;
         //                em.Comments = empskill.SkillStatus +" "+ Remarks;
         //                em.Expertiselevel = empskill.Expertiselevel;
-        //                em.ModifiedDate = DateTime.Now;
+        //                em.ModifiedDate = DateTime.UtcNow;
         //                em.SkillID = empskill.SkillId; 
         //                em.TechnologyLastUsed = empskill.TechnologyLastUsed;
         //                em.UpdateStatus = status;
         //                em.ApproverID = Loginuser;
-        //                em.ApprovalDate = DateTime.Now;
+        //                em.ApprovalDate = DateTime.UtcNow;
         //                db.EmployeeSkillHistories.Add(em);
 
         //                empskill.SkillStatus = status;
         //                empskill.Remarks = Remarks;
-        //                empskill.ApprovalDate = DateTime.Now;
+        //                empskill.ApprovalDate = DateTime.UtcNow;
         //                empskill.ApproverId = Loginuser;
         //            }
         //            Employee emp = db.Employees.Where(e => e.EmployeeId == EmployeeId).FirstOrDefault();
         //            Notification tblNotification = new Notification();
         //            tblNotification.NotificationType = ConfigurationManager.AppSettings["SkillApprovalResponse_NotificationType"].ToString() + status;
-        //            tblNotification.NotificationDate = System.DateTime.Now;
+        //            tblNotification.NotificationDate = System.DateTime.UtcNow;
         //            tblNotification.NotificationFrom = emp.SupervisorId;
         //            tblNotification.NotificationTo = emp.EmployeeId;
         //            if (status.ToLower() == "rejected")
@@ -319,7 +319,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //            string LinktoOpen = "Please Click on link to View the status of skills " + talentoURL;
         //            string body = string.Empty;
 
-        //            using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+        //            using (StreamReader reader = new StreamReader(Common.DownloadFromS3Stream("Views/Shared/EmailTemplate.html")))
         //            {
         //                body = reader.ReadToEnd();
         //            }

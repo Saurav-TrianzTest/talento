@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using Amazon.S3;
+using Amazon.S3.Model;
+using System.IO;
+using System.Threading.Tasks;
 using Trianz.Enterprise.Operations.Models;
 using System.Web.Mvc;
 using System.IO;
@@ -25,7 +29,7 @@ namespace Trianz.Enterprise.Operations.General
             {
 				TrianzOperationsEntities _db = new TrianzOperationsEntities();
                
-                string UName = HttpContext.Current.User.Identity.Name;
+                string UName = HttpContext.Current?.User?.Identity?.Name ?? "";
                 if (UName.IndexOf("\\") > 0)
                 {
                      UName = UName.Substring(7);
@@ -69,7 +73,7 @@ namespace Trianz.Enterprise.Operations.General
 			string eMail = "";
 			try
 			{
-				var userClaims = HttpContext.Current.User.Identity as System.Security.Claims.ClaimsIdentity;
+				var userClaims = (HttpContext.Current?.User?.Identity as System.Security.Claims.ClaimsIdentity);
 				string EmpName = userClaims?.FindFirst("name")?.Value;
 				Common.WriteErrorLog("name : " + EmpName);
 				eMail = userClaims?.FindFirst("preferred_username")?.Value;
@@ -103,7 +107,7 @@ namespace Trianz.Enterprise.Operations.General
             try
             {
                 sw = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + "\\TalentoLog.txt", true);
-                sw.WriteLine(DateTime.Now.ToString() + ": " + ex.Source.ToString().Trim() + "; " + ex.Message.ToString().Trim());
+                sw.WriteLine(DateTime.UtcNow.ToString() + ": " + ex.Source.ToString().Trim() + "; " + ex.Message.ToString().Trim());
                 sw.Flush();
                 sw.Close();
             }
@@ -125,7 +129,7 @@ namespace Trianz.Enterprise.Operations.General
             try
             {
                 sw = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + "\\TalentoLog.txt", true);
-                sw.WriteLine(DateTime.Now.ToString() + ": " + Message);
+                sw.WriteLine(DateTime.UtcNow.ToString() + ": " + Message);
                 sw.Flush();
                 sw.Close();
             }
@@ -185,7 +189,7 @@ namespace Trianz.Enterprise.Operations.General
         //    try
         //    {
         //        sw = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + "\\Audit.txt", true);
-        //        sw.WriteLine(DateTime.Now.ToString() + ": " + Message);
+        //        sw.WriteLine(DateTime.UtcNow.ToString() + ": " + Message);
         //        sw.Flush();
         //        sw.Close();
         //    }
@@ -210,5 +214,49 @@ namespace Trianz.Enterprise.Operations.General
         //}
 
 
+    }
+
+    public static byte[] DownloadFromS3(string key)
+    {
+        try
+        {
+            var s3Client = new AmazonS3Client();
+            var bucketName = System.Configuration.ConfigurationManager.AppSettings["AWS:S3:Bucket"] ?? "TrianzEnterpriseOperations";
+            var response = s3Client.GetObject(new GetObjectRequest
+            {
+                BucketName = bucketName,
+                Key = key
+            });
+            using (var memoryStream = new MemoryStream())
+            {
+                response.ResponseStream.CopyTo(memoryStream);
+                return memoryStream.ToArray();
+            }
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public static Stream DownloadFromS3Stream(string key)
+    {
+        var s3Client = new AmazonS3Client();
+        var bucketName = System.Configuration.ConfigurationManager.AppSettings["AWS:S3:Bucket"] ?? "TrianzEnterpriseOperations";
+        var response = s3Client.GetObject(new GetObjectRequest
+        {
+            BucketName = bucketName,
+            Key = key
+        });
+        return response.ResponseStream;
+    }
+
+    public static string GetS3TempFilePath(string key)
+    {
+        var bytes = DownloadFromS3(key);
+        if (bytes == null) return null;
+        var tempPath = Path.Combine(Path.GetTempPath(), key.Replace("/", "_"));
+        File.WriteAllBytes(tempPath, bytes);
+        return tempPath;
     }
 }

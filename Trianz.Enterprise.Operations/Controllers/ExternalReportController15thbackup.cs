@@ -543,7 +543,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         if (externalFulFillmentHire != null)
                         {
                             externalFulFillmentHire.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                            externalFulFillmentHire.ModifiedDate = DateTime.Now;
+                            externalFulFillmentHire.ModifiedDate = DateTime.UtcNow;
 
                             db.Entry(externalFulFillmentHire).State = System.Data.Entity.EntityState.Modified;
                         }
@@ -588,9 +588,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                             #region Existing Bench Record
                             var previousprojectass = db.ProjectAssignments.Where(p => p.IsActive == true && p.EmployeeId == externalhire.EmployeeId && p.BillingStatus == "Bench").ToList();
                             var dtProjectAssignSatrtAsEndDate = db.ProjectAssignments.Where(pa => pa.EmployeeId == externalhire.EmployeeId
-                                            && DateTime.Now <= pa.StartDate).OrderBy(pa => pa.StartDate).Select(pa => pa.StartDate).FirstOrDefault();
+                                            && DateTime.UtcNow <= pa.StartDate).OrderBy(pa => pa.StartDate).Select(pa => pa.StartDate).FirstOrDefault();
                             var dtProjectAssignEndDate = db.ProjectAssignments.Where(pa => pa.EmployeeId == externalhire.EmployeeId && pa.IsActive == true && pa.BillingStatus != "Bench"
-                                   && DateTime.Now <= pa.EndDate).OrderBy(pa => pa.EndDate).Select(pa => pa.EndDate).FirstOrDefault();
+                                   && DateTime.UtcNow <= pa.EndDate).OrderBy(pa => pa.EndDate).Select(pa => pa.EndDate).FirstOrDefault();
                             if (previousprojectass.Count != 0)
                             {
                                 foreach (var lt in previousprojectass)
@@ -609,13 +609,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     pash.StartDateOld = lt.StartDate;
                                     pash.UtilizationOld = lt.Utilization;
                                     pash.modifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                                    pash.ModifiedDate = DateTime.Now;
+                                    pash.ModifiedDate = DateTime.UtcNow;
 
                                     #region Exisitng Bench Record Update based on selected Dates
                                     // Selecting top 1 Start Date order by desc to Set Bench Enda date
                                     // billdatge == getdate
                                     int? ul = null;
-                                    if (DateTime.Now.Date >= (Convert.ToDateTime(objHRRF.BillingDate).Date))
+                                    if (DateTime.UtcNow.Date >= (Convert.ToDateTime(objHRRF.BillingDate).Date))
                                     {
                                         if (Utilzation == null)
                                         {
@@ -632,14 +632,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     {
                                         lt.EndDate = Convert.ToDateTime(dtProjectAssignSatrtAsEndDate);
                                     }
-                                    else if (dtProjectAssignEndDate != null && dtProjectAssignEndDate <= Convert.ToDateTime(objHRRF.AssignmentEndDate) && DateTime.Now.Date.Equals(Convert.ToDateTime(objHRRF.BillingDate).Date))
+                                    else if (dtProjectAssignEndDate != null && dtProjectAssignEndDate <= Convert.ToDateTime(objHRRF.AssignmentEndDate) && DateTime.UtcNow.Date.Equals(Convert.ToDateTime(objHRRF.BillingDate).Date))
                                     {
                                         if (Convert.ToDateTime(objHRRF.BillingDate) < dtProjectAssignEndDate)
                                             lt.EndDate = Convert.ToDateTime(objHRRF.BillingDate);
                                         else
                                             lt.EndDate = Convert.ToDateTime(dtProjectAssignEndDate);
                                     }
-                                    else if (DateTime.Now.Date >= (Convert.ToDateTime(objHRRF.BillingDate).Date))
+                                    else if (DateTime.UtcNow.Date >= (Convert.ToDateTime(objHRRF.BillingDate).Date))
                                     {
                                         if (ul > 0)
                                             lt.EndDate = Convert.ToDateTime(objHRRF.AssignmentEndDate);
@@ -657,9 +657,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         lt.EndDate = Convert.ToDateTime(objHRRF.BillingDate);
                                     }
 
-                                    //else if (DateTime.Now.Date < Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                    //else if (DateTime.UtcNow.Date < Convert.ToDateTime(objHRRF.BillingDate).Date)
                                     //{
-                                    //    lt.StartDate = DateTime.Now;
+                                    //    lt.StartDate = DateTime.UtcNow;
                                     //    lt.Utilization = Utilzation ?? 100;
                                     //}
                                     if (ul > 0)
@@ -689,7 +689,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             else
                             {
                                 int benchUtilization = 0;
-                                if (DateTime.Now.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                if (DateTime.UtcNow.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
                                 {
                                     if (Utilzation == null)
                                     {
@@ -703,7 +703,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     //projAssignment.Utilization = Utilzation;
 
                                 }
-                                else if (DateTime.Now.Date < Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                else if (DateTime.UtcNow.Date < Convert.ToDateTime(objHRRF.BillingDate).Date)
                                 {
                                     benchUtilization = 100;
                                 }
@@ -713,26 +713,26 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     DateTime stdat = new DateTime();
                                     DateTime etdat = new DateTime();
 
-                                    if (DateTime.Now.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                    if (DateTime.UtcNow.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
                                     {
                                         stdat = Convert.ToDateTime(objHRRF.BillingDate);
                                     }
                                     else
                                     {
-                                        stdat = DateTime.Now.Date;
+                                        stdat = DateTime.UtcNow.Date;
                                     }
-                                    if (dtProjectAssignSatrtAsEndDate != null && dtProjectAssignSatrtAsEndDate <= Convert.ToDateTime(objHRRF.BillingDate) && DateTime.Now.Date.Equals(Convert.ToDateTime(objHRRF.BillingDate).Date))
+                                    if (dtProjectAssignSatrtAsEndDate != null && dtProjectAssignSatrtAsEndDate <= Convert.ToDateTime(objHRRF.BillingDate) && DateTime.UtcNow.Date.Equals(Convert.ToDateTime(objHRRF.BillingDate).Date))
                                     {
                                         etdat = Convert.ToDateTime(dtProjectAssignSatrtAsEndDate);
                                     }
-                                    else if (dtProjectAssignEndDate != null && dtProjectAssignEndDate <= Convert.ToDateTime(objHRRF.AssignmentEndDate) && DateTime.Now.Date.Equals(Convert.ToDateTime(objHRRF.BillingDate).Date))
+                                    else if (dtProjectAssignEndDate != null && dtProjectAssignEndDate <= Convert.ToDateTime(objHRRF.AssignmentEndDate) && DateTime.UtcNow.Date.Equals(Convert.ToDateTime(objHRRF.BillingDate).Date))
                                     {
                                         if (Convert.ToDateTime(objHRRF.BillingDate) < dtProjectAssignEndDate)
                                             etdat = Convert.ToDateTime(objHRRF.BillingDate);
                                         else
                                             etdat = Convert.ToDateTime(dtProjectAssignEndDate);
                                     }
-                                    else if (DateTime.Now.Date >= (Convert.ToDateTime(objHRRF.BillingDate).Date))
+                                    else if (DateTime.UtcNow.Date >= (Convert.ToDateTime(objHRRF.BillingDate).Date))
                                     {
                                         etdat = Convert.ToDateTime(objHRRF.AssignmentEndDate);
                                     }
@@ -796,7 +796,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             // need to check future date and active and inactive
                                             projAssignment.IsActive = true;
                                             projAssignment.Assigned_By = unass.FirstOrDefault().projmanger;
-                                            projAssignment.Assigned_Date = System.DateTime.Now;
+                                            projAssignment.Assigned_Date = System.DateTime.UtcNow;
                                             projAssignment.BillingStatus = unass.FirstOrDefault().Billingstatus;
                                             if (projAssignment.BillingStatus == "Bench")
                                             {
@@ -820,7 +820,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             projBenchHistory.StartDateOld = null;
                                             projBenchHistory.UtilizationOld = null;
                                             projBenchHistory.modifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                                            projBenchHistory.ModifiedDate = DateTime.Now;
+                                            projBenchHistory.ModifiedDate = DateTime.UtcNow;
                                             projBenchHistory.UtilizationNew = projAssignment.Utilization;
                                             projBenchHistory.StartDateNew = projAssignment.StartDate;
                                             projBenchHistory.IsActiveNew = projAssignment.IsActive;
@@ -892,12 +892,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                     projAssignment.Utilization = 100;
                                                     projAssignment.EmployeeId = externalhire.EmployeeId;
                                                     // need to check future date and active and inactive
-                                                    if (DateTime.Now >= Convert.ToDateTime(objHRRF.BillingDate))
+                                                    if (DateTime.UtcNow >= Convert.ToDateTime(objHRRF.BillingDate))
                                                         projAssignment.IsActive = false;
                                                     else
                                                         projAssignment.IsActive = true;
                                                     projAssignment.Assigned_By = unass.FirstOrDefault().projmanger;
-                                                    projAssignment.Assigned_Date = System.DateTime.Now;
+                                                    projAssignment.Assigned_Date = System.DateTime.UtcNow;
                                                     projAssignment.BillingStatus = unass.FirstOrDefault().Billingstatus;
                                                     if (projAssignment.BillingStatus == "Bench")
                                                     {
@@ -921,7 +921,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                     projBenchHistory.StartDateOld = null;
                                                     projBenchHistory.UtilizationOld = null;
                                                     projBenchHistory.modifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                                                    projBenchHistory.ModifiedDate = DateTime.Now;
+                                                    projBenchHistory.ModifiedDate = DateTime.UtcNow;
                                                     projBenchHistory.UtilizationNew = projAssignment.Utilization;
                                                     projBenchHistory.StartDateNew = projAssignment.StartDate;
                                                     projBenchHistory.IsActiveNew = projAssignment.IsActive;
@@ -964,7 +964,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 objProjectAssignment.EmployeeId = externalhire.EmployeeId;
                                 objProjectAssignment.Utilization = utl;
                                 // need to check future date and active and inactive
-                                if (DateTime.Now.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                if (DateTime.UtcNow.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
                                 {
                                     objProjectAssignment.IsActive = true;
                                 }
@@ -973,7 +973,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     objProjectAssignment.IsActive = false;
                                 }
                                 objProjectAssignment.Assigned_By = name;
-                                objProjectAssignment.Assigned_Date = System.DateTime.Now;
+                                objProjectAssignment.Assigned_Date = System.DateTime.UtcNow;
                                 if (objHRRF.Purpose.ToLower() == "project")
                                 {
                                     objProjectAssignment.BillingStatus = objHRRF.ResourceType;
@@ -1007,10 +1007,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 pash.StartDateOld = null;
                                 pash.UtilizationOld = null;
                                 pash.modifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                                pash.ModifiedDate = DateTime.Now;
+                                pash.ModifiedDate = DateTime.UtcNow;
                                 pash.UtilizationNew = utl;
                                 pash.StartDateNew = objHRRF.BillingDate;
-                                if (DateTime.Now.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                if (DateTime.UtcNow.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
                                 {
                                     pash.IsActiveNew = true;
                                 }
@@ -1068,7 +1068,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         prj1.ProjectName = unass[0].ProjectName;
                                         prj1.StartDate = objHRRF.BillingDate;
                                         prj1.EndDate = objHRRF.AssignmentEndDate;
-                                        if (DateTime.Now.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                        if (DateTime.UtcNow.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
                                         {
                                             prj1.IsActive = true;
                                         }
@@ -1077,7 +1077,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             prj1.IsActive = false;
                                         }
                                         prj1.Assigned_By = unass[0].projmanger;
-                                        prj1.Assigned_Date = DateTime.Now;
+                                        prj1.Assigned_Date = DateTime.UtcNow;
                                         prj1.BillingStatus = unass[0].Billingstatus;
                                         if (prj1.BillingStatus == "Bench")
                                         {
@@ -1102,10 +1102,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         pash.StartDateOld = null;
                                         pash.UtilizationOld = null;
                                         pash.modifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                                        pash.ModifiedDate = DateTime.Now;
+                                        pash.ModifiedDate = DateTime.UtcNow;
                                         pash.UtilizationNew = utl;
                                         pash.StartDateNew = objHRRF.BillingDate;
-                                        if (DateTime.Now.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                        if (DateTime.UtcNow.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
                                         {
                                             pash.IsActiveNew = true;
                                         }
@@ -1416,9 +1416,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                             #region Existing Bench Record
                             var previousprojectass = db.ProjectAssignments.Where(p => p.IsActive == true && p.EmployeeId == empId1 && p.BillingStatus == "Bench").ToList();
                             var dtProjectAssignSatrtAsEndDate = db.ProjectAssignments.Where(pa => pa.EmployeeId == empId1
-                                             && DateTime.Now <= pa.StartDate).OrderBy(pa => pa.StartDate).Select(pa => pa.StartDate).FirstOrDefault();
+                                             && DateTime.UtcNow <= pa.StartDate).OrderBy(pa => pa.StartDate).Select(pa => pa.StartDate).FirstOrDefault();
                             var dtProjectAssignEndDate = db.ProjectAssignments.Where(pa => pa.EmployeeId == empId1 && pa.IsActive == true && pa.BillingStatus != "Bench"
-                                   && DateTime.Now <= pa.EndDate).OrderBy(pa => pa.EndDate).Select(pa => pa.EndDate).FirstOrDefault();
+                                   && DateTime.UtcNow <= pa.EndDate).OrderBy(pa => pa.EndDate).Select(pa => pa.EndDate).FirstOrDefault();
                             if (previousprojectass.Count != 0)
                             {
                                 foreach (var lt in previousprojectass)
@@ -1437,13 +1437,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     pash.StartDateOld = lt.StartDate;
                                     pash.UtilizationOld = lt.Utilization;
                                     pash.modifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                                    pash.ModifiedDate = DateTime.Now;
+                                    pash.ModifiedDate = DateTime.UtcNow;
 
                                     #region Exisitng Bench Record Update based on selected Dates
                                     // Selecting top 1 Start Date order by desc to Set Bench Enda date
                                     // billdatge == getdate
                                     int? ul = null;
-                                    if (DateTime.Now.Date >= (Convert.ToDateTime(objHRRF.BillingDate).Date))
+                                    if (DateTime.UtcNow.Date >= (Convert.ToDateTime(objHRRF.BillingDate).Date))
                                     {
                                         if (Utilzation == null)
                                         {
@@ -1461,14 +1461,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     {
                                         lt.EndDate = Convert.ToDateTime(dtProjectAssignSatrtAsEndDate);
                                     }
-                                    else if (dtProjectAssignEndDate != null && dtProjectAssignEndDate <= Convert.ToDateTime(objHRRF.AssignmentEndDate) && DateTime.Now.Date.Equals(Convert.ToDateTime(objHRRF.BillingDate).Date))
+                                    else if (dtProjectAssignEndDate != null && dtProjectAssignEndDate <= Convert.ToDateTime(objHRRF.AssignmentEndDate) && DateTime.UtcNow.Date.Equals(Convert.ToDateTime(objHRRF.BillingDate).Date))
                                     {
                                         if (Convert.ToDateTime(objHRRF.BillingDate) < dtProjectAssignEndDate)
                                             lt.EndDate = Convert.ToDateTime(objHRRF.BillingDate);
                                         else
                                             lt.EndDate = Convert.ToDateTime(dtProjectAssignEndDate);
                                     }
-                                    else if (DateTime.Now.Date >= (Convert.ToDateTime(objHRRF.BillingDate).Date))
+                                    else if (DateTime.UtcNow.Date >= (Convert.ToDateTime(objHRRF.BillingDate).Date))
                                     {
                                         if (ul > 0)
                                             lt.EndDate = Convert.ToDateTime(objHRRF.AssignmentEndDate);
@@ -1512,7 +1512,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             else
                             {
                                 int benchUtilization = 0;
-                                if (DateTime.Now.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                if (DateTime.UtcNow.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
                                 {
                                     if (Utilzation == null)
                                     {
@@ -1526,7 +1526,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     //projAssignment.Utilization = Utilzation;
 
                                 }
-                                else if (DateTime.Now.Date < Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                else if (DateTime.UtcNow.Date < Convert.ToDateTime(objHRRF.BillingDate).Date)
                                 {
                                     benchUtilization = 100;
                                 }
@@ -1536,26 +1536,26 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     DateTime stdat = new DateTime();
                                     DateTime etdat = new DateTime();
 
-                                    if (DateTime.Now.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                    if (DateTime.UtcNow.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
                                     {
                                         stdat = Convert.ToDateTime(objHRRF.BillingDate);
                                     }
                                     else
                                     {
-                                        stdat = DateTime.Now.Date;
+                                        stdat = DateTime.UtcNow.Date;
                                     }
-                                    if (dtProjectAssignSatrtAsEndDate != null && dtProjectAssignSatrtAsEndDate <= Convert.ToDateTime(objHRRF.BillingDate) && DateTime.Now.Date.Equals(Convert.ToDateTime(objHRRF.BillingDate).Date))
+                                    if (dtProjectAssignSatrtAsEndDate != null && dtProjectAssignSatrtAsEndDate <= Convert.ToDateTime(objHRRF.BillingDate) && DateTime.UtcNow.Date.Equals(Convert.ToDateTime(objHRRF.BillingDate).Date))
                                     {
                                         etdat = Convert.ToDateTime(dtProjectAssignSatrtAsEndDate);
                                     }
-                                    else if (dtProjectAssignEndDate != null && dtProjectAssignEndDate <= Convert.ToDateTime(objHRRF.AssignmentEndDate) && DateTime.Now.Date.Equals(Convert.ToDateTime(objHRRF.BillingDate).Date))
+                                    else if (dtProjectAssignEndDate != null && dtProjectAssignEndDate <= Convert.ToDateTime(objHRRF.AssignmentEndDate) && DateTime.UtcNow.Date.Equals(Convert.ToDateTime(objHRRF.BillingDate).Date))
                                     {
                                         if (Convert.ToDateTime(objHRRF.BillingDate) < dtProjectAssignEndDate)
                                             etdat = Convert.ToDateTime(objHRRF.BillingDate);
                                         else
                                             etdat = Convert.ToDateTime(dtProjectAssignEndDate);
                                     }
-                                    else if (DateTime.Now.Date >= (Convert.ToDateTime(objHRRF.BillingDate).Date))
+                                    else if (DateTime.UtcNow.Date >= (Convert.ToDateTime(objHRRF.BillingDate).Date))
                                     {
                                         etdat = Convert.ToDateTime(objHRRF.AssignmentEndDate);
                                     }
@@ -1614,7 +1614,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         // need to check future date and active and inactive
                                         projAssignment.IsActive = true;
                                         projAssignment.Assigned_By = unass.FirstOrDefault().projmanger;
-                                        projAssignment.Assigned_Date = System.DateTime.Now;
+                                        projAssignment.Assigned_Date = System.DateTime.UtcNow;
                                         projAssignment.BillingStatus = unass.FirstOrDefault().Billingstatus;
                                         if (projAssignment.BillingStatus == "Bench")
                                         {
@@ -1638,7 +1638,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         projBenchHistory.StartDateOld = null;
                                         projBenchHistory.UtilizationOld = null;
                                         projBenchHistory.modifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                                        projBenchHistory.ModifiedDate = DateTime.Now;
+                                        projBenchHistory.ModifiedDate = DateTime.UtcNow;
                                         projBenchHistory.UtilizationNew = projAssignment.Utilization;
                                         projBenchHistory.StartDateNew = projAssignment.StartDate;
                                         projBenchHistory.IsActiveNew = projAssignment.IsActive;
@@ -1702,12 +1702,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             projAssignment.Utilization = 100;
                                             projAssignment.EmployeeId = empId1;
                                             // need to check future date and active and inactive
-                                            if (DateTime.Now >= Convert.ToDateTime(objHRRF.BillingDate))
+                                            if (DateTime.UtcNow >= Convert.ToDateTime(objHRRF.BillingDate))
                                                 projAssignment.IsActive = false;
                                             else
                                                 projAssignment.IsActive = true;
                                             projAssignment.Assigned_By = unass.FirstOrDefault().projmanger;
-                                            projAssignment.Assigned_Date = System.DateTime.Now;
+                                            projAssignment.Assigned_Date = System.DateTime.UtcNow;
                                             projAssignment.BillingStatus = unass.FirstOrDefault().Billingstatus;
                                             if (projAssignment.BillingStatus == "Bench")
                                             {
@@ -1731,7 +1731,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             projBenchHistory.StartDateOld = null;
                                             projBenchHistory.UtilizationOld = null;
                                             projBenchHistory.modifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                                            projBenchHistory.ModifiedDate = DateTime.Now;
+                                            projBenchHistory.ModifiedDate = DateTime.UtcNow;
                                             projBenchHistory.UtilizationNew = projAssignment.Utilization;
                                             projBenchHistory.StartDateNew = projAssignment.StartDate;
                                             projBenchHistory.IsActiveNew = projAssignment.IsActive;
@@ -1773,7 +1773,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 objProjectAssignment.EmployeeId = empId1;
                                 objProjectAssignment.Utilization = utl;
                                 // need to check future date and active and inactive
-                                if (DateTime.Now.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                if (DateTime.UtcNow.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
                                 {
                                     objProjectAssignment.IsActive = true;
                                 }
@@ -1782,7 +1782,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     objProjectAssignment.IsActive = false;
                                 }
                                 objProjectAssignment.Assigned_By = pmname;
-                                objProjectAssignment.Assigned_Date = System.DateTime.Now;
+                                objProjectAssignment.Assigned_Date = System.DateTime.UtcNow;
                                 if (objHRRF.Purpose.ToLower() == "project")
                                 {
                                     objProjectAssignment.BillingStatus = objHRRF.ResourceType;
@@ -1816,10 +1816,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 pash.StartDateOld = null;
                                 pash.UtilizationOld = null;
                                 pash.modifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                                pash.ModifiedDate = DateTime.Now;
+                                pash.ModifiedDate = DateTime.UtcNow;
                                 pash.UtilizationNew = utl;
                                 pash.StartDateNew = objHRRF.BillingDate;
-                                if (DateTime.Now.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                if (DateTime.UtcNow.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
                                 {
                                     pash.IsActiveNew = true;
                                 }
@@ -1876,7 +1876,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         prj1.ProjectName = unass[0].ProjectName;
                                         prj1.StartDate = objHRRF.BillingDate;
                                         prj1.EndDate = objHRRF.AssignmentEndDate;
-                                        if (DateTime.Now.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                        if (DateTime.UtcNow.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
                                         {
                                             prj1.IsActive = true;
                                         }
@@ -1885,7 +1885,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             prj1.IsActive = false;
                                         }
                                         prj1.Assigned_By = unass[0].projmanger;
-                                        prj1.Assigned_Date = DateTime.Now;
+                                        prj1.Assigned_Date = DateTime.UtcNow;
                                         prj1.BillingStatus = unass[0].Billingstatus;
                                         if (prj1.BillingStatus == "Bench")
                                         {
@@ -1910,10 +1910,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         pash.StartDateOld = null;
                                         pash.UtilizationOld = null;
                                         pash.modifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-                                        pash.ModifiedDate = DateTime.Now;
+                                        pash.ModifiedDate = DateTime.UtcNow;
                                         pash.UtilizationNew = utl;
                                         pash.StartDateNew = objHRRF.BillingDate;
-                                        if (DateTime.Now.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
+                                        if (DateTime.UtcNow.Date >= Convert.ToDateTime(objHRRF.BillingDate).Date)
                                         {
                                             pash.IsActiveNew = true;
                                         }
@@ -2096,7 +2096,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 //            if (externalFulFillmentHire != null)
 //            {
 //                externalFulFillmentHire.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
-//                externalFulFillmentHire.ModifiedDate = DateTime.Now;
+//                externalFulFillmentHire.ModifiedDate = DateTime.UtcNow;
 
 //                db.Entry(externalFulFillmentHire).State = System.Data.Entity.EntityState.Modified;
 //            }
@@ -2366,7 +2366,7 @@ private void InsertNotification(string From, string To, string NotificationMsg, 
             var hrrfResultQualify = db.HRRFs.Where(h => h.HRRFNumber == HrrfNumber).ToList().FirstOrDefault();
             Notification tblNotification = new Notification();
             tblNotification.NotificationType = NOtificationType;
-            tblNotification.NotificationDate = System.DateTime.Now;
+            tblNotification.NotificationDate = System.DateTime.UtcNow;
             tblNotification.NotificationFrom = Convert.ToInt32(From);
             tblNotification.NotificationTo = Convert.ToInt32(To);
             var Body = NotificationMsg + "<br/> <b> Job Description: </b>" + hrrfResultQualify.JobDescription + "<br/><br/>" + MailingContent(HrrfNumber); // + ConfigurationManager.AppSettings["TRNUMber"].ToString() + HrrfNumber + Remarks;
@@ -2380,7 +2380,7 @@ private void InsertNotification(string From, string To, string NotificationMsg, 
             string talentoURL = ConfigurationManager.AppSettings["Talento"];
             string body = string.Empty;
             string LinktoOpen = "Please Click on link to View the details of Submitted Talent Request number #" + HrrfNumber + " : " + talentoURL;
-            using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+            using (StreamReader reader = new StreamReader(Common.DownloadFromS3Stream("Views/Shared/EmailTemplate.html")))
             {
                 body = reader.ReadToEnd();
             }
@@ -2488,7 +2488,7 @@ private void InsertNotification(string From, string To, string NotificationMsg, 
                 HrrfHistory.ModifiedBy = EmpIdForCreatedBy;
                 HrrfHistory.Remarks = Remarks;
                 HrrfHistory.PrevRequestStatus = PrevRequestStatus;
-                HrrfHistory.ModifiedDate = DateTime.Now;
+                HrrfHistory.ModifiedDate = DateTime.UtcNow;
                 db.HRRFHistories.Add(HrrfHistory);
                 db.SaveChanges();
             }
@@ -2626,7 +2626,7 @@ private void InsertNotification(string From, string To, string NotificationMsg, 
                 else
                 {
                     jst.EmployeeID = 0;
-                    jst.DOJ = DateTime.Now;
+                    jst.DOJ = DateTime.UtcNow;
                     jst.Message = "Employee ID not exists";
                 }
                 js.Data = jst;
@@ -2663,7 +2663,7 @@ private void InsertNotification(string From, string To, string NotificationMsg, 
                 //    objHRRFExportToExcel.HRRFNumber = item.HRRFNumber;
                 //    objHRRFExportToExcel.OldHRRFNumber = item.OldHRRFNumber;
                 //    objHRRFExportToExcel.CreatedDate = Convert.ToDateTime(item.HRRFCreatedDate);
-                //    objHRRFExportToExcel.Ageing = (item.HRRFCreatedDate == null) ? 0 : ((DateTime.Today - Convert.ToDateTime(Convert.ToDateTime(item.HRRFCreatedDate).ToString("dd MMM yyyy"))).Days);
+                //    objHRRFExportToExcel.Ageing = (item.HRRFCreatedDate == null) ? 0 : ((DateTime.UtcNow.Date - Convert.ToDateTime(Convert.ToDateTime(item.HRRFCreatedDate).ToString("dd MMM yyyy"))).Days);
                 //    objHRRFExportToExcel.AgeingBucket = (objHRRFExportToExcel.Ageing < 30) ? "0 - 29 D" : (objHRRFExportToExcel.Ageing < 60) ? "30 - 59 D" : (objHRRFExportToExcel.Ageing < 90) ? "60 - 89 D" : ">=90 D";
                 //    objHRRFExportToExcel.Purpose = item.Purpose;
                 //    objHRRFExportToExcel.ProjectNameWithCode = (item.Purpose.ToLower() == "proactive hire" || item.Purpose.ToLower() == "opportunity") ? "" : item.ProjectName + " --- " + item.ProjectCode;
@@ -2687,7 +2687,7 @@ private void InsertNotification(string From, string To, string NotificationMsg, 
                 //            && item.RequestStatus.ToLower() != "terminated" && item.RequestStatus.ToLower() != "fulfilled")
                 //        {
                 //            DateTime dtAssignmentStartDate = Convert.ToDateTime(item.AssignmentStartDate);
-                //            DateTime dtCurrentDate = DateTime.Today;
+                //            DateTime dtCurrentDate = DateTime.UtcNow.Date;
 
                 //            int result = DateTime.Compare(dtCurrentDate, dtAssignmentStartDate);
 
@@ -3053,7 +3053,7 @@ private void InsertNotification(string From, string To, string NotificationMsg, 
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
                     Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=TR-Details" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    Response.AddHeader("content-disposition", "attachment;filename=TR-Details" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                     Response.Charset = "";
                     Response.ContentType = "application/vnd.ms-excel";

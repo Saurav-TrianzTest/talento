@@ -32,7 +32,7 @@ namespace Trianz.Enterprise.Operations.Models
         {
             Trace.WriteLine(
                     string.Format("{0},{1},{2},{3}",
-                                  DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                  DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
                                   type,
                                   module,
                                   message));

@@ -34,7 +34,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 var result = new List<KeyValuePair<string, string>>();
-            DateTime currentDate = System.DateTime.Now.Date;
+            DateTime currentDate = System.DateTime.UtcNow.Date;
             IList<SelectListItem> List = new List<SelectListItem>();
 
             try
@@ -671,7 +671,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
                     Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=" + ((Skills == "") ? "My" : Skills) + "SkillReport" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    Response.AddHeader("content-disposition", "attachment;filename=" + ((Skills == "") ? "My" : Skills) + "SkillReport" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                     Response.Charset = "";
                     Response.ContentType = "application/vnd.ms-excel";

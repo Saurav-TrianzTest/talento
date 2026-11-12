@@ -152,9 +152,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                                  where r.Email == usermail
                                  select r.EmployeeId).FirstOrDefault();
                     masterLookUp.CreatedBy = Convert.ToString(empId);
-                    masterLookUp.DateCreated = DateTime.Now.Date;
+                    masterLookUp.DateCreated = DateTime.UtcNow.Date;
                     masterLookUp.ModifiedBy = empId.ToString();
-                    masterLookUp.DateModified = DateTime.Now.Date;
+                    masterLookUp.DateModified = DateTime.UtcNow.Date;
                     db.MasterLookUps.Add(masterLookUp);
                     db.SaveChanges();
                     return RedirectToAction("Index");
@@ -225,7 +225,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     row.ParentCode = masterLookUp.ParentCode;
                     row.ParentName = masterLookUp.ParentName;
                     row.ModifiedBy = empId.ToString();
-                    row.DateModified = DateTime.Now.Date;
+                    row.DateModified = DateTime.UtcNow.Date;
 
                     db.Entry(row).State = EntityState.Modified;
                     db.SaveChanges();

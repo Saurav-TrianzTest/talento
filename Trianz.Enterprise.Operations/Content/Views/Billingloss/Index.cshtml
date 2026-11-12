@@ -243,7 +243,7 @@ new SelectListItem { Text ="All",Value="ALL"},
     background-color: #ffffff;
     margin: 24px;
     margin-top: 10px;">
-            @Html.Partial("_BillingLossShowDetails", Model)
+            { Html.RenderPartial("_BillingLossShowDetails", Model); }
         </div>
 
     </div>

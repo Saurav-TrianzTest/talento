@@ -48,7 +48,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             var ExternalRecruitDemands = (from ExternalRecruit in db.HRRFs.AsEnumerable()
                                           where ExternalRecruit.RequestStatus == ConfigurationManager.AppSettings["ExternalRecruit"]
                                           select ExternalRecruit).Count();
-            var todaydate = DateTime.Now.Year;
+            var todaydate = DateTime.UtcNow.Year;
 
             // List<HRRF> MonthlyDemand = new List<HRRF>();
             List<MasterLookUp> MasterLookUps = db.MasterLookUps.ToList();

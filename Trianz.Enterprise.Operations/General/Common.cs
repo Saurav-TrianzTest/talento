@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using Amazon.S3;
+using Amazon.S3.Model;
+using System.IO;
 using EmployeeSurvey.Models;
 using System.Web.Mvc;
 using System.IO;
@@ -25,7 +28,7 @@ namespace EmployeeSurvey.General
             {
 				TZ_CorporateOperations_StagingEntities _db = new TZ_CorporateOperations_StagingEntities();
                
-                string UName = HttpContext.Current.User.Identity.Name;
+                string UName = HttpContext.Current?.User?.Identity?.Name ?? "";
                 if (UName.IndexOf("\\") > 0)
                 {
                      UName = UName.Substring(7);
@@ -68,7 +71,7 @@ namespace EmployeeSurvey.General
 			TZ_CorporateOperations_StagingEntities _db = new TZ_CorporateOperations_StagingEntities();
 			try
 			{
-				var userClaims = HttpContext.Current.User.Identity as System.Security.Claims.ClaimsIdentity;
+				var userClaims = (HttpContext.Current?.User?.Identity as System.Security.Claims.ClaimsIdentity);
 				string EmpName = userClaims?.FindFirst("name")?.Value;
 				Common.WriteErrorLog("name : " + EmpName);
 				string eMail = userClaims?.FindFirst("preferred_username")?.Value;
@@ -96,7 +99,7 @@ namespace EmployeeSurvey.General
             try
             {
                 sw = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + "\\EmployeeSurveyLog.txt", true);
-                sw.WriteLine(DateTime.Now.ToString() + ": " + ex.Source.ToString().Trim() + "; " + ex.Message.ToString().Trim());
+                sw.WriteLine(DateTime.UtcNow.ToString() + ": " + ex.Source.ToString().Trim() + "; " + ex.Message.ToString().Trim());
                 sw.Flush();
                 sw.Close();
             }
@@ -118,7 +121,7 @@ namespace EmployeeSurvey.General
             try
             {
                 sw = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + "\\EmployeeSurveyLog.txt", true);
-                sw.WriteLine(DateTime.Now.ToString() + ": " + Message);
+                sw.WriteLine(DateTime.UtcNow.ToString() + ": " + Message);
                 sw.Flush();
                 sw.Close();
             }
@@ -130,4 +133,39 @@ namespace EmployeeSurvey.General
 		#endregion
 
 	}
+
+    public static byte[] DownloadFromS3(string key)
+    {
+        try
+        {
+            var s3Client = new AmazonS3Client();
+            var bucketName = System.Configuration.ConfigurationManager.AppSettings["AWS:S3:Bucket"] ?? "TrianzEnterpriseOperations";
+            var response = s3Client.GetObject(new GetObjectRequest
+            {
+                BucketName = bucketName,
+                Key = key
+            });
+            using (var memoryStream = new MemoryStream())
+            {
+                response.ResponseStream.CopyTo(memoryStream);
+                return memoryStream.ToArray();
+            }
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public static Stream DownloadFromS3Stream(string key)
+    {
+        var s3Client = new AmazonS3Client();
+        var bucketName = System.Configuration.ConfigurationManager.AppSettings["AWS:S3:Bucket"] ?? "TrianzEnterpriseOperations";
+        var response = s3Client.GetObject(new GetObjectRequest
+        {
+            BucketName = bucketName,
+            Key = key
+        });
+        return response.ResponseStream;
+    }
 }

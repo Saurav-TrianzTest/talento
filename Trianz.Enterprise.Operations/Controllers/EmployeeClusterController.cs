@@ -998,7 +998,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         Byte[] fileBytes = package.GetAsByteArray();
                         Response.Clear();
                         Response.Buffer = true;
-                        Response.AddHeader("content-disposition", "attachment;filename=" + "ClusterEmployeeSkill" + "-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                        Response.AddHeader("content-disposition", "attachment;filename=" + "ClusterEmployeeSkill" + "-Report" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                         Response.Charset = "";
                         Response.ContentType = "application/vnd.ms-excel";
@@ -1048,7 +1048,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             //em.PreviousStatus = objDeleteSkill.SkillStatus;
                             //em.Comments = "Skill deleted";
                             //em.Expertiselevel = objDeleteSkill.Expertiselevel;
-                            // em.ModifiedDate = DateTime.Now;
+                            // em.ModifiedDate = DateTime.UtcNow;
                             //em.SkillID = objDeleteSkill.SkillId;
                             //em.TechnologyLastUsed = objDeleteSkill.TechnologyLastUsed;
                             //em.UpdateStatus = "Deleted";
@@ -1097,7 +1097,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 EmployeeSkills_New em = new EmployeeSkills_New();
                                 em.EmployeeId = item.EmployeeId;
                                 em.SkillId = item.SkillId;
-                                em.LastModifiedDate = DateTime.Now;
+                                em.LastModifiedDate = DateTime.UtcNow;
                                 db.EmployeeSkills_New.Add(em);
                                 db.SaveChanges();
                             }
@@ -1109,7 +1109,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 reviewkills.EmployeeId = item.EmployeeId;
                                 reviewkills.SkillId = item.SkillId;
                                 reviewkills.ReviewerId = item.LeadID;
-                                reviewkills.LastReviewdDate = DateTime.Now;
+                                reviewkills.LastReviewdDate = DateTime.UtcNow;
                                 reviewkills.IsReviewed = item.Reviewed;
                                 reviewkills.Expertiselevel = reviewdkills.Expertiselevel;
                                 db.Entry(reviewkills).State = System.Data.Entity.EntityState.Modified;

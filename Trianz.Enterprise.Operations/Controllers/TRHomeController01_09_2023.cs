@@ -141,7 +141,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             {
                                 var _Accounts = (from projects in db.Projects.
                                                   Where(p => p.ProjectManagerId == empID && p.IsActive == true)
-                                                  // Where(p => p.ProjectManagerId == empID && p.IsActive == true && p.SOWEndDate >= DateTime.Now)
+                                                  // Where(p => p.ProjectManagerId == empID && p.IsActive == true && p.SOWEndDate >= DateTime.UtcNow)
                                                  select new
                                                  {
                                                      Accountname = projects.AccountName
@@ -160,7 +160,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         {
                             var _Accounts = (from projects in db.Projects.
                                                     Where(p => p.IsActive == true)
-                                                    //Where(p => p.IsActive == true && p.SOWEndDate >= DateTime.Now)
+                                                    //Where(p => p.IsActive == true && p.SOWEndDate >= DateTime.UtcNow)
                                              select new
                                              {
                                                  Accountname = projects.AccountName
@@ -847,7 +847,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //            Byte[] fileBytes = package.GetAsByteArray();
         //            Response.Clear();
         //            Response.Buffer = true;
-        //            Response.AddHeader("content-disposition", "attachment;filename=" + ((strRequest == "") ? "My" : strRequest) + "-TR-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+        //            Response.AddHeader("content-disposition", "attachment;filename=" + ((strRequest == "") ? "My" : strRequest) + "-TR-Report" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
         //            Response.Charset = "";
         //            Response.ContentType = "application/vnd.ms-excel";
@@ -1227,7 +1227,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
                     Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=" + ((strRequest == "") ? "My" : strRequest) + "-TR-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    Response.AddHeader("content-disposition", "attachment;filename=" + ((strRequest == "") ? "My" : strRequest) + "-TR-Report" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                     Response.Charset = "";
                     Response.ContentType = "application/vnd.ms-excel";

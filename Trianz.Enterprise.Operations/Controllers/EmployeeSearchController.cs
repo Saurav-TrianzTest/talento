@@ -63,7 +63,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             //Latest dropdown for accountname
             var AccountName = (from projects in db.Projects
                                where projects.IsActive == true
-                               // where projects.IsActive == true && projects.SOWEndDate >= DateTime.Now
+                               // where projects.IsActive == true && projects.SOWEndDate >= DateTime.UtcNow
                                orderby projects.AccountName
                                select new
                                {
@@ -188,7 +188,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             //Latest dropdown for accountname
             var AccountName = (from projects in db.Projects
                                where projects.IsActive == true
-                               // where projects.IsActive == true && projects.SOWEndDate >= DateTime.Now
+                               // where projects.IsActive == true && projects.SOWEndDate >= DateTime.UtcNow
                                orderby projects.AccountName
                                select new
                                {
@@ -398,7 +398,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             try
             {
                 var result = new List<KeyValuePair<string, string>>();
-                DateTime dt = DateTime.Now;
+                DateTime dt = DateTime.UtcNow;
                 IList<SelectListItem> List = new List<SelectListItem>();
 
                 var Empdetails = (from pro in db.Employees
@@ -520,7 +520,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 objemail.ToMailEmpId = Emp.EmployeeId;
                                 objemail.RresourceEmpID = empId;
                                 objemail.Mailbody = message;
-                                objemail.CreatedDate = DateTime.Now;
+                                objemail.CreatedDate = DateTime.UtcNow;
                                 objemail.MailSent = "Y";
                                 db.EmailAudits.Add(objemail);
                                 db.SaveChanges();
@@ -547,7 +547,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         objemail.ToMailEmpId = Emp.EmployeeId;
                         objemail.RresourceEmpID = empId;
                         objemail.Mailbody = message;
-                        objemail.CreatedDate = DateTime.Now;
+                        objemail.CreatedDate = DateTime.UtcNow;
                         objemail.MailSent = "Y";
                         db.EmailAudits.Add(objemail);
                         db.SaveChanges();
@@ -578,12 +578,18 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
 
-                SmtpClient smtp = new SmtpClient();
-                smtp.Host = host;
-                smtp.Port = Convert.ToInt32(portNo);
-                smtp.EnableSsl = true;
-                smtp.Credentials = new NetworkCredential(Smtpuser, Smtppassword);
-                smtp.Send(mm);
+                Amazon.SimpleEmail.AmazonSimpleEmailServiceClient sesClient = new Amazon.SimpleEmail.AmazonSimpleEmailServiceClient();
+                var sesRequest = new Amazon.SimpleEmail.Model.SendEmailRequest
+                {
+                    Source = SmtpuserCommon,
+                    Destination = new Amazon.SimpleEmail.Model.Destination { ToAddresses = lstRecipients },
+                    Message = new Amazon.SimpleEmail.Model.Message
+                    {
+                        Subject = new Amazon.SimpleEmail.Model.Content(mm.Subject),
+                        Body = new Amazon.SimpleEmail.Model.Body { Html = new Amazon.SimpleEmail.Model.Content(mm.Body) }
+                    }
+                };
+                sesClient.SendEmail(sesRequest);
                 #endregion
 
                 return true;
@@ -960,7 +966,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
                     Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=" + "EmployeeSearch" + "-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    Response.AddHeader("content-disposition", "attachment;filename=" + "EmployeeSearch" + "-Report" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                     Response.Charset = "";
                     Response.ContentType = "application/vnd.ms-excel";

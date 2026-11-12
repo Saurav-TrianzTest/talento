@@ -215,7 +215,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         objcluster.CSKILLS = skill.CSKILLS;
                         objcluster.SKILLCODE = skill.SKILLCODE;
                         objcluster.CreatedBy = Convert.ToInt32(Session["EmployeeId"]);
-                        objcluster.CreatedDate = DateTime.Now;
+                        objcluster.CreatedDate = DateTime.UtcNow;
                         db.PRTCSKILLCLUSTER_delete.Add(objcluster);
                         db.SaveChanges();
                         SKILLCLSTRJD_Delete objskill = new SKILLCLSTRJD_Delete();
@@ -224,7 +224,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         objskill.CLSTRJD = jd.CLSTRJD;
                         objskill.CLSTRJDVER = jd.CLSTRJDVER;
                         objskill.CreatedBy = Convert.ToInt32(Session["EmployeeId"]);
-                        objskill.CreatedDate = DateTime.Now;
+                        objskill.CreatedDate = DateTime.UtcNow;
                         db.SKILLCLSTRJD_Delete.Add(objskill);
                         db.SaveChanges();
                         var removeskillcluster = db.SKILLCLSTRJDs.Remove(jd);

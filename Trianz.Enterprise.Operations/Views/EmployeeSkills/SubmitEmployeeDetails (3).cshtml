@@ -158,7 +158,7 @@
                         (
                         skillsgrid.Column("EmployeeId", "Employee Id", canSort: false),
                         skillsgrid.Column("SkillDescription", "Skill Description"),
-                        skillsgrid.Column(header: "Category", format: (item) => (bool)item.IsPrimary == true ? Html.Raw("Primary") : Html.Raw("Secondary")),
+                        skillsgrid.Column(header: "Category", format: (item) => (bool)item.IsPrimary == true ? Html.Raw(HtmlSanitizerHelper.Sanitize("Primary")) : Html.Raw(HtmlSanitizerHelper.Sanitize("Secondary"))),
                         skillsgrid.Column("Status", "Status"),
                         skillsgrid.Column(header: "Approval Manager", format: @<p>@reportingmanager</p>),
                         skillsgrid.Column("Remarks", "Remarks"),

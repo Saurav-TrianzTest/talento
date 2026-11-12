@@ -36,7 +36,7 @@ namespace Trianz.Enterprise.Operations
             //elc.User = Convert.ToString(HttpContext.Current.User.Identity.Name.Split('\\')[1]);
             elc.User = Common.GetAzureLoggedInUserID().Split('@')[0];
 			elc.StatusCode = Convert.ToInt32(HttpStatusCode.BadRequest);
-            elc.TimeUtc = DateTime.Now;
+            elc.TimeUtc = DateTime.UtcNow;
             Db.Error_Info.Add(elc);
             Db.SaveChanges();
         }

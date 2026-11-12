@@ -53,7 +53,7 @@ else
                         <p class="email_text" style="font-size: 13px;">@Model.Email.ToLower()</p>
                     </div>
                     <div class="col-sm-5" style="border-right: 1px solid whitesmoke; padding-left: 25px;">
-                        @Html.Raw(ViewData["EmployeeAddressDetails"].ToString())
+                        @Html.Raw(HtmlSanitizerHelper.Sanitize(ViewData["EmployeeAddressDetails"].ToString()))
                     </div>
                 </div>
             </div>

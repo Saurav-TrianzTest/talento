@@ -16,6 +16,7 @@ namespace Trianz.Enterprise.Operations
         protected void Application_Start()
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12; //TLS for security
+            ParameterStoreConfigLoader.LoadFromParameterStore();
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);

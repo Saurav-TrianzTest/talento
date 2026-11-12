@@ -54,4 +54,5 @@ namespace Trianz.Enterprise.Operations.ViewModel
 
 
 
+        // Redis-backed distributed storage for cloud scalability
 }

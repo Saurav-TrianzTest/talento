@@ -28,7 +28,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     ViewData["_Categories"] = Categories;
                     List<string> AccountName = new List<string>();
                     AccountName = (from project in _db.Projects
-                                   where project.SOWEndDate >= DateTime.Now
+                                   where project.SOWEndDate >= DateTime.UtcNow
                                    orderby project.AccountName
                                    select project.AccountName).Distinct().ToList();
                     AccountName.Add("Other");
@@ -38,7 +38,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                   
                     var AllProjects = (from pro in _db.Projects
                                            // where pro.IsActive == true
-                                       where pro.IsActive == true && pro.SOWEndDate >= DateTime.Now
+                                       where pro.IsActive == true && pro.SOWEndDate >= DateTime.UtcNow
                                        select new 
                                        {
                                            Projectcode = pro.ProjectCode,
@@ -176,7 +176,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //foreach (BenchResourceViewModel emp in BenchResourceViewModelList)
                     //{
                     //    string non1 = "0";
-                    //    non1 = (Convert.ToDateTime(DateTime.Now) - Convert.ToDateTime(emp.StartDate)).TotalDays.ToString();
+                    //    non1 = (Convert.ToDateTime(DateTime.UtcNow) - Convert.ToDateTime(emp.StartDate)).TotalDays.ToString();
                     //    decimal non = 0;
                     //    non = Math.Round(Convert.ToDecimal(non1), 0);
                     //    if (non <= 30)
@@ -459,7 +459,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         Byte[] fileBytes = package.GetAsByteArray();
                         Response.Clear();
                         Response.Buffer = true;
-                        Response.AddHeader("content-disposition", "attachment;filename=" + "Bench Resources" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                        Response.AddHeader("content-disposition", "attachment;filename=" + "Bench Resources" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                         Response.Charset = "";
                         Response.ContentType = "application/vnd.ms-excel";
@@ -1445,7 +1445,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         Byte[] fileBytes = package.GetAsByteArray();
                         Response.Clear();
                         Response.Buffer = true;
-                        Response.AddHeader("content-disposition", "attachment;filename=" + "BO Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                        Response.AddHeader("content-disposition", "attachment;filename=" + "BO Report" + DateTime.UtcNow.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
                         Response.Charset = "";
                         Response.ContentType = "application/vnd.ms-excel";

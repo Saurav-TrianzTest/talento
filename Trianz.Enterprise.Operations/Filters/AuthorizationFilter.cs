@@ -27,7 +27,7 @@ namespace Trianz.Enterprise.Operations.Filters
                 {
                     string sessionCookie = ctx.Request.Headers["Cookie"];
                     //if ((null != sessionCookie) && (sessionCookie.IndexOf("ASP.NET_SessionId") >= 0))
-                    if (HttpContext.Current.Session["Role"] == null)
+                    if (HttpContext.Current?.Session["Role"] == null)
                     {
                         //string redirectOnSuccess = filterContext.HttpContext.Request.Url.PathAndQuery;
                         //string redirectUrl = string.Format("?ReturnUrl={0}", redirectOnSuccess);
@@ -43,8 +43,8 @@ namespace Trianz.Enterprise.Operations.Filters
                 //else
                 //{
                 //    // if (session == null && session["authstatus"] == null)
-                //    //if (HttpContext.Current.Session["Role"] == null)
-                //    if (HttpContext.Current.Session["Role"] == null)
+                //    //if (HttpContext.Current?.Session["Role"] == null)
+                //    if (HttpContext.Current?.Session["Role"] == null)
                 //    {
                 //        //filterContext.Result =
                 //        //       new RedirectToRouteResult(
@@ -60,7 +60,7 @@ namespace Trianz.Enterprise.Operations.Filters
                 //}
                 
                 //HttpContext ctx = HttpContext.Current;
-                //if (HttpContext.Current.Session["ID"] == null)
+                //if (HttpContext.Current?.Session["ID"] == null)
                 //{
                 //    filterContext.Result = new RedirectResult("~/Signout/Completed");
                 //    return;

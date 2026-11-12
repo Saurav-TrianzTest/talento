@@ -81,7 +81,7 @@
 
                     </td>
                     <td>
-                        @Html.Partial("CurrentDemandOverview", TempData["DemandTrend"])
+                        { Html.RenderPartial("CurrentDemandOverview", TempData["DemandTrend"]); }
 
                         @*@(Html.JQChart()
                         .Chart(Model)

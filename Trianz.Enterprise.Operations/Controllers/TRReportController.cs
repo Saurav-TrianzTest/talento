@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reflection;
 using System.Web;
 using System.Web.Helpers;
-using System.Web.UI;
 using System.Web.Mvc;
 using System.Web.Security;
 using System.Configuration;
@@ -73,20 +72,20 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 if (ddlCreateddate == "Last 7 Days")
                 {
-                    var x = DateTime.Today.AddDays(-7);
+                    var x = DateTime.UtcNow.Date.AddDays(-7);
 
                     hrrf = hrrf.Where(c => c.HRRFCreatedDate >= x).OrderByDescending(c => c.HRRFNumber).ToList();
 
                 }
                 else if (ddlCreateddate == "Last 14 Days")
                 {
-                    var x = DateTime.Today.AddDays(-14);
+                    var x = DateTime.UtcNow.Date.AddDays(-14);
 
                     hrrf = hrrf.Where(c => c.HRRFCreatedDate >= x).OrderByDescending(c => c.HRRFNumber).ToList();
                 }
                 else
                 {
-                    var x = DateTime.Today.AddDays(-21);
+                    var x = DateTime.UtcNow.Date.AddDays(-21);
                     hrrf = hrrf.Where(c => c.HRRFCreatedDate >= x).OrderByDescending(c => c.HRRFNumber).ToList();
 
                 }
@@ -114,17 +113,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     if (ddlcreateddate == "Last 7 Days")
                     {
-                        var x = DateTime.Today.AddDays(-7);
+                        var x = DateTime.UtcNow.Date.AddDays(-7);
                         hrrf1 = (from c in db.HRRFs where (c.HRRFCreatedDate >= x) orderby c.HRRFNumber descending select c).ToList();
                     }
                     else if (ddlcreateddate == "Last 14 Days")
                     {
-                        var x = DateTime.Today.AddDays(-14);
+                        var x = DateTime.UtcNow.Date.AddDays(-14);
                         hrrf1 = (from c in db.HRRFs where (c.HRRFCreatedDate >= x) orderby c.HRRFNumber descending select c).ToList();
                     }
                     else
                     {
-                        var x = DateTime.Today.AddDays(-21);
+                        var x = DateTime.UtcNow.Date.AddDays(-21);
                         hrrf1 = (from c in db.HRRFs where (c.HRRFCreatedDate >= x) orderby c.HRRFNumber descending select c).ToList();
                     }
 

@@ -81,6 +81,46 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\JQChart.Web.Mvc.dll</HintPath>
     </Reference>
+    <Reference Include="AWSSDK.S3, Version=4.1.0.0, Culture=neutral, PublicKeyToken=1532616444104014, processorArchitecture=MSIL">
+      <HintPath>..\packages\AWSSDK.S3.4.1.0\lib\net45\AWSSDK.S3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AWSSDK.SimpleEmail, Version=4.1.0.0, Culture=neutral, PublicKeyToken=1532616444104014, processorArchitecture=MSIL">
+      <HintPath>..\packages\AWSSDK.SimpleEmail.4.1.0\lib\net45\AWSSDK.SimpleEmail.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AWSSDK.SimpleSystemsManagement, Version=4.1.0.0, Culture=neutral, PublicKeyToken=1532616444104014, processorArchitecture=MSIL">
+      <HintPath>..\packages\AWSSDK.SimpleSystemsManagement.4.1.0\lib\net45\AWSSDK.SimpleSystemsManagement.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AWSSDK.SecretsManager, Version=4.1.0.0, Culture=neutral, PublicKeyToken=1532616444104014, processorArchitecture=MSIL">
+      <HintPath>..\packages\AWSSDK.SecretsManager.4.1.0\lib\net45\AWSSDK.SecretsManager.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AWSSDK.SQS, Version=4.1.0.0, Culture=neutral, PublicKeyToken=1532616444104014, processorArchitecture=MSIL">
+      <HintPath>..\packages\AWSSDK.SQS.4.1.0\lib\net45\AWSSDK.SQS.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AWSSDK.SNS, Version=4.1.0.0, Culture=neutral, PublicKeyToken=1532616444104014, processorArchitecture=MSIL">
+      <HintPath>..\packages\AWSSDK.SNS.4.1.0\lib\net45\AWSSDK.SNS.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AWSSDK.Core, Version=4.1.0.0, Culture=neutral, PublicKeyToken=1532616444104014, processorArchitecture=MSIL">
+      <HintPath>..\packages\AWSSDK.Core.4.1.0\lib\net45\AWSSDK.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Ganss.Xss, Version=4.1.0.0, Culture=neutral, PublicKeyToken=43ec123ad2f1b9fc, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ganss.Xss.4.1.0\lib\net45\Ganss.Xss.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Web.Redis, Version=3.0.0.0, Culture=neutral, PublicKeyToken=3f607312c94dbf08, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Web.Redis.3.0.0\lib\net45\Microsoft.Web.Redis.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="StackExchange.Redis, Version=2.7.32.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\StackExchange.Redis.2.7.32\lib\net45\StackExchange.Redis.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.IdentityModel.JsonWebTokens, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IdentityModel.JsonWebTokens.5.3.0\lib\net461\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>

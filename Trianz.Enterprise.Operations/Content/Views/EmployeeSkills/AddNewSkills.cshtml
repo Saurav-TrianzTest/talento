@@ -327,10 +327,10 @@ selectionFieldName: "SelectedRow");
                selectionFieldName: "SelectedRow");
             }
             <div>
-                @Html.Partial("MyProfile")
+                { Html.RenderPartial("MyProfile"); }
             </div>
             @*<div>
-                     @Html.Partial("SubmitEmployeeDetails", ViewData["employeeSkills"])
+                     { Html.RenderPartial("SubmitEmployeeDetails", ViewData["employeeSkills"]); }
             </div>*@
         </div>
         <div id="tabMySkills" class="tab-pane fade" style="margin: 15px 0 0;">

@@ -26,7 +26,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         public IList<SelectListItem> GetYear()
         {
             int startingyear = 1990;
-            int numberOfYears = DateTime.Now.Year - startingyear;
+            int numberOfYears = DateTime.UtcNow.Year - startingyear;
             var startYear = startingyear;
             var endYear = startingyear + numberOfYears;
 
@@ -507,7 +507,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //Notification 
                                 Notification tblNotification = new Notification();
                                 tblNotification.NotificationType = ConfigurationManager.AppSettings["SkillApprovalRequest_NotificationType"].ToString();
-                                tblNotification.NotificationDate = System.DateTime.Now;
+                                tblNotification.NotificationDate = System.DateTime.UtcNow;
                                 tblNotification.NotificationFrom = employee.EmployeeId;
                                 tblNotification.NotificationTo = employee.SupervisorId;
                                 var Body = ConfigurationManager.AppSettings["SkillApprovalRequest_Notification"].ToString() + employee.FirstName + " " + employee.LastName;
@@ -518,7 +518,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 string talentoURL = ConfigurationManager.AppSettings["Talento"];
                                 string LinktoOpen = "Please Click on link to View the skills submitted for Approval " + talentoURL;
                                 string body = string.Empty;
-                                using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+                                using (StreamReader reader = new StreamReader(Common.DownloadFromS3Stream("Views/Shared/EmailTemplate.html")))
                                 {
                                     body = reader.ReadToEnd();
                                 }
@@ -671,7 +671,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             //Response.BinaryWrite((byte[])objEmpDOC.EmpCV);
                             //Response.End();
                             // Create a unique filename for the ZIP archive.
-                            string zipFileName = "MultipleFiles_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".zip";
+                            string zipFileName = "MultipleFiles_" + DateTime.UtcNow.ToString("yyyyMMddHHmmss") + ".zip";
 
                             // Set the content type to ZIP.
                             Response.ContentType = "application/zip";
@@ -1220,7 +1220,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             emt.Expertiselevel = Expertise;
                             emt.TechnologyLastUsed = Mont + "," + Year;
                             emt.EmployeeId = EmpId;
-                            emt.LastModifiedDate = DateTime.Now;
+                            emt.LastModifiedDate = DateTime.UtcNow;
                             emt.IsPrimary = IsPrimary;
                             db.EmployeeSkills_New.Add(emt);
 
@@ -1244,7 +1244,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     em.PreviousStatus = _empskill.SkillStatus;
                                     em.Comments = _empskill.SkillStatus + " Skill Updated";
                                     em.Expertiselevel = Expertise;
-                                    em.ModifiedDate = DateTime.Now;
+                                    em.ModifiedDate = DateTime.UtcNow;
                                     em.SkillID = skilid;
                                     em.TechnologyLastUsed = Mont + "," + Year;
                                     em.UpdateStatus = "Modified";
@@ -1255,7 +1255,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 }
                                 _empskill.SkillId = skilid;
                                 _empskill.TechnologyLastUsed = Mont + "," + Year;
-                                _empskill.LastModifiedDate = DateTime.Now;
+                                _empskill.LastModifiedDate = DateTime.UtcNow;
                                 _empskill.Expertiselevel = Expertise;
                                 _empskill.IsPrimary = IsPrimary;
                             }
@@ -1331,7 +1331,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             //em.PreviousStatus = objDeleteSkill.SkillStatus;
                             //em.Comments = "Skill deleted";
                             //em.Expertiselevel = objDeleteSkill.Expertiselevel;
-                            // em.ModifiedDate = DateTime.Now;
+                            // em.ModifiedDate = DateTime.UtcNow;
                             //em.SkillID = objDeleteSkill.SkillId;
                             //em.TechnologyLastUsed = objDeleteSkill.TechnologyLastUsed;
                             //em.UpdateStatus = "Deleted";
@@ -1393,7 +1393,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     em.PreviousStatus = skil[0].SkillStatus;
                                     em.Comments = "Skill Submitted";
                                     em.Expertiselevel = skil[0].Expertiselevel;
-                                    em.ApprovalSubmissionDate = DateTime.Now;
+                                    em.ApprovalSubmissionDate = DateTime.UtcNow;
                                     em.IsPrimary = skil[0].IsPrimary;
                                     em.SkillID = skil[0].SkillId;
                                     em.TechnologyLastUsed = skil[0].TechnologyLastUsed;
@@ -1401,7 +1401,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     db.EmployeeSkillHistories.Add(em);
 
                                     skil[0].SkillStatus = "Submitted";
-                                    skil[0].ApprovalSubmissionDate = DateTime.Now;
+                                    skil[0].ApprovalSubmissionDate = DateTime.UtcNow;
                                     db.SaveChanges();
                                 }
                             }
@@ -1428,13 +1428,13 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         public FileResult DownloadTrianzResumeTemplate()
         {
-            byte[] fileBytes = System.IO.File.ReadAllBytes(Server.MapPath(@"~\Content\Document\Trianz Resume Template - 2016.docx"));
+            byte[] fileBytes = Common.DownloadFromS3("Content/Document/Trianz Resume Template - 2016.docx");
             string fileName = "Trianz Resume Template - 2016.docx";
             return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
         }
         public FileResult DownloadTrianzProfileTemplate()
         {
-            byte[] fileBytes = System.IO.File.ReadAllBytes(Server.MapPath(@"~\Content\Document\Trianz Profile Template-2016.pptx"));
+            byte[] fileBytes = Common.DownloadFromS3("Content/Document/Trianz Profile Template-2016.pptx");
             string fileName = "Trianz Profile Template-2016.pptx";
             return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
         }
@@ -1617,7 +1617,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             var EmployeeWiseDomain = new EmployeeWiseDomain();
                             EmployeeWiseDomain.EmployeeID = EmpId;
                             EmployeeWiseDomain.DomainID = id;
-                            EmployeeWiseDomain.CreatedDate = DateTime.Now;
+                            EmployeeWiseDomain.CreatedDate = DateTime.UtcNow;
                             db.EmployeeWiseDomains.Add(EmployeeWiseDomain);
 
                             db.SaveChanges();
@@ -1814,7 +1814,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             var EmployeeWiseIndustry = new EmployeeWiseIndustry();
                             EmployeeWiseIndustry.EmployeeID = EmpId;
                             EmployeeWiseIndustry.IndustryID = id;
-                            EmployeeWiseIndustry.CreatedDate = DateTime.Now;
+                            EmployeeWiseIndustry.CreatedDate = DateTime.UtcNow;
                             db.EmployeeWiseIndustries.Add(EmployeeWiseIndustry);
 
                             db.SaveChanges();

@@ -9,8 +9,6 @@ using System.Linq;
 using System.Web.Helpers;
 using System.Configuration;
 using System.Web.Mvc;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 using Trianz.Enterprise.Operations.General;
 using Trianz.Enterprise.Operations.Models;
 using Trianz.Enterprise.Operations.ViewModel;
@@ -879,7 +877,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         Byte[] fileBytes = package.GetAsByteArray();
                         Response.Clear();
                         Response.Buffer = true;
-                        Response.AddHeader("content-disposition", "attachment;filename=ITS Resource Dashboard " + DateTime.Now.ToString("dd MMM yyyy") + ".xlsx");
+                        Response.AddHeader("content-disposition", "attachment;filename=ITS Resource Dashboard " + DateTime.UtcNow.ToString("dd MMM yyyy") + ".xlsx");
                         Response.Charset = "";
                         Response.ContentType = "application/vnd.ms-excel";
                         StringWriter sw = new StringWriter();
@@ -1023,11 +1021,11 @@ namespace Trianz.Enterprise.Operations.Controllers
             //    xml = xmlDoc.InnerXml;
             //}
 
-            //var fName = string.Format("Fulfilment Review" + DateTime.Now.ToString("dd/mm/yyyy") + ".xls");
+            //var fName = string.Format("Fulfilment Review" + DateTime.UtcNow.ToString("dd/mm/yyyy") + ".xls");
 
             //byte[] fileContents = Encoding.UTF8.GetBytes(xml);
 
-            string attachment = "attachment; filename=FulfillmentReview" + DateTime.Now.ToString("dd/MM/yyyy") + ".xls";
+            string attachment = "attachment; filename=FulfillmentReview" + DateTime.UtcNow.ToString("dd/MM/yyyy") + ".xls";
             Response.ClearContent();
             Response.AddHeader("content-disposition", attachment);
             Response.ContentType = "application/vnd.ms-excel";

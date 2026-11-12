@@ -52,7 +52,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     new System.Data.SqlClient.SqlParameter("RequestStatus", strreqstatus)).ToList<sp_GetBillingsLossList_Result>();
 
                     List<BillingLoss> billinglosslist = new List<BillingLoss>();              
-                    DateTime date2 = DateTime.Now;
+                    DateTime date2 = DateTime.UtcNow;
                     decimal? sumofaccountstotal = 0;
                     decimal? sumofpractisetotal =0;
                     
@@ -137,7 +137,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                    data.Criticality=item.Criticality;
                    data.LeakageDays=item.LeakageDays;      
                    data.LeakageRevenue=item.LeakageRevenue;
-                   data.CurrentDate = DateTime.Now;
+                   data.CurrentDate = DateTime.UtcNow;
                    billinglosslist.Add(data);
               }
                     

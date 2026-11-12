@@ -190,7 +190,7 @@ format: @<text>
 </text>),
 
 
-grid.Column("Resumes", "Resumes", format: item => (item.ResumeFlag == 0) ? new HtmlString(string.Empty) : Html.ActionLink("Download", "FileDownload", new { EmployeeID = item.EmployeeId }))
+grid.Column("Resumes", "Resumes", format: item => (item.ResumeFlag == 0) ? new HtmlString(HtmlSanitizerHelper.Sanitize(string.Empty)) : Html.ActionLink("Download", "FileDownload", new { EmployeeID = item.EmployeeId }))
 
 ))
     </div>

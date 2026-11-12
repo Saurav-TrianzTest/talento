@@ -966,7 +966,7 @@
 
 
                                 @*<td>
-            @(item.ResumeFlag == 0 ? new HtmlString(string.Empty) : Html.ActionLink("Download", "FileDownload", new { EmployeeID = item.EmployeeId }))
+            @(item.ResumeFlag == 0 ? new HtmlString(HtmlSanitizerHelper.Sanitize(string.Empty)) : Html.ActionLink("Download", "FileDownload", new { EmployeeID = item.EmployeeId }))
         </td>*@
                                 @*<td>@item.Assigned_By</td>
         <td>@(item.Assigned_Date == null ? "" : @Convert.ToDateTime(item.Assigned_Date).ToString("dd MMM yyyy"))</td>*@
