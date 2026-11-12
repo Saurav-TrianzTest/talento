@@ -266,10 +266,10 @@ ExternalResourcesGrid.Column("RecruiterName",
                                 @Html.DropDownList("ddlRecruiterName", new SelectList((System.Collections.IEnumerable)ViewData["_RecruiterName"], "Value", "Text"),
                                      new { @class = "edit-mode ddlRecruiterName", @disabled = "disabled" })
 
-                                @if (Session["EmployeeId"].ToString() == "106919" || Session["EmployeeId"].ToString() == "106911" || Session["EmployeeId"].ToString() == "103773" ||
-                                Session["EmployeeId"].ToString() == "105009" || Session["EmployeeId"].ToString() == "107300" || Session["EmployeeId"].ToString() == "106919"
-                                || Session["EmployeeId"].ToString() == "103773" || Session["EmployeeId"].ToString() == "104296"
-                                || Session["EmployeeId"].ToString() == "106910" || Session["EmployeeId"].ToString() == "107098" || Session["EmployeeId"].ToString() == "107341")
+                                @if (Context.Session.GetString("EmployeeId").ToString() == "106919" || Context.Session.GetString("EmployeeId").ToString() == "106911" || Context.Session.GetString("EmployeeId").ToString() == "103773" ||
+                                Context.Session.GetString("EmployeeId").ToString() == "105009" || Context.Session.GetString("EmployeeId").ToString() == "107300" || Context.Session.GetString("EmployeeId").ToString() == "106919"
+                                || Context.Session.GetString("EmployeeId").ToString() == "103773" || Context.Session.GetString("EmployeeId").ToString() == "104296"
+                                || Context.Session.GetString("EmployeeId").ToString() == "106910" || Context.Session.GetString("EmployeeId").ToString() == "107098" || Context.Session.GetString("EmployeeId").ToString() == "107341")
                                 {
                                     <script>
                                         $('.ddlRecruiterName').removeAttr('disabled');

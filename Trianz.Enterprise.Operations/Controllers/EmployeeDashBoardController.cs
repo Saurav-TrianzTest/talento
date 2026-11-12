@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
@@ -24,7 +27,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         public ActionResult EmployeeDashBoard()
 
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 var emp = new ValidationModel();
                 emp.EmployeeLocationlst = GenerateEmployeeLocation();
@@ -35,19 +38,19 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         private List<EmployeeLocation> GenerateEmployeeLocation()
         {
-            int empId = Convert.ToInt32(Session["EmployeeId"]);
+            int empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
             List<EmployeeLocation> lstEmpLocationsummary = new List<EmployeeLocation>();
 
-            //lstEmpLocationsummary = db.Database.SqlQuery<EmployeeLocation>
+            //lstEmpLocationsummary = db.Set<EmployeeLocation>().FromSqlRaw
             //  ("exec GetEmployeeLocation").ToList<EmployeeLocation>();
-            lstEmpLocationsummary = db.Database.SqlQuery<EmployeeLocation>("exec GetEmployeeLocation").ToList();
+            lstEmpLocationsummary = db.Set<EmployeeLocation>().FromSqlRaw("exec GetEmployeeLocation").ToList();
 
             //var studentGrades = db.GetEmployeeLocation();
 
@@ -55,22 +58,22 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
        private List<EmployeeDesignation> GetEmployeeDesignation()
         {
-            int empId = Convert.ToInt32(Session["EmployeeId"]);
+            int empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
             List<EmployeeDesignation> lstEmployeeDesignation = new List<EmployeeDesignation>();
 
-            lstEmployeeDesignation = db.Database.SqlQuery<EmployeeDesignation>("exec GetEmployeeByDesignation").ToList();
+            lstEmployeeDesignation = db.Set<EmployeeDesignation>().FromSqlRaw("exec GetEmployeeByDesignation").ToList();
 
             return lstEmployeeDesignation;
         }
 
         private List<EmployeeCountry> GetEmployeeByCountry()
         {
-            int empId = Convert.ToInt32(Session["EmployeeId"]);
+            int empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
             List<EmployeeCountry> lstEmployeeCountry = new List<EmployeeCountry>();
 
-            lstEmployeeCountry = db.Database.SqlQuery<EmployeeCountry>("exec GetEmployeeByCountry").ToList();
+            lstEmployeeCountry = db.Set<EmployeeCountry>().FromSqlRaw("exec GetEmployeeByCountry").ToList();
 
             return lstEmployeeCountry;
         }

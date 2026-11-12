@@ -224,7 +224,7 @@ new SelectListItem { Text="PrimarySkills", Value="PrimarySkills"}
                     <input class="btn btn-info" type="submit" value="Advanced Search" id="btnAdvSearch" style="background-color: #004BBB;" />
                 </div>
                 <div class="form-group">
-                    @if ((Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM" || Session["Role"].ToString() == "DH"))
+                    @if ((Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "PM" || Context.Session.GetString("Role").ToString() == "DH"))
                     {
                         <button id="btnExportToExcel" type="button" onclick="location.href='@Url.Action("GetExcel", "MasterReport")'" style=" background-color: white; border: white; float: right; color: #004BBB; border: 1px solid #004BBB; border-radius: 6px; padding: 6px 22px;bottom: 75px;left: -64px;">
                             <img src="~/Content/images/Report_icon.svg" /> Export <span class="caret"></span>

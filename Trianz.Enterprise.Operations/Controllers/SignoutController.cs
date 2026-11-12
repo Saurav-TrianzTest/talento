@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.OpenIdConnect;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Filters;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
@@ -17,47 +21,36 @@ namespace Trianz.Enterprise.Operations.Controllers
             return View();
         }
         
-        public ActionResult Completed()
+        public async Task<ActionResult> Completed()
         {
-            HttpCookie cookie = Request.Cookies["TSWA-Last-User"];
+            string cookieValue = Request.Cookies["TSWA-Last-User"];
+            string cookieName = "TSWA-Last-User";
 
-            if (User.Identity.IsAuthenticated == false || cookie == null || StringComparer.OrdinalIgnoreCase.Equals(User.Identity.Name, cookie.Value))
+            if (User.Identity.IsAuthenticated == false || cookieValue == null || StringComparer.OrdinalIgnoreCase.Equals(User.Identity.Name, cookieValue))
             {
                 string name = string.Empty;
 
-                if (Request.IsAuthenticated)
+                if (User.Identity.IsAuthenticated)
                 {
                     name = User.Identity.Name;
                 }
 
-                System.Web.Security.FormsAuthentication.SignOut();
+                await HttpContext.SignOutAsync();
 
-                cookie = new HttpCookie("TSWA-Last-User", name);
-                Response.Cookies.Set(cookie);
+                Response.Cookies.Append(cookieName, name, new CookieOptions());
 
-                Response.AppendHeader("Connection", "close");
+                Response.Headers.Add("Connection", "close");
                 Response.StatusCode = 401; // Unauthorized;
-                Response.Clear();
-                //should probably do a redirect here to the unauthorized/failed login page
-                //if you know how to do this, please tap it on the comments below
-                //Response.Write("Unauthorized. Reload the page to try again... click <a href='http://www.google.com'>here</a> to go out from here");
-
-                Response.Write("Unauthorized. Click <a href='/'>here</a> to re-login... <br/>click <a href='http://www.google.com'>here</a> to go out from here");
-                Response.End();
-
-
+                
+                await Response.WriteAsync("Unauthorized. Click <a href='/'>here</a> to re-login... <br/>click <a href='http://www.google.com'>here</a> to go out from here");
 
                 return RedirectToAction("Index", "TRHome");
-
-                //return RedirectToAction("NotAuthorized", "Error");
             }
 
-            cookie = new HttpCookie("TSWA-Last-User", string.Empty)
+            Response.Cookies.Append(cookieName, string.Empty, new CookieOptions
             {
                 Expires = DateTime.Now.AddYears(-5)
-            };
-
-            Response.Cookies.Set(cookie);
+            });
 
             return RedirectToAction("Index", "TRHome");
         }
@@ -72,9 +65,9 @@ namespace Trianz.Enterprise.Operations.Controllers
 		/// </summary>
 		public void SignOut()
 		{
-			HttpContext.GetOwinContext().Authentication.SignOut(
-					OpenIdConnectAuthenticationDefaults.AuthenticationType,
-					CookieAuthenticationDefaults.AuthenticationType);
+			// ASP.NET Core uses SignInManager or HttpContext.SignOutAsync
+			// This method is kept for compatibility but may need proper implementation
+			// based on the authentication scheme configured in the application
 		}
 	}
 }

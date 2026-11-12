@@ -1,18 +1,18 @@
 ﻿using System;
+using System.Web.Helpers;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.IO;
 //using System.DirectoryServices;
 using System.Linq;
 using System.Reflection;
-using System.Web;
-using System.Web.Helpers;
-using System.Web.UI;
-using System.Web.Mvc;
-using System.Web.Security;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Configuration;
 using Trianz.Enterprise.Operations.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
@@ -68,7 +68,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             //}).ToList<EmployeeMaster>();
 
 
-            Session["Request"] = ddlCreateddate;
+            HttpContext.Session.SetString("Request", ddlCreateddate.ToString());
             if (!String.IsNullOrEmpty(ddlCreateddate))
             {
                 if (ddlCreateddate == "Last 7 Days")
@@ -106,9 +106,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var hrrf1 = new List<HRRF>();
 
                 string ddlcreateddate = string.Empty;
-                if (Session["Request"] != null)
+                if (HttpContext.Session.GetString("Request") != null)
                 {
-                    ddlcreateddate = Session["Request"].ToString();
+                    ddlcreateddate = HttpContext.Session.GetString("Request").ToString();
                 }
                 if (!string.IsNullOrEmpty(ddlcreateddate))
                 {
@@ -161,27 +161,16 @@ namespace Trianz.Enterprise.Operations.Controllers
                   grid.Column("AssignmentEndDate", "Expected Fulfilment Date", format: (item) => item.AssignmentEndDate == null ? string.Empty : string.Format("{0:yyyy-MM-dd}", item.AssignmentEndDate))
 
                   )).ToString();
-                Response.ClearContent();
-                Response.AddHeader("content-disposition", "attachment; filename=TrReportInfo.xls");
+                Response.Clear();
+                Response.Headers.Add("content-disposition", "attachment; filename=TrReportInfo.xls");
                 Response.ContentType = "application/excel";
-                Response.Write(gridData);
-                Response.End();
+                Response.WriteAsync(gridData);
+                
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;
@@ -244,27 +233,16 @@ namespace Trianz.Enterprise.Operations.Controllers
                   grid.Column("FulfilmentDate", "FulfilmentDate", format: (item) => item.FulfilmentDate == null ? string.Empty : string.Format("{0:yyyy-MM-dd}", item.FulfilmentDate)),
                   grid.Column("FulfilmentDate", "Fulfilment Month", format: (item) => item.FulfilmentDate == null ? string.Empty : string.Format("{0:MM}", item.FulfilmentDate))
                   )).ToString();
-                Response.ClearContent();
-                Response.AddHeader("content-disposition", "attachment; filename=TrReportInfo.xls");
+                Response.Clear();
+                Response.Headers.Add("content-disposition", "attachment; filename=TrReportInfo.xls");
                 Response.ContentType = "application/excel";
-                Response.Write(gridData);
-                Response.End();
+                Response.WriteAsync(gridData);
+                
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;

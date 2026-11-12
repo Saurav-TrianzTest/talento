@@ -1,17 +1,19 @@
 ﻿using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Linq;
-using System.Web;
-using System.Web.Helpers;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Models;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Configuration;
 using Trianz.Enterprise.Operations.General;
 
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using Microsoft.AspNetCore.Session;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class ProjectAssignmentController : Controller
@@ -25,7 +27,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public ActionResult Index(string ddlProject)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -35,8 +37,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                 TempData["IsRoleMasterPageAccess"] = null;
 
                 List<ProjectAssignments> lstProjectAssignment = new List<ProjectAssignments>();
-                string Role = (string)Session["Role"];  // PM, OM
-                int empID = (int)Session["EmployeeId"]; //101098 Manger ID;
+                string Role = (string)HttpContext.Session.GetString("Role");  // PM, OM
+                int empID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")); //101098 Manger ID;
 
                 #region bILLINGSTATUS  
                 //dropdown data for Billing Status from master lookup
@@ -104,9 +106,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                  ProjectName = projects.ProjectCode + "-" + projects.ProjectName,
                                                  ProjectCode = projects.ProjectCode
                                              }).OrderBy(p => p.ProjectName).ToList();
-                        if (Session["_ProjectNames"] == null)
+                        if (HttpContext.Session.GetString("_ProjectNames") == null)
                         {
-                            Session["_ProjectNames"] = _ProjectNames;
+                            HttpContext.Session.SetString("_ProjectNames", _ProjectNames.ToString());
                         }
                         var _Accounts = (from projects in _db.Projects.
                                              Where(p => p.ProjectManagerId == empID && p.IsActive == true)
@@ -198,9 +200,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                 ProjectName = projects.ProjectCode + "-" + projects.ProjectName,
                                                 ProjectCode = projects.ProjectCode
                                             }).OrderBy(p => p.ProjectName).ToList();
-                    if (Session["_ProjectNames"] == null)
+                    if (HttpContext.Session.GetString("_ProjectNames") == null)
                     {
-                        Session["_ProjectNames"] = _AllProjectNames;
+                        HttpContext.Session.SetString("_ProjectNames", _AllProjectNames.ToString());
                     }
                     var _Accounts = (from projects in _db.Projects.
                                             Where(p => p.IsActive == true)
@@ -279,9 +281,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                 ProjectName = projects.ProjectCode + "-" + projects.ProjectName,
                                                 ProjectCode = projects.ProjectCode
                                             }).OrderBy(p => p.ProjectName).ToList();
-                    if (Session["_ProjectNames"] == null)
+                    if (HttpContext.Session.GetString("_ProjectNames") == null)
                     {
-                        Session["_ProjectNames"] = _AllProjectNames;
+                        HttpContext.Session.SetString("_ProjectNames", _AllProjectNames.ToString());
                     }
                     var _Accounts = (from projects in _db.Projects.
                                             Where(p => p.DELIVERY_MANAGER_ID == empID && p.IsActive == true)
@@ -355,29 +357,29 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
         
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public ActionResult GetAssignementinfobySearch(string ProjectCode, string Practise, string BillingStatus, string Account)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
 
                
                 List<ProjectAssignments> lstProjectAssignment = new List<ProjectAssignments>();
-                string Role = (string)Session["Role"];  // PM, OM
-                int empID = (int)Session["EmployeeId"]; //101098 Manger ID;
+                string Role = (string)HttpContext.Session.GetString("Role");  // PM, OM
+                int empID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")); //101098 Manger ID;
                 var js = new ProjectAssignment();
                 string code = string.Empty;
                 if (ProjectCode != null && ProjectCode != string.Empty)
@@ -644,13 +646,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
 
@@ -658,15 +660,15 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public JsonResult GetProjectSFilterAccount(string Account)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
 
 
-                    JsonResult js = new JsonResult();
-                    string Role = (string)Session["Role"];  // PM, OM
-                    int empID = (int)Session["EmployeeId"]; //101098 Manger ID;
+                    JsonResult js = new JsonResult(null);
+                    string Role = (string)HttpContext.Session.GetString("Role");  // PM, OM
+                    int empID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")); //101098 Manger ID;
                     if (Role == "OM")
                     {
                         var _AllProjectNames = (from projects in _db.Projects.
@@ -682,7 +684,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         if (Account != null && Account != string.Empty)
                             _AllProjectNames = _AllProjectNames.Where(p => p.AccountName.ToLower() == Account.ToLower()).ToList();
 
-                        js.Data = _AllProjectNames;
+                        js.Value = _AllProjectNames;
 
                     }
                     else if (Role == "PM")
@@ -698,7 +700,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         if (Account != null && Account != string.Empty)
                             _Accounts = _Accounts.Where(p => p.AccountName.ToLower() == Account.ToLower()).ToList();
-                        js.Data = _Accounts;
+                        js.Value = _Accounts;
 
 
                     }
@@ -717,33 +719,32 @@ namespace Trianz.Enterprise.Operations.Controllers
                         if (Account != null && Account != string.Empty)
                             _AllProjectNames = _AllProjectNames.Where(p => p.AccountName.ToLower() == Account.ToLower()).ToList();
 
-                        js.Data = _AllProjectNames;
+                        js.Value = _AllProjectNames;
 
 
                     }
-                    js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
                     return (js);
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
+        [HttpPost]
         public JsonResult Autocomplete(string term)
         {
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -766,31 +767,31 @@ namespace Trianz.Enterprise.Operations.Controllers
                     }
                     var result3 = result.Where(s => s.Key.ToLower().Contains
                                   (term.ToLower())).Select(w => w).ToList();
-                    return Json(result3, JsonRequestBehavior.AllowGet);
+                    return Json(result3);
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                    // return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public JsonResult EmployeeInfo(String EmployeeID)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    JsonResult js = new JsonResult();
+                    JsonResult js = new JsonResult(null);
                     int emin = 0;
                     if (EmployeeID != null && EmployeeID != string.Empty)
                     {
@@ -815,30 +816,29 @@ namespace Trianz.Enterprise.Operations.Controllers
                                   }).ToList();
 
 
-                    js.Data = Employeinf;
-                    js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+                    js.Value = Employeinf;
                     return js;
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                // return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
+        [HttpPost]
         public JsonResult ProjectAutocomplete(string Project)
         {
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -860,31 +860,31 @@ namespace Trianz.Enterprise.Operations.Controllers
                     }
                     var result3 = result.Where(s => s.Key.ToLower().Contains
                                   (Project.ToLower())).Select(w => w).ToList();
-                    return Json(result3, JsonRequestBehavior.AllowGet);
+                    return Json(result3);
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
 
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                // return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public JsonResult ProjectInfo(String ProjectCode)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    JsonResult js = new JsonResult();
+                    JsonResult js = new JsonResult(null);
                     string emin = "";
                     if (ProjectCode != null && ProjectCode != string.Empty)
                     {
@@ -906,22 +906,21 @@ namespace Trianz.Enterprise.Operations.Controllers
                                   }).ToList();
 
 
-                    js.Data = Employeinf;
-                    js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+                    js.Value = Employeinf;
                     return js;
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -931,11 +930,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             string Utilization, string Projectmanger, string Status)
         {
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    JsonResult js = new JsonResult();
+                    JsonResult js = new JsonResult(null);
 
 
 
@@ -963,9 +962,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (chkutl > 100)
                             {
                                 Isprj = false;
-                                //  js.Data = "This employee working on another project with " + utl + " % utilization. so we can utilize " + mnu  + " % only";
-                                js.Data = "This employee working on another project with (%) " + utl + "utilization. so we can utilize (%)" + mnu + "only";    //observation change
-                                js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+                                //  js.Value = "This employee working on another project with " + utl + " % utilization. so we can utilize " + mnu  + " % only";
+                                js.Value = "This employee working on another project with (%) " + utl + "utilization. so we can utilize (%)" + mnu + "only";    //observation change
                                 return js;
 
                             }
@@ -991,7 +989,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         {
                             ut.IsActive = false;
                             ut.EndDate = DateTime.Now;
-                            _db.Entry(ut).State = System.Data.Entity.EntityState.Modified;
+                            _db.Entry(ut).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                         }
 
                         ProjectAssignment prj = new ProjectAssignment();
@@ -1018,8 +1016,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         empStatus.AssignmentStatus = AssignmentStatus;
 
                         _db.SaveChanges();
-                        js.Data = "true";
-                        js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+                        js.Value = "true";
                     }
 
                     return js;
@@ -1028,13 +1025,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                    // return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -1044,11 +1041,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             string Status)
         {
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    JsonResult js = new JsonResult();
+                    JsonResult js = new JsonResult(null);
                     int emplyid = 0;
                     int utli = Convert.ToInt32(Utilization);
 
@@ -1121,8 +1118,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     if ((sumUtilization + utli) > 100)
                                     {
                                         Isprj = false;
-                                        js.Data = empStatus.FirstName + " already assigned to some other project with selected dates";
-                                        js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+                                        js.Value = empStatus.FirstName + " already assigned to some other project with selected dates";
                                         return js;
                                     }
                                 }
@@ -1140,8 +1136,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //                if (chkutl > 100)
                                 //                {
                                 //                    Isprj = false;
-                                //                    js.Data = "This employee working on another project with " + utl + "% utilization. so we can utilize " + mnu + "% only";
-                                //                    js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+                                //                    js.Value = "This employee working on another project with " + utl + "% utilization. so we can utilize " + mnu + "% only";
                                 //                    return js;
 
                                 //                }
@@ -1154,8 +1149,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             else
                             {
                                 Isprj = false;
-                                js.Data = "Employee date of joining should be less than billing date of the TR.";
-                                js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+                                js.Value = "Employee date of joining should be less than billing date of the TR.";
                                 return js;
                             }
 
@@ -1174,7 +1168,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                                 //empStatus.AssignmentStatus = AssignmentStatus;
 
-                                int empID = (int)Session["EmployeeId"];
+                                int empID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                                 var previousprojectass = _db.ProjectAssignments.Where(p => p.IsActive == true && p.EmployeeId == emplyid
                                 && p.BillingStatus == "Bench").ToList();
 
@@ -1213,9 +1207,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     // Assignment End Date is greater than the Project End Date
                                     //Convert.ToDateTime(objExternalHire.FulfilmentDate).ToString("dd/MM/yyyy")
 
-                                   // js.Data = "Assignment End Date is greater than the Project End Date";
-                                    js.Data = "Assignment End Date" + " ( " +   Convert.ToDateTime(DendDate).ToString("dd/MM/yyyy") + " ) " + " is greater than the Project  End Date" + " ( " + Convert.ToDateTime(projectEndDate).ToString("dd/MM/yyyy") + " ) ";
-                                    js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+                                   // js.Value = "Assignment End Date is greater than the Project End Date";
+                                    js.Value = "Assignment End Date" + " ( " +   Convert.ToDateTime(DendDate).ToString("dd/MM/yyyy") + " ) " + " is greater than the Project  End Date" + " ( " + Convert.ToDateTime(projectEndDate).ToString("dd/MM/yyyy") + " ) ";
                                     return js;
                                    }
                                    else
@@ -1331,7 +1324,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             _db.ProjectAssignmenthistories.Add(pash);
                                             #endregion
 
-                                            _db.Entry(lt).State = System.Data.Entity.EntityState.Modified;         // for update purpose
+                                            _db.Entry(lt).State = Microsoft.EntityFrameworkCore.EntityState.Modified;         // for update purpose
                                             _db.SaveChanges();
                                         }
                                     }
@@ -1561,20 +1554,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //}
 
                                 _db.SaveChanges();
-                                js.Data = "true";
-                                js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+                                js.Value = "true";
                             }
                         }
                         //else
                         //{
-                        //    js.Data = "Can not inactivate the assignment becase this employee doesn't have active assignments";
-                        //    js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+                        //    js.Value = "Can not inactivate the assignment becase this employee doesn't have active assignments";
                         //}
                     }
                     else
                     {
-                        js.Data = "Utilization should not be greater than 100%";
-                        js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+                        js.Value = "Utilization should not be greater than 100%";
                     }
                     return js;
                 }
@@ -1582,14 +1572,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
 
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -1604,7 +1594,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public JsonResult GetAssignmentDetails(int AssignmentID)
         {
-            JsonResult js = new JsonResult();
+            JsonResult js = new JsonResult(null);
 
             var projAssignment = (from pa in _db.ProjectAssignments
                                   join pin in _db.Projects on pa.ProjectCode equals pin.ProjectCode
@@ -1631,43 +1621,42 @@ namespace Trianz.Enterprise.Operations.Controllers
                                       Utilization = pa.Utilization
 
                                   }).ToList().FirstOrDefault();
-            js.Data = projAssignment;
-            js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+            js.Value = projAssignment;
             return js;
         }
         public ActionResult ExportReport()
         {
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    return Json("success", JsonRequestBehavior.AllowGet);
+                    return Json("success");
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult Downloadactiveassignment()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 return View();
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -1680,7 +1669,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 				int empID = _db.Employees.Where(e => e.Email.Equals(usermail) && e.IsActive == true).Select(e => e.EmployeeId).FirstOrDefault();
 
 
-                //   int empID = (int)Session["EmployeeId"];
+                //   int empID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId");
                 string authorizedUser = ConfigurationManager.AppSettings["businessGroupId"];
                 bool isAuthorised = false;
                 if (authorizedUser != null && authorizedUser != "")
@@ -1704,7 +1693,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
 
-                    listAllProjectAssignments = _db.Database.SqlQuery<ProjectAssignment>("exec GetAssignmentByBusinessGroup").ToList();
+                    listAllProjectAssignments = _db.Set<ProjectAssignment>().FromSqlRaw("exec GetAssignmentByBusinessGroup").ToList();
 
 
                     return View(listAllProjectAssignments);
@@ -1716,21 +1705,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
             }
 
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -1740,7 +1718,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         }        
         public JsonResult GetAssignmentByAssignmentId(int assignmentId)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -1761,23 +1739,19 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                                   }).FirstOrDefault();
 
-                    return Json(result, JsonRequestBehavior.AllowGet);
+                    return Json(result);
                 }
-                catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+                catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
                 {
                     Exception raise = dbEx;
-                    foreach (var validationErrors in dbEx.EntityValidationErrors)
-                    {
-                        foreach (var validationError in validationErrors.ValidationErrors)
-                        {
-                            string message = string.Format("{0}:{1}",
-                                validationErrors.Entry.Entity.ToString(),
-                                validationError.ErrorMessage);
-                            // raise a new exception nesting
-                            // the current instance as InnerException
-                            raise = new InvalidOperationException(message, raise);
-                        }
-                    }
+                    // EF Core DbUpdateException does not have EntityValidationErrors to iterate
+                    // Log the exception directly
+                    string message = string.Format("{0}:{1}",
+                        dbEx.InnerException?.Message ?? dbEx.Message,
+                        dbEx.Message);
+                    // raise a new exception nesting
+                    // the current instance as InnerException
+                    raise = new InvalidOperationException(message, raise);
                     ErrorHandling expcls = new ErrorHandling();
                     expcls.Error(raise);
 
@@ -1787,14 +1761,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
 
         }
         public ActionResult UpdateProjectAssignments(string assignmentId, string stDate, string endDate, string utilization, string isActive, string billingStatus)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -1863,23 +1837,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 data.Assigned_Date = DateTime.Now;
                 _db.SaveChanges();
-                return Json(true, JsonRequestBehavior.AllowGet);
+                return Json(true);
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -1889,13 +1852,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult AddProjectAssignment(string projectcode, string projectname, string name, string stDate, string endDate, string utilization, string isActive, string billingStatus)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
             {
@@ -2006,23 +1969,12 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
 
-                return Json(true, JsonRequestBehavior.AllowGet);
+                return Json(true);
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -2032,13 +1984,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult GetProjectNamebyCode(string projectcode)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
             {
@@ -2046,23 +1998,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                                    where k.ProjectCode == projectcode
                                    select k.ProjectName).Distinct().ToList();
 
-                return Json(projectName, JsonRequestBehavior.AllowGet);
+                return Json(projectName);
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -2073,13 +2014,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }        
         public ActionResult GetProjectCode()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
             {
@@ -2088,24 +2029,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                                    where k.IsActive == true
                                    select k.ProjectCode).Distinct().OrderBy(k => k).ToList();
 
-                return Json(gradevalues, JsonRequestBehavior.AllowGet);
+                return Json(gradevalues);
             }
 
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -2116,13 +2046,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }       
         public ActionResult AutoPopulateEmployeeId(string term)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -2148,28 +2078,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                     }
                     var result3 = result.Where(s => s.Key.ToLower().Contains
                                   (term.ToLower())).Select(w => w).ToList();
-                    return Json(result3, JsonRequestBehavior.AllowGet);
+                    return Json(result3);
 
 
 
                 }
             }
 
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -2180,13 +2099,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult VerifyEmployee(string name)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -2197,31 +2116,31 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var isExist = _db.Employees.Where(p => p.EmployeeId == empid && p.IsActive == true).FirstOrDefault();
                 if (isExist == null)
                 {
-                    return Json(false, JsonRequestBehavior.AllowGet);
+                    return Json(false);
                 }
                 else
                 {
-                    return Json(true, JsonRequestBehavior.AllowGet);
+                    return Json(true);
                 }
 
 
             }
             catch
             {
-                return Json(false, JsonRequestBehavior.AllowGet);
+                return Json(false);
             }
 
         }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                // return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult VerifyUtilization(int utli, string name)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
             {
@@ -2229,7 +2148,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 int empId = Convert.ToInt32(at[0]);
 
 
-                JsonResult js = new JsonResult();
+                JsonResult js = new JsonResult(null);
                 var preprj = (from pt in _db.ProjectAssignments
                               where pt.EmployeeId == empId && pt.IsActive == true
                               select pt).ToList();
@@ -2242,8 +2161,8 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         if (pt.Utilization == 100)
                         {
-                            js.Data = "This employee is working on  " + pt.ProjectCode + " with (%) " + pt.Utilization;
-                          //  js.Data = "This employee working on another project with (%) " + utl + "utilization. so we can utilize (%)" + mnu + "only";    //observation change
+                            js.Value = "This employee is working on  " + pt.ProjectCode + " with (%) " + pt.Utilization;
+                          //  js.Value = "This employee working on another project with (%) " + utl + "utilization. so we can utilize (%)" + mnu + "only";    //observation change
                             }
                         else
                         {
@@ -2256,8 +2175,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (chkutl > 100)
                             {
                                 Isprj = false;
-                               // js.Data = "This employee working on another project with " + utl + "utilization. so we can utilize " + mnu + "only";
-                                js.Data = "This employee working on another project with (%) " + utl + "utilization. so we can utilize (%)" + mnu + "only";    //observation change
+                               // js.Value = "This employee working on another project with " + utl + "utilization. so we can utilize " + mnu + "only";
+                                js.Value = "This employee working on another project with (%) " + utl + "utilization. so we can utilize (%)" + mnu + "only";    //observation change
 
                                 }
 
@@ -2265,30 +2184,18 @@ namespace Trianz.Enterprise.Operations.Controllers
                     }
                     else
                     {
-                        js.Data = true;
+                        js.Value = true;
                     }
 
                 }
-                js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
                 return js;
 
 
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -2298,20 +2205,20 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult VerifyUtilizationByProjectCode(int utli, string name, string projectCode)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 string[] at = name.Split('-');
             int empId = Convert.ToInt32(at[0]);
             try
             {
 
-                JsonResult js = new JsonResult();
+                JsonResult js = new JsonResult(null);
                 var preprj = (from pt in _db.ProjectAssignments
                               where pt.EmployeeId == empId && pt.IsActive == true
                               && pt.ProjectCode != projectCode
@@ -2325,7 +2232,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         if (pt.Utilization == 100)
                         {
-                            js.Data = "This employee is working on  " + pt.ProjectCode + " with (%) " + pt.Utilization;
+                            js.Value = "This employee is working on  " + pt.ProjectCode + " with (%) " + pt.Utilization;
                         }
                         else
                         {
@@ -2340,8 +2247,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (chkutl > 100)
                             {
                                 Isprj = false;
-                               // js.Data = "This employee working on another project with " + utl + "utilization. so we can utilize " + mnu + "only";
-                                js.Data = "This employee working on another project with (%) " + utl + "utilization. so we can utilize (%)" + mnu + "only";    //observation change
+                               // js.Value = "This employee working on another project with " + utl + "utilization. so we can utilize " + mnu + "only";
+                                js.Value = "This employee working on another project with (%) " + utl + "utilization. so we can utilize (%)" + mnu + "only";    //observation change
 
                                 }
 
@@ -2350,28 +2257,16 @@ namespace Trianz.Enterprise.Operations.Controllers
                     }
                     else
                     {
-                        js.Data = true;
+                        js.Value = true;
                     }
 
                 }
-                js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
                 return js;
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -2381,7 +2276,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -2389,7 +2284,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         public ActionResult DeleteProjectAssignmentData(int assignmentId)
         {
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
                 try
@@ -2398,23 +2293,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var dataToRemove = _db.ProjectAssignments.Where(k => k.Assignment_Id == assignmentId).FirstOrDefault();
                 _db.ProjectAssignments.Remove(dataToRemove);
                 _db.SaveChanges();
-                return Json(true, JsonRequestBehavior.AllowGet);
+                return Json(true);
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -2425,7 +2309,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -2457,14 +2341,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             string strAccount, string Assignment_All, string From_Date, string To_Date)
         {
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    string Role = (string)Session["Role"];
+                    string Role = (string)HttpContext.Session.GetString("Role");
 
 
-                    int? EmpId = Convert.ToInt32(Session["EmployeeId"]);
+                    int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                     DateTime? fromdate;
                     DateTime? todate;
                     if ((From_Date != null && From_Date != string.Empty) && (To_Date != null && To_Date != string.Empty))
@@ -2480,28 +2364,27 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     }
 
-                    var projectDetails = _db.Database.SqlQuery
-                        <AllProjectAssignments>("exec GetAllEmployeesAssignmentDetails @Practice, @BillingStatus,@Account, @Project,@IsActive,@StartDate,@enddate,@Role,@EmpID",
-                    new System.Data.SqlClient.SqlParameter("@Practice", strPractice == "" ? (object)DBNull.Value : strPractice),
-                    new System.Data.SqlClient.SqlParameter("@BillingStatus", strBillingStatus == "" ? (object)DBNull.Value : strBillingStatus),
-                    new System.Data.SqlClient.SqlParameter("@Account", strAccount == "" ? (object)DBNull.Value : strAccount),
-                    new System.Data.SqlClient.SqlParameter("@Project", strProject == "" ? (object)DBNull.Value : strProject),
-                    new System.Data.SqlClient.SqlParameter("@IsActive", Assignment_All == "" ? (object)DBNull.Value : Assignment_All),
-                    new System.Data.SqlClient.SqlParameter("@StartDate", fromdate != null ? fromdate : (object)DBNull.Value),
-                    new System.Data.SqlClient.SqlParameter("@enddate", todate != null ? todate : (object)DBNull.Value),
-                    new System.Data.SqlClient.SqlParameter("@Role", Role == "" ? (object)DBNull.Value : Role),
-                    new System.Data.SqlClient.SqlParameter("@EmpID", EmpId)
-                    ).ToList<AllProjectAssignments>();     
+                    var projectDetails = _db.Set<AllProjectAssignments>().FromSqlRaw("exec GetAllEmployeesAssignmentDetails @Practice, @BillingStatus,@Account, @Project,@IsActive,@StartDate,@enddate,@Role,@EmpID",
+                    new Microsoft.Data.SqlClient.SqlParameter("@Practice", strPractice == "" ? (object)DBNull.Value : strPractice),
+                    new Microsoft.Data.SqlClient.SqlParameter("@BillingStatus", strBillingStatus == "" ? (object)DBNull.Value : strBillingStatus),
+                    new Microsoft.Data.SqlClient.SqlParameter("@Account", strAccount == "" ? (object)DBNull.Value : strAccount),
+                    new Microsoft.Data.SqlClient.SqlParameter("@Project", strProject == "" ? (object)DBNull.Value : strProject),
+                    new Microsoft.Data.SqlClient.SqlParameter("@IsActive", Assignment_All == "" ? (object)DBNull.Value : Assignment_All),
+                    new Microsoft.Data.SqlClient.SqlParameter("@StartDate", fromdate != null ? fromdate : (object)DBNull.Value),
+                    new Microsoft.Data.SqlClient.SqlParameter("@enddate", todate != null ? todate : (object)DBNull.Value),
+                    new Microsoft.Data.SqlClient.SqlParameter("@Role", Role == "" ? (object)DBNull.Value : Role),
+                    new Microsoft.Data.SqlClient.SqlParameter("@EmpID", EmpId)
+                    ).ToList<AllProjectAssignments>();
                     #region Export to Excel
                     using (ExcelPackage package = new ExcelPackage())
-                    {
+            {
                         ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("TR Information");
                         worksheet.TabColor = System.Drawing.Color.Green;
                         worksheet.DefaultRowHeight = 18f;
                         worksheet.Row(1).Height = 20f;
                         using (var range = worksheet.Cells[1, 1, 1, 13])
-                        {
-                            range.Style.Font.Bold = true;
+{
+                        range.Style.Font.Bold = true;
                             range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                             range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#5B9BD5"));
@@ -2553,8 +2436,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (row % 2 == 1)
                             {
                                 using (var range = worksheet.Cells[row, 1, row, 13])
-                                {
-                                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+{
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                     range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
                                     range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -2574,14 +2457,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         Byte[] fileBytes = package.GetAsByteArray();
                         Response.Clear();
-                        Response.Buffer = true;
-                        Response.AddHeader("content-disposition", "attachment;filename=" + ((strProject == "") ? "My" : strProject) + "-Project Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                        
+                        Response.Headers.Add("content-disposition", "attachment;filename=" + ((strProject == "") ? "My" : strProject) + "-Project Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                        Response.Charset = "";
+                        
                         Response.ContentType = "application/vnd.ms-excel";
                         //StringWriter sw = new StringWriter();
-                        Response.BinaryWrite(fileBytes);
-                        Response.End();
+                        Response.Body.Write(fileBytes);
+                        
                     }
 
                     #endregion
@@ -2592,13 +2475,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
             
@@ -2607,7 +2490,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         public ActionResult GenerateActiveProjectAssignment(string strPractice, string strProject, string strBillingStatus,
                   string strAccount, string Assignment_All, string From_Date, string To_Date)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -2615,7 +2498,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     string Role = "OM";
 
 
-                    int? EmpId = Convert.ToInt32(Session["EmployeeId"]);
+                    int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                     DateTime? fromdate;
                     DateTime? todate;
                     if ((From_Date != null && From_Date != string.Empty) && (To_Date != null && To_Date != string.Empty))
@@ -2631,17 +2514,16 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     }
 
-                    var projectDetails = _db.Database.SqlQuery
-                        <AllProjectAssignments>("exec GetAllEmployeesAssignmentDetails @Practice, @BillingStatus,@Account, @Project,@IsActive,@StartDate,@enddate,@Role,@EmpID",
-                    new System.Data.SqlClient.SqlParameter("@Practice", strPractice == "" ? (object)DBNull.Value : strPractice),
-                    new System.Data.SqlClient.SqlParameter("@BillingStatus", strBillingStatus == "" ? (object)DBNull.Value : strBillingStatus),
-                    new System.Data.SqlClient.SqlParameter("@Account", strAccount == "" ? (object)DBNull.Value : strAccount),
-                    new System.Data.SqlClient.SqlParameter("@Project", strProject == "" ? (object)DBNull.Value : strProject),
-                    new System.Data.SqlClient.SqlParameter("@IsActive", Assignment_All == "" ? (object)DBNull.Value : Assignment_All),
-                    new System.Data.SqlClient.SqlParameter("@StartDate", fromdate != null ? fromdate : (object)DBNull.Value),
-                    new System.Data.SqlClient.SqlParameter("@enddate", todate != null ? todate : (object)DBNull.Value),
-                    new System.Data.SqlClient.SqlParameter("@Role", Role == "" ? (object)DBNull.Value : Role),
-                    new System.Data.SqlClient.SqlParameter("@EmpID", EmpId)
+                    var projectDetails = _db.Set<AllProjectAssignments>().FromSqlRaw("exec GetAllEmployeesAssignmentDetails @Practice, @BillingStatus,@Account, @Project,@IsActive,@StartDate,@enddate,@Role,@EmpID",
+                    new Microsoft.Data.SqlClient.SqlParameter("@Practice", strPractice == "" ? (object)DBNull.Value : strPractice),
+                    new Microsoft.Data.SqlClient.SqlParameter("@BillingStatus", strBillingStatus == "" ? (object)DBNull.Value : strBillingStatus),
+                    new Microsoft.Data.SqlClient.SqlParameter("@Account", strAccount == "" ? (object)DBNull.Value : strAccount),
+                    new Microsoft.Data.SqlClient.SqlParameter("@Project", strProject == "" ? (object)DBNull.Value : strProject),
+                    new Microsoft.Data.SqlClient.SqlParameter("@IsActive", Assignment_All == "" ? (object)DBNull.Value : Assignment_All),
+                    new Microsoft.Data.SqlClient.SqlParameter("@StartDate", fromdate != null ? fromdate : (object)DBNull.Value),
+                    new Microsoft.Data.SqlClient.SqlParameter("@enddate", todate != null ? todate : (object)DBNull.Value),
+                    new Microsoft.Data.SqlClient.SqlParameter("@Role", Role == "" ? (object)DBNull.Value : Role),
+                    new Microsoft.Data.SqlClient.SqlParameter("@EmpID", EmpId)
                     ).ToList<AllProjectAssignments>();
                     //var projectDetails = (from pa in _db.ProjectAssignments
                     //                      join emp in _db.Employees on pa.EmployeeId equals emp.EmployeeId
@@ -2721,14 +2603,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                     #region Export to Excel
 
                     using (ExcelPackage package = new ExcelPackage())
-                    {
+            {
                         ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("TR Information");
                         worksheet.TabColor = System.Drawing.Color.Green;
                         worksheet.DefaultRowHeight = 18f;
                         worksheet.Row(1).Height = 20f;
 
-                        using (var range = worksheet.Cells[1, 1, 1, 13])
-                        {
+                    using (var range = worksheet.Cells[1, 1, 1, 1])
+{
                             range.Style.Font.Bold = true;
                             range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -2784,8 +2666,8 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                             if (row % 2 == 1)
                             {
-                                using (var range = worksheet.Cells[row, 1, row, 13])
-                                {
+                    using (var range = worksheet.Cells[1, 1, 1, 1])
+{
                                     range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                     range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
@@ -2806,14 +2688,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         Byte[] fileBytes = package.GetAsByteArray();
                         Response.Clear();
-                        Response.Buffer = true;
-                        Response.AddHeader("content-disposition", "attachment;filename=" + ((strProject == "") ? "My" : strProject) + "-Project Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                        
+                        Response.Headers.Add("content-disposition", "attachment;filename=" + ((strProject == "") ? "My" : strProject) + "-Project Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                        Response.Charset = "";
+                        
                         Response.ContentType = "application/vnd.ms-excel";
                         //StringWriter sw = new StringWriter();
-                        Response.BinaryWrite(fileBytes);
-                        Response.End();
+                        Response.Body.Write(fileBytes);
+                        
                     }
 
                     #endregion
@@ -2824,14 +2706,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -2841,7 +2723,7 @@ namespace Trianz.Enterprise.Operations.Controllers
   
 
 
-        //return Json("1", JsonRequestBehavior.AllowGet);
+        //return Json("1");
     }
 
     public class EmployeeInfo

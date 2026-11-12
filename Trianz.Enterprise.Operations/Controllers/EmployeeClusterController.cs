@@ -1,14 +1,17 @@
 ﻿using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.General;
 using Trianz.Enterprise.Operations.Models;
 
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class EmployeeClusterController : Controller
@@ -20,36 +23,36 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             int Empid = 0;
             string strRole = null;
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    if (Session["ClusterManager"].ToString() == "1")
+                    if (HttpContext.Session.GetString("ClusterManager").ToString() == "1")
                     {
                         strRole = "OM";
                     }
                     if (strRole == null)
                     {
-                        strRole = Session["Role"].ToString();
+                        strRole = HttpContext.Session.GetString("Role").ToString();
                     }
                     ViewBag.review = "false";
                     ViewBag.IsInactive = false;
                     ViewBag.Isresume = false;
                     ViewBag.ClusterLead = "checked";
-                    if (Session["LeadId"] != null)
+                    if (HttpContext.Session.GetString("LeadId") != null)
                     {
-                        Empid = Convert.ToInt32(Session["LeadId"].ToString());
+                        Empid = Convert.ToInt32(HttpContext.Session.GetString("LeadId").ToString());
                     }
                     ViewBag.Role = strRole;
                 
-                    // lstCluster = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember").ToList();
+                    // lstCluster = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember").ToList();
                     List<ClusterLead> lstCluster = new List<ClusterLead>();
 
-                    lstCluster = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember_test").ToList();
-                    if ((strRole == "OM" || strRole == "DH") && Session["LeadId"] == null)
+                    lstCluster = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember_test").ToList();
+                    if ((strRole == "OM" || strRole == "DH") && HttpContext.Session.GetString("LeadId") == null)
                     {
                         //lstCluster = lstCluster.Where(p => p.Role == "CL").ToList();
-                        //lstCluster = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember").ToList();
+                        //lstCluster = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember").ToList();
                         var Practice = (from pr in db.PracticeMasters
                                         select new
                                         {
@@ -98,7 +101,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         ViewData["_LeadName"] = new SelectList(leadNamelst, "ClusterId", "ClusterName");
 
                         List<ClusterLead> lstReport;
-                        lstReport = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember_test").ToList<ClusterLead>();
+                        lstReport = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember_test").ToList<ClusterLead>();
 
                         List<ClusterLead> lstmembercount;
                         List<ClusterLead> lstLeadcount;
@@ -146,7 +149,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     }
                     else if (Empid > 0)
                     {
-                        //  lstCluster = db.Database.SqlQuery<ClusterLead>("exec [GetClusterTeamMemberByID] @EmployeeId", new System.Data.SqlClient.SqlParameter("EmployeeId", Empid)).ToList();
+                        //  lstCluster = db.Set<ClusterLead>().FromSqlRaw("exec [GetClusterTeamMemberByID] @EmployeeId", new Microsoft.Data.SqlClient.SqlParameter("EmployeeId", Empid)).ToList();
                         lstCluster = lstCluster.Where(m => m.EmployeeId == Empid).ToList();
                         
 
@@ -235,7 +238,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+                if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
                 {
 
                     int empid = Convert.ToInt32(Empid);
@@ -249,19 +252,19 @@ namespace Trianz.Enterprise.Operations.Controllers
                                       Skillname = p.Skillset,
                                       IsReviewed = pl.IsReviewed
                                   }).Distinct().ToList();
-                    return Json(lstemp, JsonRequestBehavior.AllowGet);
+                    return Json(lstemp);
                 }
                 else
                 {
-                    //return Json("error", JsonRequestBehavior.AllowGet);
-                    return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                    //return Json("error");
+                    return Json("Sessionexpired");
                 }
             }
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-              //  return Json("Error", JsonRequestBehavior.AllowGet);
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+              //  return Json("Error");
+                return Json("Sessionexpired");
             }
         }
         public ActionResult GetClusterdetailsByreview(string review, string resume)
@@ -292,7 +295,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             //}
             int Empid = 0;
             List<ClusterLead> lstReport = new List<ClusterLead>();
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -343,13 +346,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                                        }).Distinct().ToList().OrderBy(l => l.LeadName);
                     ViewData["_LeadName"] = new SelectList(leadNamelst, "ClusterId", "ClusterName");
 
-                    lstReport = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember_test").ToList();
+                    lstReport = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember_test").ToList();
 
 
                     int leadID = 0;
-                    if (Session["LeadId"] != null )
+                    if (HttpContext.Session.GetString("LeadId") != null )
                     {
-                        leadID = Convert.ToInt32(Session["LeadId"].ToString());
+                        leadID = Convert.ToInt32(HttpContext.Session.GetString("LeadId").ToString());
                         if (reviewid == 1 && resumeid == 0)
                         {
                             lstReport = lstReport.Where(p => p.ReviewFlag == reviewid && p.EmployeeId == leadID).ToList();
@@ -400,7 +403,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
                 ValidationModel objclusterlst = new ValidationModel();
                 objclusterlst.ClusterLeadlst = lstReport;
@@ -415,28 +418,28 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             int Empid = 0;
             string strRole = null;
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
-                if (Session["ClusterManager"].ToString() == "1")
+                if (HttpContext.Session.GetString("ClusterManager").ToString() == "1")
             {
                 strRole = "OM";
             }
             if (strRole == null)
             {
-                strRole = Session["Role"].ToString();
+                strRole = HttpContext.Session.GetString("Role").ToString();
             }
             ViewBag.Role = strRole;
            
                 try
                 {
                     List<ClusterLead> lstReport = new List<ClusterLead>();
-                    lstReport = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember_test").ToList();
+                    lstReport = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember_test").ToList();
                   
-                    if (Session["LeadId"] != null)
+                    if (HttpContext.Session.GetString("LeadId") != null)
                     {
-                        Empid = Convert.ToInt32(Session["LeadId"].ToString());
+                        Empid = Convert.ToInt32(HttpContext.Session.GetString("LeadId").ToString());
                     }
-                    if ((strRole == "OM" || strRole == "DH") && Session["LeadId"] == null)
+                    if ((strRole == "OM" || strRole == "DH") && HttpContext.Session.GetString("LeadId") == null)
                     {
                         //lstReport = lstReport.Where(p => p.Role == "CL").ToList();
 
@@ -540,20 +543,20 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                LeadID = pl.LeadID
                                            }).Distinct().ToList().OrderBy(l => l.LeadName);
                         ViewData["_LeadName"] = new SelectList(leadNamelst, "ClusterId", "ClusterName");
-                        if (Session["ClusterManager"].ToString() == "1")
+                        if (HttpContext.Session.GetString("ClusterManager").ToString() == "1")
                         {
                             strRole = "OM";
                         }
                         if (strRole == null)
                         {
-                            strRole = Session["Role"].ToString();
+                            strRole = HttpContext.Session.GetString("Role").ToString();
                         }
                         List<ClusterLead> lstCluster = new List<ClusterLead>();
-                        if (Session["LeadId"] != null)
+                        if (HttpContext.Session.GetString("LeadId") != null)
                         {
-                            Empid = Convert.ToInt32(Session["LeadId"].ToString());
+                            Empid = Convert.ToInt32(HttpContext.Session.GetString("LeadId").ToString());
                         }
-                        //lstCluster = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember").ToList();
+                        //lstCluster = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember").ToList();
 
                         string strClusterLead = "";
                         string strClusterMember = "";
@@ -619,7 +622,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         //    ViewBag.ClusterMember = "checked";
                         //}
                         //List<ClusterLead> lstReport;
-                        //lstReport = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember").ToList<ClusterLead>();
+                        //lstReport = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember").ToList<ClusterLead>();
 
                         List<ClusterLead> lstmembercount;
                         List<ClusterLead> lstLeadcount;
@@ -667,7 +670,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         ViewBag.leadList = leadList;
                     }
                     //newly added code need to confirm
-                    //else if ((strRole == "OM" || strRole == "DH") &&  Session["LeadId"] != null)
+                    //else if ((strRole == "OM" || strRole == "DH") &&  HttpContext.Session.GetString("LeadId") != null)
                     //{
                     //    lstReport = lstReport.Where(m => m.EmployeeId == Empid).ToList();
 
@@ -752,7 +755,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //}
                     //newly added code need to confirm
 
-                    else if (strRole != "OM" &&  strRole != "DH" && Session["LeadId"] != null)
+                    else if (strRole != "OM" &&  strRole != "DH" && HttpContext.Session.GetString("LeadId") != null)
                     {
                         lstReport = lstReport.Where(m => m.EmployeeId == Empid).ToList();
 
@@ -846,7 +849,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
@@ -861,22 +864,22 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+                if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
                 {
-                    return Json("success", JsonRequestBehavior.AllowGet);
+                    return Json("success");
                 }
                 else
                 {
                     //ermsg = "Session expired";
-                   return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                   return Json("Sessionexpired");
                    // return RedirectToAction("SessionExpire", "Signout");
                 }
             }
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
-            //    return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Error");
+            //    return Json("Sessionexpired");
 
             }
         }
@@ -885,24 +888,24 @@ namespace Trianz.Enterprise.Operations.Controllers
             try
             {
                 
-                if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+                if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
                 {
-                    int? EmpId = Convert.ToInt32(Session["EmployeeId"]);
+                    int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                     List<ClusterLead> lstHRRF = new List<ClusterLead>();
-                    lstHRRF = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember_test").ToList();
+                    lstHRRF = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember_test").ToList();
                     int LastRow;
                     LastRow = 10;
                     //lstHRRF = lstHRRF.Where(x => x.Remarks != "This is an auto generated TR during bulk assignment" && x.Remarks != "This is an auto generated TR during new employee creation").ToList();
                     #region Export to Excel
                     using (ExcelPackage package = new ExcelPackage())
-                    {
+            {
                         ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("ClusterEmployeeSkillReport");
                         worksheet.TabColor = System.Drawing.Color.Green;
                         worksheet.DefaultRowHeight = 18f;
                         worksheet.Row(1).Height = 20f;
                         using (var range = worksheet.Cells[1, 1, 1, LastRow])
-                        {
-                            range.Style.Font.Bold = true;
+{
+                        range.Style.Font.Bold = true;
                             range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                             range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#5B9BD5"));
@@ -978,8 +981,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (row % 2 == 1)
                             {
                                 using (var range = worksheet.Cells[row, 1, row, LastRow])
-                                {
-                                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+{
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                     range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
                                     range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -997,14 +1000,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         Byte[] fileBytes = package.GetAsByteArray();
                         Response.Clear();
-                        Response.Buffer = true;
-                        Response.AddHeader("content-disposition", "attachment;filename=" + "ClusterEmployeeSkill" + "-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                        
+                        Response.Headers.Add("content-disposition", "attachment;filename=" + "ClusterEmployeeSkill" + "-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                        Response.Charset = "";
+                        
                         Response.ContentType = "application/vnd.ms-excel";
                         StringWriter sw = new StringWriter();
-                        Response.BinaryWrite(fileBytes);
-                        Response.End();
+                        Response.Body.Write(fileBytes);
+                        
                     }
 
                     #endregion
@@ -1021,14 +1024,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                //return Json("Error", JsonRequestBehavior.AllowGet);
+                //return Json("Error");
 
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult DeleteEmployeeSkillByID(string SkillId)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
                 {
                 try
                 {
@@ -1057,22 +1060,22 @@ namespace Trianz.Enterprise.Operations.Controllers
                             db.EmployeeSkills_New.Remove(objDeleteSkill);
                             db.SaveChanges();
 
-                            return Json("deleted", JsonRequestBehavior.AllowGet);
+                            return Json("deleted");
                         }
                     }
-                    return Json("", JsonRequestBehavior.AllowGet);
+                    return Json("");
                 }
                 catch (Exception ex)
                 {
 
                     Common.WriteExceptionErrorLog(ex);
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
 
             }
@@ -1080,11 +1083,11 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public ActionResult SaveReviewedSkills(List<EmployeeSkills_NewDetails> Skillslist)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    int LogedinEmpId = Convert.ToInt32(Session["EmployeeId"]);
+                    int LogedinEmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                     List<EmployeeSkills_New> Exatingskills = new List<EmployeeSkills_New>();
                     if (Skillslist.Count > 0)
                     {
@@ -1112,25 +1115,25 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 reviewkills.LastReviewdDate = DateTime.Now;
                                 reviewkills.IsReviewed = item.Reviewed;
                                 reviewkills.Expertiselevel = reviewdkills.Expertiselevel;
-                                db.Entry(reviewkills).State = System.Data.Entity.EntityState.Modified;
+                                db.Entry(reviewkills).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                                 db.SaveChanges();
 
                             }
                         }
                     }
-                    return Json("true", JsonRequestBehavior.AllowGet);
+                    return Json("true");
 
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                    return Json("Sessionexpired");
                 }
             }
             else
             {
-               return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+               return Json("Sessionexpired");
             //    return RedirectToAction("SessionExpire", "Signout");
             }
         }

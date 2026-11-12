@@ -1,5 +1,5 @@
 ﻿@model IEnumerable<Trianz.Enterprise.Operations.Models.ChartData>
-@using JQChart.Web.Mvc
+@* @using JQChart.Web.Mvc *@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "ResourceInformation";
@@ -92,7 +92,7 @@
 
                 <tr>
                     <td>
-                        @(Html.JQChart()
+@*                         @(Html.JQChart()
                     .Chart(Model)
                     .ID("jqChart")
                     .Width(1000)
@@ -127,6 +127,7 @@
                     )
                     .Render()
                         )
+ @*
 
 
                     </td>

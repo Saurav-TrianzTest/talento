@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<Trianz.Enterprise.Operations.Models.DemandData>
 
 
-    @using JQChart.Web.Mvc
+    @* @using JQChart.Web.Mvc *@
     @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewBag.Title = "DemandTrend";
@@ -31,7 +31,7 @@
 
                 <tr>
                     <td>
-                        @(Html.JQChart()
+@*                         @(Html.JQChart()
                 .Chart(Model)
                 .ID("barchart")
                 .Width(500)
@@ -77,13 +77,14 @@
                 )
                 .Render()
                         )
+ @*
 
 
                     </td>
                     <td>
-                        @Html.Partial("CurrentDemandOverview", TempData["DemandTrend"])
+                        @(await Html.PartialAsync("CurrentDemandOverview", TempData["DemandTrend"]))
 
-                        @*@(Html.JQChart()
+                        @*(Html.JQChart()
                         .Chart(Model)
                         .ID("barchart")
                         .Width(500)

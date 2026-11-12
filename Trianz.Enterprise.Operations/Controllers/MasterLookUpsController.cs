@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
-using System.Web.Mvc;
-using PagedList;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using X.PagedList;
 using Trianz.Enterprise.Operations.General;
 using Trianz.Enterprise.Operations.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
@@ -99,12 +99,12 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 if (id == null)
                 {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                    return BadRequest();
                 }
                 MasterLookUp masterLookUp = db.MasterLookUps.Find(id);
                 if (masterLookUp == null)
                 {
-                    return HttpNotFound();
+                    return NotFound();
                 }
                 return View(masterLookUp);
 
@@ -139,7 +139,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "LookupID,ApplicationCode,LookupCode,LookupType,LookupName,Description,SeqNumber,ParentCode,ParentName,Field1,Field2,Field3,Active,DateCreated,DateModified,CreatedBy,ModifiedBy")] MasterLookUp masterLookUp)
+        public ActionResult Create([Microsoft.AspNetCore.Mvc.Bind] MasterLookUp masterLookUp)
         {
             try
             {
@@ -178,12 +178,12 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 if (id == null)
                 {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                    return BadRequest();
                 }
                 MasterLookUp masterLookUp = db.MasterLookUps.Find(id);
                 if (masterLookUp == null)
                 {
-                    return HttpNotFound();
+                    return NotFound();
                 }
                 return View(masterLookUp);
             }
@@ -201,7 +201,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "LookupID,ApplicationCode,LookupCode,LookupType,LookupName,Description,SeqNumber,ParentCode,ParentName,Field1,Field2,Field3,Active,DateCreated,DateModified,CreatedBy,ModifiedBy")] MasterLookUp masterLookUp)
+        public ActionResult Edit([Microsoft.AspNetCore.Mvc.Bind] MasterLookUp masterLookUp)
         {
             try
             {
@@ -249,12 +249,12 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 if (id == null)
                 {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                    return BadRequest();
                 }
                 MasterLookUp masterLookUp = db.MasterLookUps.Find(id);
                 if (masterLookUp == null)
                 {
-                    return HttpNotFound();
+                    return NotFound();
                 }
                 return View(masterLookUp);
             }

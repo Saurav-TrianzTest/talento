@@ -128,7 +128,7 @@
 </div>
 <div id="contdata">
     <div id="divGridContent1" class="table table-responsive">
-        @Html.Partial("BulkAssignmentPartialView", Model)
+        @(await Html.PartialAsync("BulkAssignmentPartialView", Model))
     </div>
     <div class="col-md-12 ">
         <div class="col-md-6 nopadding-left" style="align-content:flex-start" id="ProjectTaskTab">

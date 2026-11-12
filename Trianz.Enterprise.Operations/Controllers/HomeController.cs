@@ -1,22 +1,24 @@
 ﻿using OfficeOpenXml;
 using System;
+using System.Web.Helpers;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.IO;
 //using System.DirectoryServices;
 using System.Linq;
 using System.Reflection;
-using System.Web;
-using System.Web.Helpers;
-using System.Web.Mvc;
-using System.Web.Security;
-using System.Web.UI;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authentication;
+using System.Threading.Tasks;
 //using Trianz.Enterprise.Operations.EmployeeService;
 using Trianz.Enterprise.Operations.Models;
 using Trianz.Enterprise.Operations.General;
 
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class HomeController : Controller
@@ -38,7 +40,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 TempData["IsRoleMasterPageAccess"] = null;
 
                 //Identifying prev page
-                TempData["PrevPage"] = Request.Url.Segments[Request.Url.Segments.Count() - 1];
+                TempData["PrevPage"] = HttpContext.Request.Path;
 
                 GetServiceLine();
 				//   string name = "smiley.gupta"; //"vindya.darsi"; //"hemasree.koganti"; //"abdul.shaik"; //"chaitanya.kondaveeti"; //"pradeep.h"; //"sreevenkata.babu"; // "sudharani.a"; //"satish.katragadda"; //"lubna.shumaila"; //"abdulbari.indoor"; //"priyanka.ganapuram"; //user.identity.name.split('\\')[1].tolower();
@@ -60,29 +62,28 @@ namespace Trianz.Enterprise.Operations.Controllers
                         lst = RoleValues.Split(',').ToList();
                         if (RoleResults != null)
                         {
-                            Session["Role"] = RoleResults.Role;
+                            HttpContext.Session.SetString("Role", RoleResults.Role.ToString());
                             //   int? Grade = 0; // employee.Grade;
-                            // Session["Grade"] = Grade;
-                            Session["Grade"] = employee.Grade
-                            
-                            = employee.EmployeeId;
-                            Session["Practice"] = RoleResults.Practice;
+                            // HttpContext.Session.SetString("Grade", Grade.ToString());
+                            HttpContext.Session.SetString("Grade", employee.Grade.ToString());
+                            HttpContext.Session.SetString("EmployeeId", employee.EmployeeId.ToString());
+                            HttpContext.Session.SetString("Practice", RoleResults.Practice.ToString());
                         }
                         else
                         {
-                            Session["Role"] = "PM"; //DefaultRole;
-                            Session["Grade"] = employee.Grade;
-                            Session["EmployeeId"] = employee.EmployeeId;
-                            Session["Practice"] = employee.Practice;
+                            HttpContext.Session.SetString("Role", "PM".ToString()); //DefaultRole;
+                            HttpContext.Session.SetString("Grade", employee.Grade.ToString());
+                            HttpContext.Session.SetString("EmployeeId", employee.EmployeeId.ToString());
+                            HttpContext.Session.SetString("Practice", employee.Practice.ToString());
 
                             //return RedirectToAction("AddNewSkills", "EmployeeSkills");
                         }
 
-                        Session["Practices"] = ddlPractise;
-                        Session["Request"] = ddlMyRequest;
-                        Session["Search"] = searchString;
+                        HttpContext.Session.SetString("Practices", ddlPractise.ToString());
+                        HttpContext.Session.SetString("Request", ddlMyRequest.ToString());
+                        HttpContext.Session.SetString("Search", searchString.ToString());
 
-                        //if (Session["Role"].ToString() == "RL")
+                        //if (HttpContext.Session.GetString("Role").ToString() == "RL")
                         //{
                         //    return RedirectToAction("Index", "ExternalReport");
                         //}
@@ -97,21 +98,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 return RedirectToAction("Unavailable", "Home");
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -140,21 +130,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                                    }).Distinct().ToList().OrderBy(p => p.LookupName);
                 ViewData["ServiceLine"] = ServiceLine;
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -162,18 +141,18 @@ namespace Trianz.Enterprise.Operations.Controllers
             }
         }
 
-        public void SignOut()
+        public async Task SignOut()
         {
             try
             {
-                Session.Clear();
-                Session.Abandon();
-                Session.RemoveAll();
-                FormsAuthentication.SignOut();
+                HttpContext.Session.Clear();
+                // Session.Abandon() is not available in ASP.NET Core
+                // Session.RemoveAll() is not available in ASP.NET Core
+                await HttpContext.SignOutAsync();
             }
             catch (Exception ex)
             {
-                Response.Redirect(ConfigurationManager.AppSettings["Talento"]);
+                Redirect(ConfigurationManager.AppSettings["Talento"]);
             }
 
         }
@@ -187,21 +166,21 @@ namespace Trianz.Enterprise.Operations.Controllers
                 if (flag == null)
                 {
                     string ddlPractise = string.Empty;
-                    if (Session["Practices"] != null)
+                    if (HttpContext.Session.GetString("Practices") != null)
                     {
-                        ddlPractise = Session["Practices"].ToString();
+                        ddlPractise = HttpContext.Session.GetString("Practices").ToString();
                     }
 
                     string ddlMyRequest = string.Empty;
-                    if (Session["Request"] != null)
+                    if (HttpContext.Session.GetString("Request") != null)
                     {
-                        ddlMyRequest = Session["Request"].ToString();
+                        ddlMyRequest = HttpContext.Session.GetString("Request").ToString();
                     }
 
                     string searchString = string.Empty;
-                    if (Session["Search"] != null)
+                    if (HttpContext.Session.GetString("Search") != null)
                     {
-                        searchString = Session["Search"].ToString();
+                        searchString = HttpContext.Session.GetString("Search").ToString();
                     }
 
                     if (!string.IsNullOrEmpty(searchString.ToLower().Trim()))
@@ -212,7 +191,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     }
                     else
                     {
-                        int employeeId = Convert.ToInt32(Session["EmployeeId"]);
+                        int employeeId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
                         switch (ddlMyRequest.ToLower())
                         {
@@ -510,14 +489,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 #region Export to Excel
 
                 using (ExcelPackage package = new ExcelPackage())
-                {
-                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("HRRF Information");
+            {
+                        ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("HRRF Information");
                     worksheet.TabColor = System.Drawing.Color.Green;
                     worksheet.DefaultRowHeight = 18f;
                     worksheet.Row(1).Height = 20f;
 
                     using (var range = worksheet.Cells[1, 1, 1, 40])
-                    {
+{
                         range.Style.Font.Bold = true;
                         range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                         range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -667,8 +646,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                         if (row % 2 == 1)
                         {
                             using (var range = worksheet.Cells[row, 1, row, 40])
-                            {
-                                range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+{
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                 range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
                                 range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -687,14 +666,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
-                    Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=TR-Details" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    
+                    Response.Headers.Add("content-disposition", "attachment;filename=TR-Details" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                    Response.Charset = "";
+                    
                     Response.ContentType = "application/vnd.ms-excel";
                     StringWriter sw = new StringWriter();
-                    Response.BinaryWrite(fileBytes);
-                    Response.End();
+                    Response.Body.Write(fileBytes);
+                    
                 }
 
                 #endregion
@@ -719,7 +698,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        {
                 //            ddlPractise = null;
                 //        }
-                //        int employeeId = Convert.ToInt32(Session["EmployeeId"]);
+                //        int employeeId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
 
                 //        HrrfDetailsExport = (from Hrrf in Db.HRRFs
@@ -780,28 +759,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //                            grid.Column("DateFromIntToExt", "Date from Internal to External"),
                 //                            grid.Column("DateOfHold", "Date of Hold")
                 //                       )).ToString();
-                //Response.ClearContent();
-                //Response.AddHeader("content-disposition", "attachment; filename=HRRFInfo" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xls");
+                //Response.Clear();
+                //Response.Headers.Add("content-disposition", "attachment; filename=HRRFInfo" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xls");
                 //Response.ContentType = "application/excel";
-                //Response.Write(gridData);
-                //Response.End();
+                //Response.WriteAsync(gridData);
+                //
             }
 
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;
@@ -831,27 +799,16 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 )
                 ).ToString();
-                Response.ClearContent();
-                Response.AddHeader("content-disposition", "attachment; filename=HRRFInfo.xls");
+                Response.Clear();
+                Response.Headers.Add("content-disposition", "attachment; filename=HRRFInfo.xls");
                 Response.ContentType = "application/excel";
-                Response.Write(gridData);
-                Response.End();
+                Response.WriteAsync(gridData);
+                
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;
@@ -1012,7 +969,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         {
                             ddlPractise = null;
                         }
-                        int employeeId = Convert.ToInt32(Session["EmployeeId"]);
+                        int employeeId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                         var HRRFsParent = (from Hrrf in Db.HRRFs
                                            where Hrrf.Isparent == true &&
                                            (Hrrf.HRRFCreatedBy == employeeId) &&
@@ -1149,21 +1106,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 return objDetails;
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -1188,23 +1134,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 objlst = objlst.Where(s => Convert.ToString(s.HRRFNumber).StartsWith(Name)).ToList();
 
-                return Json(objlst, JsonRequestBehavior.AllowGet);
+                return Json(objlst);
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
 
@@ -1214,7 +1149,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         //public ActionResult LogOff()
         //{
-        //    Session["Role"] = null; //it's my session variable
+        //    HttpContext.Session.SetString("Role", null.ToString()); //it's my session variable
         //    Session.Clear();
         //    Session.Abandon();
         //    ViewBag.state = "expired";

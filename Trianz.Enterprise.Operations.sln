@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trianz.Enterprise.Services", "..\..\EnterpriseServices\MasterLookupService\Development\MasterLookupService\Trianz.Enterprise.Services.csproj", "{89B2E31F-39EE-4FB9-BB77-153A2A93358C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trianz.Enterprise.Operations", "Trianz.Enterprise.Operations\Trianz.Enterprise.Operations.csproj", "{BFD23CB5-163E-4D1A-A395-396D28BBC14A}"
 EndProject
 Global
@@ -13,10 +11,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{89B2E31F-39EE-4FB9-BB77-153A2A93358C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{89B2E31F-39EE-4FB9-BB77-153A2A93358C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{89B2E31F-39EE-4FB9-BB77-153A2A93358C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{89B2E31F-39EE-4FB9-BB77-153A2A93358C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BFD23CB5-163E-4D1A-A395-396D28BBC14A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BFD23CB5-163E-4D1A-A395-396D28BBC14A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BFD23CB5-163E-4D1A-A395-396D28BBC14A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -24,17 +18,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 3
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = http://172.16.0.76:8080/tfs/mspractice
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = ..\\..\\EnterpriseServices\\MasterLookupService\\Development\\MasterLookupService\\Trianz.Enterprise.Services.csproj
-		SccProjectName1 = ../../EnterpriseServices/MasterLookupService/Development/MasterLookupService
-		SccLocalPath1 = ..\\..\\EnterpriseServices\\MasterLookupService\\Development\\MasterLookupService
-		SccProjectUniqueName2 = Trianz.Enterprise.Operations\\Trianz.Enterprise.Operations.csproj
-		SccProjectName2 = Trianz.Enterprise.Operations
-		SccLocalPath2 = Trianz.Enterprise.Operations
 	EndGlobalSection
 EndGlobal

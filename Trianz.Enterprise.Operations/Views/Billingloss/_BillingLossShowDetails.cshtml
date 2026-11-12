@@ -1,14 +1,16 @@
 ﻿@model Trianz.Enterprise.Operations.Models.BillingLossList
-@using JQChart.Web.Mvc
-@*{
+@* @using JQChart.Web.Mvc *@
+@{
      ViewBag.Title = "ResourceInformation";
+        @* WebGrid is not available in ASP.NET Core
         var grid = new WebGrid(Model, canPage: true, canSort: true, rowsPerPage: 10,
             selectionFieldName: "SelectedRow");
 
         grid.Pager(WebGridPagerModes.All);
+        *@
 
 
-    }*@
+    }
 <html>
 <head>
     <title></title>

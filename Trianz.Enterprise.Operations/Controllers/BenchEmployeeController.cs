@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Web;
-using System.Web.Helpers;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Models;
 using OfficeOpenXml;
 using Trianz.Enterprise.Operations.ViewModel;
 using Trianz.Enterprise.Operations.General;
 
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using Microsoft.AspNetCore.Session;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class BenchEmployeeController : Controller
@@ -20,7 +23,7 @@ namespace Trianz.Enterprise.Operations.Controllers
      
         public ActionResult BenchEmployeeView()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -59,7 +62,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                    ViewData["Opportunitieswithcode"] = new SelectList(GetOpportunitieswithcode, "potential_no", "potentialname");
                     //newly added code                 
                     List<BenchResourceViewModel> BenchResourceViewModelList = new List<BenchResourceViewModel>();
-                    BenchResourceViewModelList = Db.Database.SqlQuery<BenchResourceViewModel>("exec sp_GetBenchResourceDetails").ToList();
+                    BenchResourceViewModelList = Db.Set<BenchResourceViewModel>().FromSqlRaw("exec sp_GetBenchResourceDetails").ToList();
 
 
                     foreach (var item in BenchResourceViewModelList)
@@ -93,13 +96,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -109,12 +112,12 @@ namespace Trianz.Enterprise.Operations.Controllers
        // public ActionResult GetOppurtunityByEmployeeID(int Employeeid)
        // {
 
-       //     if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+       //     if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
        //     {
        //         try
        //         {
        //             List<BenchResourceViewModel> BenchResourceViewModelList = new List<BenchResourceViewModel>();
-       //             BenchResourceViewModelList = Db.Database.SqlQuery<BenchResourceViewModel>("exec sp_GetBenchResourceDetails").ToList();
+       //             BenchResourceViewModelList = Db.Set<BenchResourceViewModel>().FromSqlRaw("exec sp_GetBenchResourceDetails").ToList();
        //             var oppurtunitycodewithname = BenchResourceViewModelList.Where(i => i.EmployeeId == Employeeid).Select(i => i.ReservedOppCodeName).FirstOrDefault();
        //             var oppurtintyval = "";
        //             if (oppurtunitycodewithname != null)
@@ -125,54 +128,54 @@ namespace Trianz.Enterprise.Operations.Controllers
        //             {
        //                 oppurtintyval = "";
        //             }
-       //             return Json(oppurtintyval, JsonRequestBehavior.AllowGet);
+       //             return Json(oppurtintyval);
        //         }
        //         catch (Exception ex)
        //         {
        //             Common.WriteExceptionErrorLog(ex);
        //             // return RedirectToAction("Error", "Error");
-       //             return Json("Error", JsonRequestBehavior.AllowGet);
+       //             return Json("Error");
        //         }
        //     }
        //     else
        //     {
-       //          return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+       //          return Json("Sessionexpired");
        //     }
 
        // }
         public ActionResult ExportReport()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    return Json("success", JsonRequestBehavior.AllowGet);
+                    return Json("success");
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                    // return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         
                   public ActionResult GenerateProjectInfo()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    string Role = (string)Session["Role"];
+                    string Role = (string)HttpContext.Session.GetString("Role");
                     // List<BenchEmployees> BenchEmployeesInfo = new List<BenchEmployees>();
                     List<BenchResourceViewModel> BenchResourceViewModelList = new List<BenchResourceViewModel>();
-                    BenchResourceViewModelList = Db.Database.SqlQuery<BenchResourceViewModel>("exec sp_GetBenchResourceDetails").ToList();
+                    BenchResourceViewModelList = Db.Set<BenchResourceViewModel>().FromSqlRaw("exec sp_GetBenchResourceDetails").ToList();
                     //foreach (BenchResourceViewModel emp in BenchResourceViewModelList)
                     //{
                     //    string non1 = "0";
@@ -212,15 +215,15 @@ namespace Trianz.Enterprise.Operations.Controllers
                     #region Export to Excel
 
                     using (ExcelPackage package = new ExcelPackage())
-                    {
+            {
                         ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Project Information");
                         worksheet.TabColor = System.Drawing.Color.Green;
                         worksheet.DefaultRowHeight = 18f;
                         worksheet.Row(1).Height = 20f;
 
                         using (var range = worksheet.Cells[1, 1, 1, 36])
-                        {
-                            range.Style.Font.Bold = true;
+{
+                        range.Style.Font.Bold = true;
                             range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                             range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#5B9BD5"));
@@ -437,8 +440,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (row % 2 == 1)
                             {
                                 using (var range = worksheet.Cells[row, 1, row, 36])
-                                {
-                                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+{
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                     range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
                                     range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -458,14 +461,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         Byte[] fileBytes = package.GetAsByteArray();
                         Response.Clear();
-                        Response.Buffer = true;
-                        Response.AddHeader("content-disposition", "attachment;filename=" + "Bench Resources" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                        
+                        Response.Headers.Add("content-disposition", "attachment;filename=" + "Bench Resources" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                        Response.Charset = "";
+                        
                         Response.ContentType = "application/vnd.ms-excel";
                         //StringWriter sw = new StringWriter();
-                        Response.BinaryWrite(fileBytes);
-                        Response.End();
+                        Response.Body.Write(fileBytes);
+                        
                     }
 
                     #endregion
@@ -475,20 +478,20 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-               // return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+               // return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public ActionResult Savedetails(List<SelectedBenchEmployees> SelectedBenchEmployees)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -520,28 +523,28 @@ namespace Trianz.Enterprise.Operations.Controllers
                         _db.SaveChanges();
 
                 }
-                    return Json("true", JsonRequestBehavior.AllowGet);
+                    return Json("true");
 
             }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                    // return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public ActionResult GetBenchStatus(string categoryvalue, string benchstatusvalue)
         {
-            //if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            //if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             //{
 
                 try
@@ -579,14 +582,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                return Json(BenchStatusList, JsonRequestBehavior.AllowGet);
+                return Json(BenchStatusList);
 
             }
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
                 return RedirectToAction("Error", "Error");
-                //return Json("Error", JsonRequestBehavior.AllowGet);
+                //return Json("Error");
             }
 
         }
@@ -594,14 +597,14 @@ namespace Trianz.Enterprise.Operations.Controllers
         ///Latest Code for BenchResource Report
         public ActionResult BenchResourceReportView()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
 
             {
                 try
                 {
 
                     List<BenchResourceDataViewModel> BenchResourceViewModelList = new List<BenchResourceDataViewModel>();
-                    BenchResourceViewModelList = Db.Database.SqlQuery<BenchResourceDataViewModel>("exec sp_GetBenchResourceDetails").ToList();
+                    BenchResourceViewModelList = Db.Set<BenchResourceDataViewModel>().FromSqlRaw("exec sp_GetBenchResourceDetails").ToList();
 
 
                     return View(BenchResourceViewModelList);
@@ -620,50 +623,50 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         public ActionResult ExportBenchReport()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    return Json("success", JsonRequestBehavior.AllowGet);
+                    return Json("success");
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
             }
         }
          public ActionResult GenerateBenchReport()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    string Role = (string)Session["Role"];
+                    string Role = (string)HttpContext.Session.GetString("Role");
                     List<BenchEmployees> BenchEmployeesInfo = new List<BenchEmployees>();
                     List<BenchResourceViewModel> BenchResourceViewModelList = new List<BenchResourceViewModel>();
-                    BenchResourceViewModelList = Db.Database.SqlQuery<BenchResourceViewModel>("exec sp_GetBenchResourceListofDetails").ToList();
+                    BenchResourceViewModelList = Db.Set<BenchResourceViewModel>().FromSqlRaw("exec sp_GetBenchResourceListofDetails").ToList();
 
 
                     // hrr report 
                     List<HRRFReportDetails> TRReportViewModelList = new List<HRRFReportDetails>();
-                    TRReportViewModelList = Db.Database.SqlQuery<HRRFReportDetails>("exec sp_GetHRRFReportDetails").ToList();
+                    TRReportViewModelList = Db.Set<HRRFReportDetails>().FromSqlRaw("exec sp_GetHRRFReportDetails").ToList();
 
                     List<ProjectReleaseDetails> projectReleaseResourceList = new List<ProjectReleaseDetails>();
-                    projectReleaseResourceList = Db.Database.SqlQuery<ProjectReleaseDetails>("exec sp_GetProjectReleaseDetails").ToList();
+                    projectReleaseResourceList = Db.Set<ProjectReleaseDetails>().FromSqlRaw("exec sp_GetProjectReleaseDetails").ToList();
 
                     List<FutureReleasesData> FutureReleasesDatalist = new List<FutureReleasesData>();
-                    FutureReleasesDatalist = Db.Database.SqlQuery<FutureReleasesData>("exec sp_GetFutureReleasesData").ToList();
+                    FutureReleasesDatalist = Db.Set<FutureReleasesData>().FromSqlRaw("exec sp_GetFutureReleasesData").ToList();
 
 
                     #region Export to Excel
 
                     using (ExcelPackage package = new ExcelPackage())
-                    {
+            {
                         ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Bench Resource Report");
                         ExcelWorksheet trworksheet = package.Workbook.Worksheets.Add("TR Report");
                         ExcelWorksheet projectworksheet = package.Workbook.Worksheets.Add("Project Release Report");
@@ -674,8 +677,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                         worksheet.Row(1).Height = 20f;
 
                         using (var range = worksheet.Cells[1, 1, 1, 38])
-                        {
-                            range.Style.Font.Bold = true;
+{
+                        range.Style.Font.Bold = true;
                             range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                             range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#5B9BD5"));
@@ -900,8 +903,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (row % 2 == 1)
                             {
                                 using (var range = worksheet.Cells[row, 1, row, 38])
-                                {
-                                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+{
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                     range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
                                     range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -925,7 +928,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         projectworksheet.Row(1).Height = 20f;
                         int LastRowforProjectreleasecount = 19;
                         using (var range = projectworksheet.Cells[1, 1, 1, LastRowforProjectreleasecount])
-                        {
+{
                             range.Style.Font.Bold = true;
                             range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -1019,7 +1022,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (row % 2 == 1)
                             {
                                 using (var range = projectworksheet.Cells[row, 1, row, 19])
-                                {
+{
                                     range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                     range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
@@ -1042,7 +1045,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         trworksheet.Row(1).Height = 20f;
                         int LastRow = 46;
                         using (var range = trworksheet.Cells[1, 1, 1, LastRow])
-                        {
+{
                             range.Style.Font.Bold = true;
                             range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -1292,7 +1295,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (row % 2 == 1)
                             {
                                 using (var range = trworksheet.Cells[row, 1, row, 46])
-                                {
+{
                                     range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                     range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
@@ -1314,8 +1317,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                         Releasesdataworksheet.Row(1).Height = 20f;
 
                         using (var range = Releasesdataworksheet.Cells[1, 1, 1, 18])
-                        {
-                            range.Style.Font.Bold = true;
+{
+                        range.Style.Font.Bold = true;
                             range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                             range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#5B9BD5"));
@@ -1424,7 +1427,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (row % 2 == 1)
                             {
                                 using (var range = Releasesdataworksheet.Cells[row, 1, row, 18])
-                                {
+{
                                     range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                     range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
@@ -1444,14 +1447,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         Byte[] fileBytes = package.GetAsByteArray();
                         Response.Clear();
-                        Response.Buffer = true;
-                        Response.AddHeader("content-disposition", "attachment;filename=" + "BO Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                        
+                        Response.Headers.Add("content-disposition", "attachment;filename=" + "BO Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                        Response.Charset = "";
+                        
                         Response.ContentType = "application/vnd.ms-excel";
                         // StringWriter sw = new StringWriter();
-                        Response.BinaryWrite(fileBytes);
-                        Response.End();
+                        Response.Body.Write(fileBytes);
+                        
                     }
 
                     #endregion

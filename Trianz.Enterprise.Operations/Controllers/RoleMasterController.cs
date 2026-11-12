@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Configuration;
-using System.Web;
-using System.Web.Mvc;
-using PagedList;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using X.PagedList;
 using Trianz.Enterprise.Operations.Models;
 using Trianz.Enterprise.Operations.General;
+using Microsoft.EntityFrameworkCore;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
@@ -120,12 +120,12 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     if (id == null)
                     {
-                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                        return BadRequest();
                     }
                     RoleMaster roleMaster = db.RoleMasters.Find(id);
                     if (roleMaster == null)
                     {
-                        return HttpNotFound();
+                        return NotFound();
                     }
 
                     return View(roleMaster);
@@ -186,7 +186,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "RoleId,EmployeeId,Role,Practice")] RoleMaster roleMaster)
+        public ActionResult Create([Microsoft.AspNetCore.Mvc.Bind] RoleMaster roleMaster)
         {
             try
             {
@@ -235,7 +235,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     if (id == null)
                     {
-                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                        return BadRequest();
                     }
                     string pathValue = ConfigurationManager.AppSettings["RoleManagement"];
                     List<string> lst = new List<string>();
@@ -256,7 +256,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     RoleMaster roleMaster = db.RoleMasters.Find(id);
                     if (roleMaster == null)
                     {
-                        return HttpNotFound();
+                        return NotFound();
                     }
 
                     return View(roleMaster);
@@ -275,7 +275,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "RoleId,EmployeeId,Role,Practice,ModifiedBy")] RoleMaster roleMaster)
+        public ActionResult Edit([Microsoft.AspNetCore.Mvc.Bind] RoleMaster roleMaster)
         {
             try
             {
@@ -323,12 +323,12 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     if (id == null)
                     {
-                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                        return BadRequest();
                     }
                     RoleMaster roleMaster = db.RoleMasters.Find(id);
                     if (roleMaster == null)
                     {
-                        return HttpNotFound();
+                        return NotFound();
                     }
 
                     return View(roleMaster);
@@ -412,7 +412,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 objlst = objlst.Where(s => Convert.ToString(s.EmployeeId).StartsWith(name)).ToList();
 
-                return Json(objlst, JsonRequestBehavior.AllowGet);
+                return Json(objlst);
             }
             catch (Exception ex)
             {
@@ -441,7 +441,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
                 Result = "true";
                         
-            return Json(Result, JsonRequestBehavior.AllowGet);
+            return Json(Result);
         }
     }
 }

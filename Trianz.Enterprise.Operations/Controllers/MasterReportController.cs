@@ -1,18 +1,18 @@
 ﻿using System;
+using System.Web.Helpers;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.IO;
 //using System.DirectoryServices;
 using System.Linq;
 using System.Reflection;
-using System.Web;
-using System.Web.Helpers;
-using System.Web.UI;
-using System.Web.Mvc;
-using System.Web.Security;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Configuration;
 using Trianz.Enterprise.Operations.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
@@ -22,7 +22,7 @@ namespace Trianz.Enterprise.Operations.Controllers
          // GET: MasterReport
         public ActionResult MasterReportView(string currentFilter, string ddlStatus, string SearchEmployee, int? page, string ddlSearch, string SearchField, string ddlSearchField)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
                 //List<Employee> emplist = new List<Employee>();
@@ -184,8 +184,8 @@ namespace Trianz.Enterprise.Operations.Controllers
 
             #endregion
 
-            Session["Request"] = ddlStatus;
-            Session["Search"] = SearchEmployee;
+            HttpContext.Session.SetString("Request", ddlStatus.ToString());
+            HttpContext.Session.SetString("Search", SearchEmployee.ToString());
             ////return View();
             ////emp = emp.OrderBy(s => s.EmployeeId).ToList();
             if (!String.IsNullOrEmpty(SearchEmployee))
@@ -517,7 +517,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -625,14 +625,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 #endregion
 
                 string ddlStatus = string.Empty;
-                if (Session["Request"] != null)
+                if (HttpContext.Session.GetString("Request") != null)
                 {
-                    ddlStatus = Session["Request"].ToString();
+                    ddlStatus = HttpContext.Session.GetString("Request").ToString();
                 }
                 string searchString = string.Empty;
-                if (Session["Search"] != null)
+                if (HttpContext.Session.GetString("Search") != null)
                 {
-                    searchString = Session["Search"].ToString();
+                    searchString = HttpContext.Session.GetString("Search").ToString();
                 }
 
                 if (string.IsNullOrEmpty(searchString))
@@ -660,7 +660,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     {
                         emp = (from Emp in emp select Emp).ToList();
                     }
-                    int employeeId = Convert.ToInt32(Session["EmployeeId"]);
+                    int employeeId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
                 }
 
@@ -761,28 +761,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                //grid.Column("AssignmentStatus", "Assignment Status")
                )
                 ).ToString();
-                Response.ClearContent();
-                Response.AddHeader("content-disposition", "attachment; filename=EmployeeInfo.xls");
+                Response.Clear();
+                Response.Headers.Add("content-disposition", "attachment; filename=EmployeeInfo.xls");
                 Response.ContentType = "application/excel";
-                Response.Write(gridData);
-                Response.End();
+                Response.WriteAsync(gridData);
+                
             }
 
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;
@@ -792,7 +781,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public ActionResult FileDownload(int id)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
 
@@ -817,7 +806,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }

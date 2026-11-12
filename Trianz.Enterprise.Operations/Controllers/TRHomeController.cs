@@ -4,17 +4,20 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Script.Serialization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json;
 using Trianz.Enterprise.Operations.Filters;
 using Trianz.Enterprise.Operations.Models;
-using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.OpenIdConnect;
 using Trianz.Enterprise.Operations.General;
-using System.Data.SqlClient;						
+using Microsoft.Data.SqlClient;						
 
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     [Authorize]
@@ -31,7 +34,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             TempData["IsRoleMasterPageAccess"] = null;
 
             //Identifying prev page
-            TempData["PrevPage"] = Request.Url.Segments[Request.Url.Segments.Count() - 1];
+            TempData["PrevPage"] = HttpContext.Request.Path;
 
             //var ServiceLine = (from serviceLine in db.MasterLookUps.Where(x => x.LookupType == "ServiceLine")
             //                   select new
@@ -83,7 +86,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         ViewBag.ClusterMaster = IsUserExist;
                         if (isSupervisor != null)
                         {
-                            Session["Supervisor"] = "Supervisor";
+                            HttpContext.Session.SetString("Supervisor", "Supervisor".ToString());
                         }
                         if (EmployeeId > 0)
                         {
@@ -94,24 +97,24 @@ namespace Trianz.Enterprise.Operations.Controllers
                             RoleMaster objRoleMaster = db.RoleMasters.Where(r => r.EmployeeId == objEmployee.EmployeeId && r.ApplicationCode == "TALENTREQ").FirstOrDefault();
                             if (objRoleMaster != null)
                             {
-                                Session["Role"] = objRoleMaster.Role;
-                                Session["Grade"] = objEmployee.Grade;
-                                Session["EmployeeId"] = objEmployee.EmployeeId;
-                                Session["Practice"] = objEmployee.Practice;
+                                HttpContext.Session.SetString("Role", objRoleMaster.Role.ToString());
+                                HttpContext.Session.SetString("Grade", objEmployee.Grade.ToString());
+                                HttpContext.Session.SetString("EmployeeId", objEmployee.EmployeeId.ToString());
+                                HttpContext.Session.SetString("Practice", objEmployee.Practice.ToString());
                             }
                             else
                             {
-                                Session["Role"] = "PM"; //DefaultRole;
-                                Session["Grade"] = objEmployee.Grade;
-                                Session["EmployeeId"] = objEmployee.EmployeeId;
-                                Session["Practice"] = objEmployee.Practice;
+                                HttpContext.Session.SetString("Role", "PM".ToString()); //DefaultRole;
+                                HttpContext.Session.SetString("Grade", objEmployee.Grade.ToString());
+                                HttpContext.Session.SetString("EmployeeId", objEmployee.EmployeeId.ToString());
+                                HttpContext.Session.SetString("Practice", objEmployee.Practice.ToString());
                             }
-                            if ((Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM" || Session["Role"].ToString() == "DH" || Session["Role"].ToString() == "SM" || Session["Role"].ToString() == "RL" || Session["Role"].ToString() == "LDAdmin" || Session["Role"].ToString() == "CompetencyAdmin" || Session["Role"].ToString() == "Finance"))
+                            if ((HttpContext.Session.GetString("Role").ToString() == "OM" || HttpContext.Session.GetString("Role").ToString() == "PM" || HttpContext.Session.GetString("Role").ToString() == "DH" || HttpContext.Session.GetString("Role").ToString() == "SM" || HttpContext.Session.GetString("Role").ToString() == "RL" || HttpContext.Session.GetString("Role").ToString() == "LDAdmin" || HttpContext.Session.GetString("Role").ToString() == "CompetencyAdmin" || HttpContext.Session.GetString("Role").ToString() == "Finance"))
                             {
                                 string trVisibleValues = ConfigurationManager.AppSettings["OnlyTRVisibleEmployee"];
                                 List<string> lstTRVisibleEmps = new List<string>();
                                 lstTRVisibleEmps = trVisibleValues.Split(',').ToList();
-                                if (Session["Role"].ToString() == "OM" || Convert.ToInt32(Session["Grade"]) >= 4 || Session["Role"].ToString() == "RL" || Session["Role"].ToString() == "DH")
+                                if (HttpContext.Session.GetString("Role").ToString() == "OM" || Convert.ToInt32(HttpContext.Session.GetString("Grade")) >= 4 || HttpContext.Session.GetString("Role").ToString() == "RL" || HttpContext.Session.GetString("Role").ToString() == "DH")
                                 {
                                     List<SelectListItem> lstTRRequests = new List<SelectListItem>();
                                     lstTRRequests.Add(new SelectListItem { Text = "My Request", Value = "MyRequest", Selected = true });
@@ -129,18 +132,18 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     lstTRRequests.Add(new SelectListItem { Text = "ALL TRs", Value = "ALL" });
                                     ViewData["_TRRequests"] = lstTRRequests;
                                 }
-                                else if (Convert.ToInt32(Session["Grade"]) < 4)
+                                else if (Convert.ToInt32(HttpContext.Session.GetString("Grade")) < 4)
                                 {
                                     List<SelectListItem> lstTRRequests = new List<SelectListItem>();
                                     lstTRRequests.Add(new SelectListItem { Text = "My Request", Value = "MyRequest", Selected = true });
                                     ViewData["_TRRequests"] = lstTRRequests;
                                 }
                             }
-                            int empID = (int)Session["EmployeeId"];
+                            int empID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                             #region ForPM
-                            if (Session["Role"].ToString() == "PM")
+                            if (HttpContext.Session.GetString("Role").ToString() == "PM")
                             {
-                                if (Session["EmployeeId"] != null)
+                                if (HttpContext.Session.GetString("EmployeeId") != null)
                                 {
                                     var _Accounts = (from projects in db.Projects.
                                                       Where(p => p.ProjectManagerId == empID && p.IsActive == true)
@@ -159,7 +162,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             #endregion
 
                             #region ForOM
-                            else if (Session["Role"].ToString() == "OM")
+                            else if (HttpContext.Session.GetString("Role").ToString() == "OM")
                             {
                                 var _Accounts = (from projects in db.Projects.
                                                         Where(p => p.IsActive == true)
@@ -177,7 +180,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             #endregion
 
                             #region ForDH
-                            else if (Session["Role"].ToString() == "DH")
+                            else if (HttpContext.Session.GetString("Role").ToString() == "DH")
                             {
                                 var _Accounts = (from projects in db.Projects.
                                                         Where(p => p.DELIVERY_MANAGER_ID == empID && p.IsActive == true)
@@ -203,29 +206,29 @@ namespace Trianz.Enterprise.Operations.Controllers
                             ViewBag.IsDM = isDM;
                             // PracticeClusterLead pcl = new PracticeClusterLead();
                             var clusterLeadId = (from data in db.PracticeClusterLeads.Where(x => x.LeadID == EmployeeId) select data).FirstOrDefault();
-                            // Session["ClusterLeadId"] = clusterLeadId.LeadID;             
+                            // HttpContext.Session.SetString("ClusterLeadId", clusterLeadId.LeadID.ToString());             
                             if (clusterLeadId != null)
                             {
-                                Session["ClusterLeadId"] = clusterlead.ToString();
-                                Session["LeadId"] = clusterLeadId.LeadID;
+                                HttpContext.Session.SetString("ClusterLeadId", clusterlead.ToString().ToString());
+                                HttpContext.Session.SetString("LeadId", clusterLeadId.LeadID.ToString());
                             }
                             else
                             {
-                                Session["ClusterLeadId"] = "0";
-                                //Session["LeadId"] = clusterlead;
+                                HttpContext.Session.SetString("ClusterLeadId", "0".ToString());
+                                //HttpContext.Session.SetString("LeadId", clusterlead.ToString());
                             }
                             List<string> ClusterManager = System.Configuration.ConfigurationManager.AppSettings["clustermanager"].Split(',').ToList();
                             bool Ismanagerexist = ClusterManager.Contains(EmployeeId.ToString());
                             if (Ismanagerexist)
                             {
-                                Session["ClusterManager"] = "1";
+                                HttpContext.Session.SetString("ClusterManager", "1".ToString());
                             }
                             else
                             {
-                                Session["ClusterManager"] = "2";
+                                HttpContext.Session.SetString("ClusterManager", "2".ToString());
                             }
-                            var InternalGraph = db.Database.SqlQuery<GraphStatus>("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "Internal")).ToList<GraphStatus>();
-                            var ExternalGraph = db.Database.SqlQuery<GraphStatus>("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "External")).ToList<GraphStatus>();
+                            var InternalGraph = db.Set<GraphStatus>().FromSqlRaw("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "Internal")).ToList<GraphStatus>();
+                            var ExternalGraph = db.Set<GraphStatus>().FromSqlRaw("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "External")).ToList<GraphStatus>();
                             ViewBag.InternalGraph = InternalGraph;
                             ViewBag.ExternalGraph = ExternalGraph;
                             return View();
@@ -242,18 +245,18 @@ namespace Trianz.Enterprise.Operations.Controllers
             try
             {
                 ViewBag.ActiveTR = strRequest;
-                int? EmpId = Convert.ToInt32(Session["EmployeeId"]);
+                int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 if (status == "")
                 {
                     status = null;
                 }
                 strRequest = strRequest != null ? (strRequest.ToLower() == "myrequest") ? "" : strRequest.ToUpper() : string.Empty;
 
-                var lstHRRF = db.Database.SqlQuery<sp_GetHRRFListByEmpIdPractice_Result>("exec sp_GetHRRFListByEmpIdPractice @Practice, @Request,@Account, @EmpID",
-                new System.Data.SqlClient.SqlParameter("Practice", strPractice),
-                new System.Data.SqlClient.SqlParameter("Request", strRequest),
-                new System.Data.SqlClient.SqlParameter("Account", strAccount),
-                new System.Data.SqlClient.SqlParameter("EmpID", EmpId)).ToList<sp_GetHRRFListByEmpIdPractice_Result>();
+                var lstHRRF = db.Set<sp_GetHRRFListByEmpIdPractice_Result>().FromSqlRaw("exec sp_GetHRRFListByEmpIdPractice @Practice, @Request,@Account, @EmpID",
+                new Microsoft.Data.SqlClient.SqlParameter("Practice", strPractice),
+                new Microsoft.Data.SqlClient.SqlParameter("Request", strRequest),
+                new Microsoft.Data.SqlClient.SqlParameter("Account", strAccount),
+                new Microsoft.Data.SqlClient.SqlParameter("EmpID", EmpId)).ToList<sp_GetHRRFListByEmpIdPractice_Result>();
                 if (strRequest == "OPEN" && status != null)
                 {
                     lstHRRF = lstHRRF.Where(s => s.RequestStatus.ToLower() == status.ToLower() && s.RequestType == RequestType).ToList();
@@ -268,8 +271,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                     ViewBag.Submit = lstHRRF.Where(a => a.RequestStatus == "Submitted" && a.RequestType == "Internal").Count();
                     ViewBag.Qualified = lstHRRF.Where(a => a.RequestStatus == "Qualified" && a.RequestType == "Internal").Count();
                     ViewBag.PendingPM = lstHRRF.Where(a => a.RequestStatus == "Pending For PM Approval" && a.RequestType == "Internal").Count();
-                    var InternalGraph = db.Database.SqlQuery<GraphStatus>("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "Internal")).ToList<GraphStatus>();
-                    var ExternalGraph = db.Database.SqlQuery<GraphStatus>("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "External")).ToList<GraphStatus>();
+                    var InternalGraph = db.Set<GraphStatus>().FromSqlRaw("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "Internal")).ToList<GraphStatus>();
+                    var ExternalGraph = db.Set<GraphStatus>().FromSqlRaw("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "External")).ToList<GraphStatus>();
                     ViewBag.InternalGraph = InternalGraph;
                     var InternalTotal = 0;
                     InternalGraph.ForEach(summary => InternalTotal = InternalTotal + summary.ReqStatusCount);
@@ -278,35 +281,35 @@ namespace Trianz.Enterprise.Operations.Controllers
                     var ExternalTotal = 0;
                     ExternalGraph.ForEach(summary => ExternalTotal = ExternalTotal + summary.ReqStatusCount);
                     ViewBag.ExternalTotal = ExternalTotal;
-                    var ExternalSummaryList = db.Database.SqlQuery<SummaryExtrernalList>("exec [GetSummaryExternalList] @RequestType", new SqlParameter("RequestType", "External")).ToList<SummaryExtrernalList>();
+                    var ExternalSummaryList = db.Set<SummaryExtrernalList>().FromSqlRaw("exec [GetSummaryExternalList] @RequestType", new SqlParameter("RequestType", "External")).ToList<SummaryExtrernalList>();
                     ViewBag.ExternalSummaryList = ExternalSummaryList;
                     var Total = 0;
                     ExternalSummaryList.ForEach(summary => Total = Total + summary.TrCount);
                     ViewBag.Total = Total;
-                    var InternalSummaryList = db.Database.SqlQuery<SummaryExtrernalList>("exec [GetSummaryExternalList] @RequestType", new SqlParameter("RequestType", "Internal")).ToList<SummaryExtrernalList>();
+                    var InternalSummaryList = db.Set<SummaryExtrernalList>().FromSqlRaw("exec [GetSummaryExternalList] @RequestType", new SqlParameter("RequestType", "Internal")).ToList<SummaryExtrernalList>();
                     ViewBag.InternalSummaryList = InternalSummaryList;
                     var inTotal = 0;
                     InternalSummaryList.ForEach(summary => inTotal = inTotal + summary.TrCount);
                     ViewBag.inTotal = inTotal;
                  //   List<SummaryExtrernalByCriticality> Criticality = new List<SummaryExtrernalByCriticality>();
-                 //   Criticality = db.Database.SqlQuery<SummaryExtrernalByCriticality>
+                 //   Criticality = db.Set<SummaryExtrernalByCriticality>().FromSqlRaw
                  // ("exec [GetCriticalityList] @RequestType", new SqlParameter("RequestType", "External")).ToList<SummaryExtrernalByCriticality>();
                  //   ViewBag.Criticality = Criticality;
-                 //   Criticality = db.Database.SqlQuery<SummaryExtrernalByCriticality>
+                 //   Criticality = db.Set<SummaryExtrernalByCriticality>().FromSqlRaw
                  // ("exec [GetCriticalityList] @RequestType", new SqlParameter("RequestType", "Internal")).ToList<SummaryExtrernalByCriticality>();
                  //   ViewBag.InternalCriticality = Criticality;   
                  //   List<SummaryExtrernalByRequestStatus> RequestStatus = new List<SummaryExtrernalByRequestStatus>();
-                 //   RequestStatus = db.Database.SqlQuery<SummaryExtrernalByRequestStatus>
+                 //   RequestStatus = db.Set<SummaryExtrernalByRequestStatus>().FromSqlRaw
                  // ("exec [GetRequestStatusList] @RequestType", new SqlParameter("RequestType", "External")).ToList<SummaryExtrernalByRequestStatus>();
                  //   ViewBag.RequestStatus = RequestStatus;
-                 //   RequestStatus = db.Database.SqlQuery<SummaryExtrernalByRequestStatus>
+                 //   RequestStatus = db.Set<SummaryExtrernalByRequestStatus>().FromSqlRaw
                  //("exec [GetRequestStatusList] @RequestType", new SqlParameter("RequestType", "Internal")).ToList<SummaryExtrernalByRequestStatus>();
                  //   ViewBag.InternalRequestStatus = RequestStatus;
                   
 					  List<CriticalityByAccountNamelst> lstcriticality = new List<CriticalityByAccountNamelst>();
 
              
-                    lstcriticality = db.Database.SqlQuery<CriticalityByAccountNamelst>("exec GetCriticalityByAccountName").ToList<CriticalityByAccountNamelst>();
+                    lstcriticality = db.Set<CriticalityByAccountNamelst>().FromSqlRaw("exec GetCriticalityByAccountName").ToList<CriticalityByAccountNamelst>();
                     ViewBag.lstcriticality = lstcriticality;
 					var EP0Total = 0;
                   lstcriticality.ForEach(Count => EP0Total = EP0Total + Count.EP0);
@@ -342,7 +345,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
         public ActionResult GetSummaryByAccountName(string AccountName, string Type, string Cricticality)
@@ -352,18 +355,18 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var accname = AccountName;
                 var type = Type;
 				var criticality = Cricticality;							   
-                int? EmpId = Convert.ToInt32(Session["EmployeeId"]);
+                int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                  // strRequest = strRequest != null ? (strRequest.ToLower() == "myrequest") ? "" : strRequest.ToUpper() : string.Empty;
-                 // var lstHRRF = db.Database.SqlQuery<sp_GetHRRFListByEmpIdPractice_Result>("exec sp_GetHRRFListByEmpIdPractice @Practice, @Request,@Account, @EmpID",        new SqlParameter("RequestType", "External")    
-                  var ExternalSummarybyaccount = db.Database.SqlQuery<SummaryExtrernalByAccount>("exec [GetSummaryExternalListBySelect] @AccountName,@RequestType,@Criticality", new SqlParameter("AccountName",accname), new SqlParameter("RequestType", type), new SqlParameter("Criticality", criticality)).ToList<SummaryExtrernalByAccount>();
+                 // var lstHRRF = db.Set<sp_GetHRRFListByEmpIdPractice_Result>().FromSqlRaw("exec sp_GetHRRFListByEmpIdPractice @Practice, @Request,@Account, @EmpID",        new SqlParameter("RequestType", "External")    
+                  var ExternalSummarybyaccount = db.Set<SummaryExtrernalByAccount>().FromSqlRaw("exec [GetSummaryExternalListBySelect] @AccountName,@RequestType,@Criticality", new SqlParameter("AccountName",accname), new SqlParameter("RequestType", type), new SqlParameter("Criticality", criticality)).ToList<SummaryExtrernalByAccount>();
                  ViewBag.ExternalSummarybyaccount = ExternalSummarybyaccount;           
-                 return Json(ExternalSummarybyaccount, JsonRequestBehavior.AllowGet);
+                 return Json(ExternalSummarybyaccount);
             }
            
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
         public ActionResult GetCountByCriticality( string Type, string Cricticality)
@@ -373,16 +376,16 @@ namespace Trianz.Enterprise.Operations.Controllers
                
                 var type = Type;
                 var criticality = Cricticality;
-                int? EmpId = Convert.ToInt32(Session["EmployeeId"]);                 
-                var GetcountbyCriticality = db.Database.SqlQuery<SummaryExtrernalByAccount>("exec [GetCriticalityList] @RequestType,@Criticality",  new SqlParameter("RequestType", type), new SqlParameter("Criticality", criticality)).ToList<SummaryExtrernalByAccount>();
+                int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));                 
+                var GetcountbyCriticality = db.Set<SummaryExtrernalByAccount>().FromSqlRaw("exec [GetCriticalityList] @RequestType,@Criticality",  new SqlParameter("RequestType", type), new SqlParameter("Criticality", criticality)).ToList<SummaryExtrernalByAccount>();
                 ViewBag.GetcountbyCriticality = GetcountbyCriticality;
-                return Json(GetcountbyCriticality, JsonRequestBehavior.AllowGet);
+                return Json(GetcountbyCriticality);
             }
 
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
         public ActionResult GetCountByStatus(string Type, string Status)
@@ -391,53 +394,53 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 var type = Type;
                 var status = Status;
-                int? EmpId = Convert.ToInt32(Session["EmployeeId"]);                 
+                int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));                 
                 List<SummaryExtrernalByAccount> GetcountbyStatus = new List<SummaryExtrernalByAccount>();
-                GetcountbyStatus = db.Database.SqlQuery<SummaryExtrernalByAccount>("exec [GetRequestStatusList] @RequestType,@RequestStatus", new SqlParameter("RequestType", type), new SqlParameter("RequestStatus", status)).ToList<SummaryExtrernalByAccount>();
+                GetcountbyStatus = db.Set<SummaryExtrernalByAccount>().FromSqlRaw("exec [GetRequestStatusList] @RequestType,@RequestStatus", new SqlParameter("RequestType", type), new SqlParameter("RequestStatus", status)).ToList<SummaryExtrernalByAccount>();
                 GetcountbyStatus = GetcountbyStatus.OrderBy(s => s.Name).ToList();
                 ViewBag.GetcountbyStatus = GetcountbyStatus;     
-                return Json(GetcountbyStatus, JsonRequestBehavior.AllowGet);
+                return Json(GetcountbyStatus);
             }
 
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }					
         public ActionResult ExportReport()
         {
             try
             {
-                if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+                if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
                 {
-                    return Json("success", JsonRequestBehavior.AllowGet);
+                    return Json("success");
                 }
                 else
                 {
                     //ermsg = "Session expired";
-                    return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                    return Json("Sessionexpired");
                     //return RedirectToAction("SessionExpire", "Signout");
                 }
             }
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }    
         }
         //public ActionResult GenerateHRRFReport(string strPractice, string strRequest, string strAccount)
         //{
         //    try
         //    {
-        //        int? EmpId = Convert.ToInt32(Session["EmployeeId"]);
+        //        int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
         //        strRequest = (strRequest.ToLower() == "myrequest") ? "" : strRequest.ToUpper();
-        //        //var lstHRRF = db.Database.SqlQuery<GetHRRFReportByPractice>("exec sp_GetHRRFReportByEmpIdPractice @Practice, @Request,@Account, @EmpID",
-        //        var lstHRRF = db.Database.SqlQuery<GetHRRFReportByPractice>("exec sp_GetHRRFReportByEmpIdPractice @Practice, @Request,@Account, @EmpID",
-        //                       new System.Data.SqlClient.SqlParameter("Practice", strPractice),
-        //            new System.Data.SqlClient.SqlParameter("Request", strRequest),
-        //            new System.Data.SqlClient.SqlParameter("Account", strAccount),
-        //            new System.Data.SqlClient.SqlParameter("EmpID", EmpId)).ToList<GetHRRFReportByPractice>();
+        //        //var lstHRRF = db.Set<GetHRRFReportByPractice>().FromSqlRaw("exec sp_GetHRRFReportByEmpIdPractice @Practice, @Request,@Account, @EmpID",
+        //        var lstHRRF = db.Set<GetHRRFReportByPractice>().FromSqlRaw("exec sp_GetHRRFReportByEmpIdPractice @Practice, @Request,@Account, @EmpID",
+        //                       new Microsoft.Data.SqlClient.SqlParameter("Practice", strPractice),
+        //            new Microsoft.Data.SqlClient.SqlParameter("Request", strRequest),
+        //            new Microsoft.Data.SqlClient.SqlParameter("Account", strAccount),
+        //            new Microsoft.Data.SqlClient.SqlParameter("EmpID", EmpId)).ToList<GetHRRFReportByPractice>();
         //        int LastRow;
         //        // LastRow = (strRequest.ToUpper() == "OPEN") ? 64 : 68;
         //        LastRow = (strRequest.ToUpper() == "OPEN") ? 64 : 69;
@@ -850,14 +853,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         //            Byte[] fileBytes = package.GetAsByteArray();
         //            Response.Clear();
-        //            Response.Buffer = true;
-        //            Response.AddHeader("content-disposition", "attachment;filename=" + ((strRequest == "") ? "My" : strRequest) + "-TR-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+        //            
+        //            Response.Headers.Add("content-disposition", "attachment;filename=" + ((strRequest == "") ? "My" : strRequest) + "-TR-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-        //            Response.Charset = "";
+        //            
         //            Response.ContentType = "application/vnd.ms-excel";
         //            StringWriter sw = new StringWriter();
-        //            Response.BinaryWrite(fileBytes);
-        //            Response.End();
+        //            Response.Body.Write(fileBytes);
+        //            
         //        }
 
         //        #endregion
@@ -867,7 +870,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //    catch (Exception ex)
         //    {
         //        Common.WriteExceptionErrorLog(ex);
-        //        //return Json("Error", JsonRequestBehavior.AllowGet);
+        //        //return Json("Error");
         //        return RedirectToAction("Error", "Error");
         //    }
         //}
@@ -875,26 +878,26 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                int? EmpId = Convert.ToInt32(Session["EmployeeId"]);
+                int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 strRequest = (strRequest.ToLower() == "myrequest") ? "" : strRequest.ToUpper();
-                var lstHRRF = db.Database.SqlQuery<GetHRRFReportByPractice>("exec sp_GetHRRFReportByEmpIdPractice @Practice, @Request,@Account, @EmpID",
-                    new System.Data.SqlClient.SqlParameter("Practice", strPractice),
-                    new System.Data.SqlClient.SqlParameter("Request", strRequest),
-                    new System.Data.SqlClient.SqlParameter("Account", strAccount),
-                    new System.Data.SqlClient.SqlParameter("EmpID", EmpId)).ToList<GetHRRFReportByPractice>();
+                var lstHRRF = db.Set<GetHRRFReportByPractice>().FromSqlRaw("exec sp_GetHRRFReportByEmpIdPractice @Practice, @Request,@Account, @EmpID",
+                    new Microsoft.Data.SqlClient.SqlParameter("Practice", strPractice),
+                    new Microsoft.Data.SqlClient.SqlParameter("Request", strRequest),
+                    new Microsoft.Data.SqlClient.SqlParameter("Account", strAccount),
+                    new Microsoft.Data.SqlClient.SqlParameter("EmpID", EmpId)).ToList<GetHRRFReportByPractice>();
                 int LastRow;
                 // LastRow = (strRequest.ToUpper() == "OPEN") ? 64 : 68;
                 LastRow = (strRequest.ToUpper() == "OPEN") ? 68 : 73;
                 lstHRRF = lstHRRF.Where(x => x.Remarks != "This is an auto generated TR during bulk assignment" && x.Remarks != "This is an auto generated TR during new employee creation").ToList();
                 #region Export to Excel
                 using (ExcelPackage package = new ExcelPackage())
-                {
-                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("TR Information");
+            {
+                        ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("TR Information");
                     worksheet.TabColor = System.Drawing.Color.Green;
                     worksheet.DefaultRowHeight = 18f;
                     worksheet.Row(1).Height = 20f;
                     using (var range = worksheet.Cells[1, 1, 1, LastRow])
-                    {
+{
                         range.Style.Font.Bold = true;
                         range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                         range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -1247,8 +1250,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                         if (row % 2 == 1)
                         {
                             using (var range = worksheet.Cells[row, 1, row, LastRow])
-                            {
-                                range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+{
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                 range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
                                 range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -1266,14 +1269,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
-                    Response.Buffer = true; 
-                    Response.AddHeader("content-disposition", "attachment;filename=" + ((strRequest == "") ? "My" :  strRequest) + "-TR-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                     
+                    Response.Headers.Add("content-disposition", "attachment;filename=" + ((strRequest == "") ? "My" :  strRequest) + "-TR-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                    Response.Charset = "";
+                    
                     Response.ContentType = "application/vnd.ms-excel";
                     StringWriter sw = new StringWriter();
-                    Response.BinaryWrite(fileBytes);
-                    Response.End();
+                    Response.Body.Write(fileBytes);
+                    
                 }
 
                 #endregion
@@ -1283,7 +1286,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                //return Json("Error", JsonRequestBehavior.AllowGet);
+                //return Json("Error");
                 return RedirectToAction("Error", "Error");
             }
         }
@@ -1293,13 +1296,13 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                int? EmpId = Convert.ToInt32(Session["EmployeeId"]);
+                int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 strRequest = (strRequest.ToLower() == "myrequest") ? "" : strRequest.ToUpper();
-                var lstHRRF = db.Database.SqlQuery<GetHRRFReportByPracticeSub>("exec sp_GetHRRFReportByEmpIdPracticeSub @Practice, @Request,@Account, @EmpID",
-                    new System.Data.SqlClient.SqlParameter("Practice", strPractice),
-                    new System.Data.SqlClient.SqlParameter("Request", strRequest),
-                    new System.Data.SqlClient.SqlParameter("Account", strAccount),
-                    new System.Data.SqlClient.SqlParameter("EmpID", EmpId)).ToList<GetHRRFReportByPracticeSub>();
+                var lstHRRF = db.Set<GetHRRFReportByPracticeSub>().FromSqlRaw("exec sp_GetHRRFReportByEmpIdPracticeSub @Practice, @Request,@Account, @EmpID",
+                    new Microsoft.Data.SqlClient.SqlParameter("Practice", strPractice),
+                    new Microsoft.Data.SqlClient.SqlParameter("Request", strRequest),
+                    new Microsoft.Data.SqlClient.SqlParameter("Account", strAccount),
+                    new Microsoft.Data.SqlClient.SqlParameter("EmpID", EmpId)).ToList<GetHRRFReportByPracticeSub>();
                 int LastRow;
                 // LastRow = (strRequest.ToUpper() == "OPEN") ? 64 : 68;
                 //  LastRow = (strRequest.ToUpper() == "OPEN") ? 17: 70;
@@ -1307,13 +1310,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 lstHRRF = lstHRRF.Where(x => x.Remarks != "This is an auto generated TR during bulk assignment" && x.Remarks != "This is an auto generated TR during new employee creation").ToList();
                 #region Export to Excel
                 using (ExcelPackage package = new ExcelPackage())
-                {
-                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("TR Information");
+            {
+                        ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("TR Information");
                     worksheet.TabColor = System.Drawing.Color.Green;
                     worksheet.DefaultRowHeight = 18f;
                     worksheet.Row(1).Height = 20f;
                     using (var range = worksheet.Cells[1, 1, 1, LastRow])
-                    {
+{
                         range.Style.Font.Bold = true;
                         range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                         range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -1558,8 +1561,8 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         if (row % 2 == 1)
                         {
-                            using (var range = worksheet.Cells[row, 1, row, LastRow])
-                            {
+                    using (var range = worksheet.Cells[1, 1, 1, 1])
+{
                                 range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                 range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
@@ -1578,14 +1581,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
-                    Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=" + ((strRequest == "") ? "My" :"Sub_" + strRequest) + "-TR-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    
+                    Response.Headers.Add("content-disposition", "attachment;filename=" + ((strRequest == "") ? "My" :"Sub_" + strRequest) + "-TR-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                    Response.Charset = "";
+                    
                     Response.ContentType = "application/vnd.ms-excel";
                     StringWriter sw = new StringWriter();
-                    Response.BinaryWrite(fileBytes);
-                    Response.End();
+                    Response.Body.Write(fileBytes);
+                    
                 }
 
                 #endregion
@@ -1595,7 +1598,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                //return Json("Error", JsonRequestBehavior.AllowGet);
+                //return Json("Error");
                 return RedirectToAction("Error", "Error");
             }
         }
@@ -1604,7 +1607,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+                if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
                 {
                     ViewBag.ActiveTR = strRequest;
                     List<sp_GetHRRFListByEmpIdPractice_Result> objHRRFDetails = new List<sp_GetHRRFListByEmpIdPractice_Result>();
@@ -1933,7 +1936,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 else
                 {
                     //ermsg = "Session expired";
-                    return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                    return Json("Sessionexpired");
                     //return RedirectToAction("SessionExpire", "Signout");
                 }
             }
@@ -1941,7 +1944,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
@@ -1953,12 +1956,12 @@ namespace Trianz.Enterprise.Operations.Controllers
 	 //added for piechart
         public ActionResult GetSummaryPieChartInternal()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {                    
-                    var Graph = db.Database.SqlQuery<GraphStatus>("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "Internal")).ToList<GraphStatus>();
-                    //var ExternalGraph = db.Database.SqlQuery<GraphStatus>("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "External")).ToList<GraphStatus>();
+                    var Graph = db.Set<GraphStatus>().FromSqlRaw("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "Internal")).ToList<GraphStatus>();
+                    //var ExternalGraph = db.Set<GraphStatus>().FromSqlRaw("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "External")).ToList<GraphStatus>();
                     List<GraphSummaryPieChartInternal> lstchartdata = new List<GraphSummaryPieChartInternal>();
                     //lstchartdata = Graph
                     //     .Select(n => new GraphSummaryPieChartInternal
@@ -1968,42 +1971,42 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //     })
                     //     .ToList();                    
                     //lstchartdata.RemoveAt(lstchartdata.Count - 1);
-                    return Json(Graph, JsonRequestBehavior.AllowGet);
+                    return Json(Graph);
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
-                    return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                    return Json("Sessionexpired");
                 }
             }
             else
             {
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
             }
         }
 
         public ActionResult GetSummaryPieChartExternal()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
                     
-                    var Graph = db.Database.SqlQuery<GraphStatus>("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "External")).ToList<GraphStatus>();
+                    var Graph = db.Set<GraphStatus>().FromSqlRaw("exec [GetSummary] @RequestType", new SqlParameter("RequestType", "External")).ToList<GraphStatus>();
                    
-                    return Json(Graph, JsonRequestBehavior.AllowGet);
+                    return Json(Graph);
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
-                    return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                    return Json("Sessionexpired");
                 }
 
 
             }
             else
             {
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
             }
         }
       
@@ -2013,11 +2016,11 @@ namespace Trianz.Enterprise.Operations.Controllers
         /// </summary>
         public void SignIn()
 		{
-            if (!Request.IsAuthenticated)
+            if (!User.Identity.IsAuthenticated)
             {
-                HttpContext.GetOwinContext().Authentication.Challenge(
-                new AuthenticationProperties { RedirectUri = "/" },
-                OpenIdConnectAuthenticationDefaults.AuthenticationType);
+                HttpContext.ChallengeAsync(
+                OpenIdConnectDefaults.AuthenticationScheme,
+                new AuthenticationProperties { RedirectUri = "/" });
             }
 
 		}

@@ -199,9 +199,9 @@
 </style>
 
 <div class="container-fluid" style="background: #F3F4F9;">
-    @if (!Request.IsAuthenticated)
+    @if (!User.Identity.IsAuthenticated)
     {
-        ((TRHomeController)this.ViewContext.Controller).SignIn();
+        Context.Response.Redirect(Url.Action("SignIn", "TRHome"));
 
     }
     else
@@ -237,14 +237,14 @@
                     </p>
 
                 </div>
-                @if ((Session["Role"].ToString() == "RL"))
+                @if ((Context.Session.GetString("Role").ToString() == "RL"))
                 {
                     List<string>
                         lstEmpIDs = System.Configuration.ConfigurationManager.AppSettings["CreateTR-RL"].Split(',').ToList();
 
 
 
-                    bool IsValid = lstEmpIDs.Where(e => Session["EmployeeId"].ToString().Contains(e)).Any();
+                    bool IsValid = lstEmpIDs.Where(e => Context.Session.GetString("EmployeeId").ToString().Contains(e)).Any();
                     if (IsValid)
                     {
                 <button id="btnCreate" type="button" onclick="location.href='@Url.Action("HRRFCreation", "CreateHRRF")'" class="btn pull-left" style="margin-right: 10px;  position: relative; left: 30px; top: 50px;padding: 8px 15px 8px 15px;font-size:16px;font-weight:700;"><span class="icon icon-add"></span>Talent Requisition</button>
@@ -253,7 +253,7 @@
                 }
                 else
                 {
-                    if (Convert.ToInt32(Session["Grade"]) >= 1 || Convert.ToInt32(Session["EmployeeId"]) == 107510 || Convert.ToInt32(Session["EmployeeId"]) == 107461 || Convert.ToInt32(Session["EmployeeId"]) == 107184 || Convert.ToInt32(Session["EmployeeId"]) == 107487 || Convert.ToInt32(Session["EmployeeId"]) == 107118)
+                    if (Convert.ToInt32(Context.Session.GetString("Grade")) >= 1 || Convert.ToInt32(Context.Session.GetString("EmployeeId")) == 107510 || Convert.ToInt32(Context.Session.GetString("EmployeeId")) == 107461 || Convert.ToInt32(Context.Session.GetString("EmployeeId")) == 107184 || Convert.ToInt32(Context.Session.GetString("EmployeeId")) == 107487 || Convert.ToInt32(Context.Session.GetString("EmployeeId")) == 107118)
                     {
                         <button id="btnCreate" type="button" onclick="location.href='@Url.Action("HRRFCreation", "CreateHRRF")'" class="btn pull-left" style="margin-right: 10px;  position: relative; left: 30px; top: 50px;padding: 8px 15px 8px 15px;font-size:16px;font-weight:700;"><span class="icon icon-add"></span>Talent Requisition</button>
                     }
@@ -275,12 +275,12 @@
         <div class="request_bx">
             <div class="request_header">
 
-                @if ((Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "DH" || Session["Role"].ToString() == "SM" || Session["Role"].ToString() == "RL" || Session["Role"].ToString() == "LDAdmin" || Session["Role"].ToString() == "CompetencyAdmin" || Session["Role"].ToString() == "Finance"))
+                @if ((Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "DH" || Context.Session.GetString("Role").ToString() == "SM" || Context.Session.GetString("Role").ToString() == "RL" || Context.Session.GetString("Role").ToString() == "LDAdmin" || Context.Session.GetString("Role").ToString() == "CompetencyAdmin" || Context.Session.GetString("Role").ToString() == "Finance"))
                 {
 
                     <div class="row">
-                    <input type="hidden" id="RoleSummary" value="@Session["Role"].ToString()" />
-                    @if (Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "DH")
+                    <input type="hidden" id="RoleSummary" value="@Context.Session.GetString("Role").ToString()" />
+                    @if (Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "DH")
                     {
                         <div class="col-sm-2"><a class="ddlRequestType " id="request" href="#"><b>My Requests</b></a><div class="clear-both"></div></div>
 
@@ -308,7 +308,7 @@
                 </div>
                 }
 
-                @if ((Session["Role"].ToString() == "PM"))
+                @if ((Context.Session.GetString("Role").ToString() == "PM"))
                 {
 
                     <div><a class="ddlRequestType active" id="request" href="#"><b>My Requests</b></a><div class="clear-both"></div></div>
@@ -324,7 +324,7 @@
 
                     <div class="row" id="DataHide" style="display: block;">
                         <div>
-                            @if ((Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM" || Session["Role"].ToString() == "DH" || Session["Role"].ToString() == "SM" || Session["Role"].ToString() == "RL" || Session["Role"].ToString() == "LDAdmin" || Session["Role"].ToString() == "CompetencyAdmin" || Session["Role"].ToString() == "Finance"))
+                            @if ((Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "PM" || Context.Session.GetString("Role").ToString() == "DH" || Context.Session.GetString("Role").ToString() == "SM" || Context.Session.GetString("Role").ToString() == "RL" || Context.Session.GetString("Role").ToString() == "LDAdmin" || Context.Session.GetString("Role").ToString() == "CompetencyAdmin" || Context.Session.GetString("Role").ToString() == "Finance"))
                             {
                                 <div class="col-sm-3">
                                     <input type="text" class="form-control" id="txtSearchCode" placeholder=" Skill Code" title=" Enter Code">
@@ -333,7 +333,7 @@
                                     <input type="text" class="form-control" id="txtSearchTR" placeholder=" TR" title="Enter TR">
                                 </div>
                                 <div class="col-sm-3">
-                                    @if (Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM" || Session["Role"].ToString() == "DH")
+                                    @if (Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "PM" || Context.Session.GetString("Role").ToString() == "DH")
                                     {
                                         <div>
                                             @Html.DropDownList("ddlAccount", new SelectList((System.Collections.IEnumerable)ViewData["_Accounts"], "Accountname", "Accountname"), "Account", new { @class = "form-control" })
@@ -343,13 +343,13 @@
 
 
                                 <div>
-                                    @if (Session["Role"].ToString() == "OM")
+                                    @if (Context.Session.GetString("Role").ToString() == "OM")
                                     {
                                         <div class="col-sm-3" style="cursor: pointer;">
                                             @Html.DropDownList("ddlPractice1", new SelectList((System.Collections.IEnumerable)ViewData["ServiceLine"], "LookupName", "LookupName"), "Practice", new { @class = "form-control" })
                                         </div>
                                     }
-                                    @if (Session["Role"].ToString() == "RL")
+                                    @if (Context.Session.GetString("Role").ToString() == "RL")
                                     {<div class="col-sm-3" style="cursor:pointer;">
                                             @Html.DropDownList("ddlPractice1", new SelectList((System.Collections.IEnumerable)ViewData["ServiceLine"], "LookupName", "LookupName"), "Practice", new { @class = "form-control" })
                                         </div>
@@ -382,7 +382,7 @@
 
                 <div class="col-sm-4" style="display:flex">
 
-                    @if ((Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM" || Session["Role"].ToString() == "DH" || Session["Role"].ToString() == "SM" || Session["Role"].ToString() == "RL" || Session["Role"].ToString() == "LDAdmin" || Session["Role"].ToString() == "CompetencyAdmin" || Session["Role"].ToString() == "Finance"))
+                    @if ((Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "PM" || Context.Session.GetString("Role").ToString() == "DH" || Context.Session.GetString("Role").ToString() == "SM" || Context.Session.GetString("Role").ToString() == "RL" || Context.Session.GetString("Role").ToString() == "LDAdmin" || Context.Session.GetString("Role").ToString() == "CompetencyAdmin" || Context.Session.GetString("Role").ToString() == "Finance"))
                     {
                     <div id="textbx">
 
@@ -430,7 +430,7 @@
 
             <div>
 
-                @if (Convert.ToInt32(Session["EmployeeId"]) != 105825)
+                @if (Convert.ToInt32(Context.Session.GetString("EmployeeId")) != 105825)
                 {
                     <div class="row" style="margin-bottom: 10px; margin-top:0px;">
                         <div class="col-lg-1 pull-left">
@@ -443,7 +443,7 @@
                         <div class="col-sm-6">
                             @*<div class="row">
                                 <div class="col-lg-8 " style="margin-top: -24px;">
-                                    @if ((Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM" || Session["Role"].ToString() == "DH" || Session["Role"].ToString() == "SM" || Session["Role"].ToString() == "RL" || Session["Role"].ToString() == "LDAdmin" || Session["Role"].ToString() == "CompetencyAdmin" || Session["Role"].ToString() == "Finance"))
+                                    @if ((Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "PM" || Context.Session.GetString("Role").ToString() == "DH" || Context.Session.GetString("Role").ToString() == "SM" || Context.Session.GetString("Role").ToString() == "RL" || Context.Session.GetString("Role").ToString() == "LDAdmin" || Context.Session.GetString("Role").ToString() == "CompetencyAdmin" || Context.Session.GetString("Role").ToString() == "Finance"))
                                     {
 
                                     }
@@ -468,7 +468,7 @@
                 }
             </div>
             <div>
-                @if (Convert.ToInt32(Session["EmployeeId"]) != 105825)
+                @if (Convert.ToInt32(Context.Session.GetString("EmployeeId")) != 105825)
                 {
                     <div id="divHRRFList" style="padding-top: 10px;">
                     </div>

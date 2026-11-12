@@ -215,7 +215,7 @@
 
     }
 
-    @*@Html.Partial("_EmployeeGrid", Model)*@
+    @*@await Html.PartialAsync("_EmployeeGrid", Model)*@)
     <div id="gridContent" class="table table-responsive">
 
         @grid.GetHtml(tableStyle: "table table-bordered table-striped",

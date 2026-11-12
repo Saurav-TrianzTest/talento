@@ -604,7 +604,7 @@ else if (TempData["Message"] != null)
 
 
             <div class="container row" style="background-color: #F3F4F9;right: 3px;position: relative;max-width: 100%;height: 74px;width: 100%;">
-                @if ((Session["Role"].ToString() == "RL"))
+                @if ((Context.Session.GetString("Role").ToString() == "RL"))
                 {
                     if (items.RequestStatus != "Cancelled")
                     {
@@ -628,7 +628,7 @@ else if (TempData["Message"] != null)
                     if (modelItem.RequestStatus.ToLower() != "fulfilled" && modelItem.RequestStatus.ToLower() != "terminated" && modelItem.RequestStatus.ToLower() != "cancelled")
                     {
 
-                        if (Session["Role"].ToString() == "OM") // || (Session["Role"].ToString() == "RL" && ViewBag.CanEditByRL == true))
+                        if (Context.Session.GetString("Role").ToString() == "OM") // || (Context.Session.GetString("Role").ToString() == "RL" && ViewBag.CanEditByRL == true))
                         {
 
                             <button id="btnedit" type="button" style="background-color: #ffffff;color: #004BBB;position: relative;top: 20px;" class="btn btn-primary pull-left" onclick="location.href=' @Url.Action("ViewHRRF", "CreateHRRF", new { HRRFNumber = modelItem.HRRFNumber })'"> <img src="~/Content/images/editimg.png" style="width: 11px;" /> Edit</button>
@@ -637,7 +637,7 @@ else if (TempData["Message"] != null)
 
                         else
                         {
-                            if ((modelItem.RequestStatus.ToLower() == "draft" || modelItem.RequestStatus.ToLower() == "request more info") && modelItem.HRRFCreatedBy == (int)Session["EmployeeId"])
+                            if ((modelItem.RequestStatus.ToLower() == "draft" || modelItem.RequestStatus.ToLower() == "request more info") && modelItem.HRRFCreatedBy == Convert.ToInt32(Context.Session.GetString("EmployeeId")))
                             {
 
                                 <button id="btnedit" type="button" style="background-color: #ffffff;color: #004BBB;position: relative;top: 20px;" class="btn btn-primary pull-left" onclick="location.href=' @Url.Action("ViewHRRF", "CreateHRRF", new { HRRFNumber = modelItem.HRRFNumber })'">  <img src="~/Content/images/editimg.png" style="width: 11px;" /> Edit</button>}
@@ -647,7 +647,7 @@ else if (TempData["Message"] != null)
 
                     }
 
-                    if (Session["Role"].ToString() == "OM")
+                    if (Context.Session.GetString("Role").ToString() == "OM")
                     {
                         if (modelItem.RequestStatus != "Fulfilled")
                         {
@@ -666,7 +666,7 @@ else if (TempData["Message"] != null)
                             }
                         }
                     }
-                    else if (modelItem.RequestStatus == "Draft" && (Session["EmployeeId"].ToString() == hrrfCreatedById.ToString()))
+                    else if (modelItem.RequestStatus == "Draft" && (Context.Session.GetString("EmployeeId").ToString() == hrrfCreatedById.ToString()))
                     {
 
                         <button type="button" id="btncancel" style="background-color: #ffffff;color: #004BBB;position: relative;bottom: 7px;" onclick="cancel_TR()" class="btn btn-primary pull-left">
@@ -684,7 +684,7 @@ else if (TempData["Message"] != null)
 
                 @if (items.RequestStatus.ToLower() != "fulfilled" && items.RequestStatus.ToLower() != "terminated" && items.RequestStatus.ToLower() != "cancelled" && items.RequestStatus.ToLower() != "draft" && items.RequestType != "External")
                 {
-                    if (TempData["PrevPage"] != null && (Session["Role"].ToString() != "RL") && (Session["Role"].ToString() != "PM") && (Session["Role"].ToString() != "DH") && (Session["Role"].ToString() != "Admin") && (Session["Role"].ToString() != "SM"))
+                    if (TempData["PrevPage"] != null && (Context.Session.GetString("Role").ToString() != "RL") && (Context.Session.GetString("Role").ToString() != "PM") && (Context.Session.GetString("Role").ToString() != "DH") && (Context.Session.GetString("Role").ToString() != "Admin") && (Context.Session.GetString("Role").ToString() != "SM"))
                     {
                         <button id="btnHold" type="button" style="background-color: #ffffff;color: #004BBB;margin-top: 1px;width: 83px;" onclick="funcChangeHoldStatus()" class="btn btn-primary pull-left">
 
@@ -694,7 +694,7 @@ else if (TempData["Message"] != null)
                     }
                 }
 
-                @if ((Session["Role"].ToString() == "OM"))
+                @if ((Context.Session.GetString("Role").ToString() == "OM"))
                 {
                     @*if (items.RequestStatus == "Submitted" || items.RequestStatus == "Hold")
                         {
@@ -753,16 +753,16 @@ else if (TempData["Message"] != null)
             <div class="col-md-12 col-sm-12 text-right nopadding-right" style="margin-top: -17px;">
                 @* Qualify based on status *@
 
-                @if (Session["Role"].ToString() != "" && (Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM"))
+                @if (Context.Session.GetString("Role").ToString() != "" && (Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "PM"))
                 {
                     foreach (var modelItem1 in Model.HRRFs)
                     {
                         //Practice checking to disble buttons
-                        if (Convert.ToBoolean(Session["IsPractice"]) == true)
+                        if (Convert.ToBoolean(Context.Session.GetString("IsPractice")) == true)
                         {
                             if (modelItem1.RequestStatus == "Submitted")
                             {
-                                if (Session["Role"].ToString() != "" && Session["Role"].ToString() != "PM")
+                                if (Context.Session.GetString("Role").ToString() != "" && Context.Session.GetString("Role").ToString() != "PM")
                                 {
                                     <button type="button" id="btnQualifyHRRF" name="btnQualifyHRRF" class="btn btn-primary" onclick="qualifyTR()" @*"location.href='@Url.Action("QualifyHRRF", "ProposeAssociate")'"*@ style="position: relative;bottom: 53px;background-color: #ffffff; color: #004BBB;">
                                         <img src="~/Content/images/qualifyimg.png" style="width: 11px;position: relative;bottom: 2px" />
@@ -795,7 +795,7 @@ else if (TempData["Message"] != null)
 
                                 if (modelItem1.RequestType != "External")
                                 {
-                                    if (Session["Role"].ToString() != "" && Session["Role"].ToString() != "PM")
+                                    if (Context.Session.GetString("Role").ToString() != "" && Context.Session.GetString("Role").ToString() != "PM")
                                     {
                                         if (string.IsNullOrEmpty(modelItem1.TECHPANEL) || string.IsNullOrWhiteSpace(modelItem1.SECONDTECHPANEL))
                                         //if (modelItem1.TECHPANEL == "" || modelItem1.SECONDTECHPANEL == "")
@@ -821,7 +821,7 @@ else if (TempData["Message"] != null)
                             }
                             else if (modelItem1.RequestStatus == "Hold")
                             {
-                                if (Session["Role"].ToString() != "" && Session["Role"].ToString() != "PM")
+                                if (Context.Session.GetString("Role").ToString() != "" && Context.Session.GetString("Role").ToString() != "PM")
                                 {
                                     if (TempData["PrevPage"] != null && TempData["PrevPage"].ToString().ToLower() != "externalreport")
                                     {
@@ -843,7 +843,7 @@ else if (TempData["Message"] != null)
 
                             else if (modelItem1.RequestStatus == "Resume Pending")
                             {
-                                if (Session["Role"].ToString() != "" && Session["Role"].ToString() != "PM")
+                                if (Context.Session.GetString("Role").ToString() != "" && Context.Session.GetString("Role").ToString() != "PM")
                                 {
                                     if (TempData["PrevPage"] != null && TempData["PrevPage"].ToString().ToLower() != "externalreport")
                                     {
@@ -856,7 +856,7 @@ else if (TempData["Message"] != null)
 
                             else if (modelItem1.RequestStatus == "Fulfilled" || modelItem1.RequestStatus == "Cancelled")
                             {
-                                if (Session["Role"].ToString() != "" && Session["Role"].ToString() != "PM")
+                                if (Context.Session.GetString("Role").ToString() != "" && Context.Session.GetString("Role").ToString() != "PM")
                                 {
                                     if (TempData["PrevPage"] != null && TempData["PrevPage"].ToString().ToLower() != "externalreport")
                                     {
@@ -898,7 +898,7 @@ else if (TempData["Message"] != null)
 
         <div class="col-md-12 nopadding text-left" style="margin-top: -61px;">
             <div>
-                @if ((Session["Role"].ToString() == "DH" && ViewBag.CanDHApprove) || showApprovalBtn) // || (Session["Role"].ToString() == "PM" && ViewBag.EmployeeID == (int)Session["EmployeeId"])
+                @if ((Context.Session.GetString("Role").ToString() == "DH" && ViewBag.CanDHApprove) || showApprovalBtn) // || (Context.Session.GetString("Role").ToString() == "PM" && ViewBag.EmployeeID == Convert.ToInt32(Context.Session.GetString("EmployeeId")))
                 {
                     foreach (var modelItem1 in Model.HRRFs)
                     {
@@ -908,7 +908,7 @@ else if (TempData["Message"] != null)
                             <div class="col-md-12 nopadding text-left" style="margin-top: 39px;">
                                 <div id="gridContent" class="table">
                                     <div>
-                                        @Html.Partial("_PartialProposeAssociate")
+                                        @(await Html.PartialAsync("_PartialProposeAssociate"))
                                     </div>
                                 </div>
                                 <br />
@@ -917,10 +917,10 @@ else if (TempData["Message"] != null)
                         }
 
                         //buttons
-                        if ((Session["Role"].ToString() == "DH" && ViewBag.CanDHApprove) || showApprovalBtn)
+                        if ((Context.Session.GetString("Role").ToString() == "DH" && ViewBag.CanDHApprove) || showApprovalBtn)
                         {
                             // pratice only can view accept/reject
-                            //if (Convert.ToBoolean(Session["IsPractice"]) == true)
+                            //if (Convert.ToBoolean(Context.Session.GetString("IsPractice")) == true)
                             //{
                             if (modelItem1.RequestStatus != "Cancelled")
                             {
@@ -953,8 +953,8 @@ else if (TempData["Message"] != null)
                         }
                     }
                 }
-                else if (ViewBag.EmployeeID == (int)Session["EmployeeId"])
-                //Session["Role"].ToString() == "PM"
+                else if (ViewBag.EmployeeID == Convert.ToInt32(Context.Session.GetString("EmployeeId")))
+                //Context.Session.GetString("Role").ToString() == "PM"
                 {
                     foreach (var modelItem1 in Model.HRRFs)
                     {
@@ -963,7 +963,7 @@ else if (TempData["Message"] != null)
                             <div class="col-md-12 nopadding text-left">
                                 <div id="gridContent" class="table" style="margin-top: 33px;">
                                     <div>
-                                        @Html.Partial("_PartialProposeAssociate")
+                                        @(await Html.PartialAsync("_PartialProposeAssociate"))
                                     </div>
                                 </div>
                             </div>
@@ -971,7 +971,7 @@ else if (TempData["Message"] != null)
                         }
                     }
                 }
-                else if (Session["Role"].ToString() == "OM")
+                else if (Context.Session.GetString("Role").ToString() == "OM")
                 {
                     foreach (var modelItem1 in Model.HRRFs)
                     {
@@ -981,8 +981,8 @@ else if (TempData["Message"] != null)
                                 <div id="gridprosedContent" class="table">
                                     <div>
                                         <script>$("#searchbtn").css("display", "block");</script>
-                                        @Html.Partial("_PartialProposedAssociate")
-                                        @*@Html.Partial("_PartialProposeAssociate")*@
+                                        @(await Html.PartialAsync("_PartialProposedAssociate"))
+                                        @*@await Html.PartialAsync("_PartialProposeAssociate")*@)
                                     </div>
                                 </div>
                             </div>
@@ -1008,7 +1008,7 @@ else if (TempData["Message"] != null)
                         <span>
                             @if (!string.IsNullOrEmpty(modelItem.RequestStatus))
                             {
-                                @Html.Label(modelItem.RequestStatus, new { id = "Mystatus" }) <label>@ViewBag.ApproverName</label>
+                                @Html.Label(modelItem.RequestStatus, null, new { id = "Mystatus" }) <label>@ViewBag.ApproverName</label>
                             }
                         </span>
                     </div>
@@ -1048,10 +1048,10 @@ else if (TempData["Message"] != null)
                     {
                         if (modelItem.RequestStatus != "Fulfilled")
                         {
-                            //if (Convert.ToBoolean(Session["IsPractice"]) == true)
-                            if (modelItem.HRRFCreatedBy == (int)Session["EmployeeId"])
+                            //if (Convert.ToBoolean(Context.Session.GetString("IsPractice")) == true)
+                            if (modelItem.HRRFCreatedBy == Convert.ToInt32(Context.Session.GetString("EmployeeId")))
                             {
-                                //if (Session["Role"].ToString() != "" && (Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM"))
+                                //if (Context.Session.GetString("Role").ToString() != "" && (Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "PM"))
                                 //{
                                 if (modelItem.RequestStatus != "Submitted")
                                 {
@@ -1075,7 +1075,7 @@ else if (TempData["Message"] != null)
                             }
                         }
                     }*@
-                @*  @if (Session["Role"].ToString() == "OM")
+                @*  @if (Context.Session.GetString("Role").ToString() == "OM")
                                     {
                                         if (modelItem.RequestStatus != "Fulfilled")
                                         {
@@ -1088,7 +1088,7 @@ else if (TempData["Message"] != null)
                                             }
                                         }
                                     }
-                                    else if (modelItem.RequestStatus == "Draft" && (Session["EmployeeId"].ToString() == hrrfCreatedById.ToString()))
+                                    else if (modelItem.RequestStatus == "Draft" && (Context.Session.GetString("EmployeeId").ToString() == hrrfCreatedById.ToString()))
                                     {
                                         <span class="glyphicon glyphicon-thumbs-down" title="Cancel" onclick="cancel_TR()" @*onclick="terminate()"></span>
                     }*@
@@ -1368,7 +1368,7 @@ else if (TempData["Message"] != null)
                                 @*<p>Skill :<b style="margin-left:148px" ;> @Html.Label(modelItem.CSkill) </b></p>*@
                                 <p>
                                     Skill :<b style="margin-left:148px;word-wrap: break-word;max-width: 438px;">
-                                        @Html.Label(modelItem.CSKILL, new { style = "word-wrap: break-word; width: 425px;" })
+                                        @Html.Label(modelItem.CSKILL, null, new { style = "word-wrap: break-word; width: 425px;" })
                                     </b>
                                 </p>
                             }
@@ -1542,7 +1542,7 @@ else if (TempData["Message"] != null)
                         <div class="col-md-12 nopadding-left">
                             @if (modelItem.TECHPANEL != null)
                             {
-                                <p>First Level Tech Panel: <b style="margin-left:27px" ;>@Html.Label(modelItem.TECHPANEL.ToString(), new { @id = "Techpanel" }) </b></p>
+                                <p>First Level Tech Panel: <b style="margin-left:27px" ;>@Html.Label(modelItem.TECHPANEL.ToString(), null, new { @id = "Techpanel" }) </b></p>
                             }
                             else
                             {
@@ -1552,7 +1552,7 @@ else if (TempData["Message"] != null)
                         <div class="col-md-12 nopadding-left">
                             @if (modelItem.SECONDTECHPANEL != null)
                             {
-                                <p>Second Level Tech Panel:<b style="margin-left:7px" ;> @Html.Label(modelItem.SECONDTECHPANEL.ToString(), new { @id = "Techpanel2" }) </b></p>
+                                <p>Second Level Tech Panel:<b style="margin-left:7px" ;> @Html.Label(modelItem.SECONDTECHPANEL.ToString(), null, new { @id = "Techpanel2" }) </b></p>
                             }
                             else
                             {
@@ -1624,7 +1624,7 @@ else if (TempData["Message"] != null)
 
 
 
-                    if (status == "Submitted" && (Session["Role"].ToString() == "OM"))
+                    if (status == "Submitted" && (Context.Session.GetString("Role").ToString() == "OM"))
                     {
                         <p style="color:black ; margin:10px;">
                             Internal Expected Fulfillment Date:
@@ -1671,7 +1671,7 @@ else if (TempData["Message"] != null)
 
 
                     }
-                    else if (status == "Qualified" && (Session["Role"].ToString() == "OM"))
+                    else if (status == "Qualified" && (Context.Session.GetString("Role").ToString() == "OM"))
                     {
                         <p style="margin: 20px auto;color:black ;position: relative;right: 12px;width: 225px;">
                             Internal Expected Fulfillment Date:
@@ -2143,12 +2143,12 @@ else if (TempData["Message"] != null)
 <div class="clear-both space15"></div>
 
 
-@if (Session["Role"].ToString() != "" && (Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM"))
+@if (Context.Session.GetString("Role").ToString() != "" && (Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "PM"))
 {
     foreach (var modelItem1 in Model.HRRFs)
     {
 
-        if (Convert.ToBoolean(Session["IsPractice"]) == true)
+        if (Convert.ToBoolean(Context.Session.GetString("IsPractice")) == true)
         {
             if (modelItem1.RequestStatus == "Qualified")
             {
@@ -2171,7 +2171,7 @@ else if (TempData["Message"] != null)
 <div class="clear-both space10"></div>
 @* Operation Manager *@
 <div>
-    @if (Session["Role"].ToString() != "" && Session["Role"].ToString() == "OM")
+    @if (Context.Session.GetString("Role").ToString() != "" && Context.Session.GetString("Role").ToString() == "OM")
     {
         foreach (var modelItem1 in Model.HRRFs)
         {
@@ -2183,7 +2183,7 @@ else if (TempData["Message"] != null)
                         <div class="row1">
                             <div class="col-md-12 nopadding" style="margin-left: 17px;background-color: #ffffff;width: 97%;margin-top: 26px;">
                                 <div id="gridprosedContent" class="table table-responsive">
-                                    @Html.Partial("_PartialProposedAssociate")
+                                    @(await Html.PartialAsync("_PartialProposedAssociate"))
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -2213,7 +2213,7 @@ else if (TempData["Message"] != null)
         @* DM *@
         <div>
             @*<div>
-                    @if (Session["Role"].ToString() != "" && Session["Role"].ToString() == "DM")
+                    @if (Context.Session.GetString("Role").ToString() != "" && Context.Session.GetString("Role").ToString() == "DM")
                     {
                         // Approve / Reject for DM
                         <div>
@@ -2283,7 +2283,7 @@ else if (TempData["Message"] != null)
 
 
 <div id="test">
-    @Html.Partial("HRRFHistory", ViewData["HRRFHistory"])
+    @(await Html.PartialAsync("HRRFHistory", ViewData["HRRFHistory"]))
 </div>
 
 <style type="text/css">
@@ -3332,7 +3332,7 @@ else if (TempData["Message"] != null)
                                             $.ajax({
                                                 type: "POST",
                                                 data: { "comments": remarks, "status": status, "request": request},
-                                                url: '@Url.Action("ReOpen1", "ProposeAssociate" , new {HrrfNumber = Session["hrrfno"]})',
+                                                url: '@Url.Action("ReOpen1", "ProposeAssociate" , new {HrrfNumber = Context.Session.GetString("hrrfno")})',
                                                 success: function (result) {
 
                                                     if (result != 0) {
@@ -3413,7 +3413,7 @@ else if (TempData["Message"] != null)
                                             $.ajax({
                                                 type: "POST",
                                                 data: { "comments": remarks },
-                                                url: '@Url.Action("ReOpen2", "ProposeAssociate" , new {HrrfNumber = Session["hrrfno"]})',
+                                                url: '@Url.Action("ReOpen2", "ProposeAssociate" , new {HrrfNumber = Context.Session.GetString("hrrfno")})',
                                                 success: function (result) {
 
                                                     if (result != 0) {
@@ -3494,7 +3494,7 @@ else if (TempData["Message"] != null)
                                             $.ajax({
                                                 type: "POST",
                                                 data: { "comments": remarks },
-                                                url: '@Url.Action("ConvertToInternal", "ProposeAssociate" , new {HrrfNumber = Session["hrrfno"]})',
+                                                url: '@Url.Action("ConvertToInternal", "ProposeAssociate" , new {HrrfNumber = Context.Session.GetString("hrrfno")})',
                                                 success: function (result) {
 
                                                     if (result != 0) {
@@ -3584,7 +3584,7 @@ else if (TempData["Message"] != null)
                                                         $.ajax({
                                                             type: "POST",
                                                             data: { "comments": remarks },
-                                                            url: '@Url.Action("ConvertToInternal", "ProposeAssociate" , new { HrrfNumber = Session["hrrfno"]})',
+                                                            url: '@Url.Action("ConvertToInternal", "ProposeAssociate" , new { HrrfNumber = Context.Session.GetString("hrrfno")})',
                                                             success: function (result) {
                                                                 if (result == "success") {
                                                                     bootbox.alert("Successfully converted to internal", function () {
@@ -3634,7 +3634,7 @@ else if (TempData["Message"] != null)
                             $.ajax({
                                 type: "POST",
                                 data: {},
-                                url: '@Url.Action("ConvertToInternal", "ProposeAssociate" , new { HrrfNumber = Session["hrrfno"]})',
+                                url: '@Url.Action("ConvertToInternal", "ProposeAssociate" , new { HrrfNumber = Context.Session.GetString("hrrfno")})',
                                 success: function (result) {
                                     if (result != 0) {
                                         bootbox.alert("Successfully converted to internal");
@@ -3894,8 +3894,8 @@ else if (TempData["Message"] != null)
             busyContent1()
             var slvals = []
 
-            var rle = '@Session["Role"].ToString()';
-            var loginid = @Session["EmployeeId"];
+            var rle = '@Context.Session.GetString("Role").ToString()';
+            var loginid = @Context.Session.GetString("EmployeeId");
             var count = 0;
             var chkcou = true;
             $('input:checkbox[name=chkAssociateId]:checked').each(function () {

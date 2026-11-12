@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Models;
 using System.IO;
 using OfficeOpenXml;
 using Trianz.Enterprise.Operations.General;
 
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class CompetencyController : Controller
@@ -16,7 +18,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         // GET: Competency
         public ActionResult Index()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
                 return View();
@@ -24,13 +26,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult Autocomplete(string term)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
                 var result = new List<KeyValuePair<string, string>>();
@@ -54,13 +56,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 var result3 = result.Where(s => s.Key.ToLower().Contains
                               (term.ToLower())).Select(w => w).ToList();
-                return Json(result3, JsonRequestBehavior.AllowGet);
+                return Json(result3);
             }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                    // return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
 
@@ -68,13 +70,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult SkillCategory()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
             {
@@ -115,7 +117,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
 
 
@@ -123,13 +125,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult SkillSet()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
             {
@@ -169,20 +171,20 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         
         public ActionResult AddSkillCategory(string SkillCategory, string Practice)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -191,7 +193,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     if (exist != null)
                     {
-                        return Json("false", JsonRequestBehavior.AllowGet);
+                        return Json("false");
 
                     }
                     if (Practice == "")
@@ -218,27 +220,27 @@ namespace Trianz.Enterprise.Operations.Controllers
                         db.SkillMasters.Add(skillcategory);
                         db.SaveChanges();
                     }
-                    return Json("true", JsonRequestBehavior.AllowGet);
+                    return Json("true");
                 }
 
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                    // return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult UpdateSkillCategory(string SkillCategory, string ExistingSkillCategory, string Practice)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             { 
                 try
 
@@ -272,7 +274,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
                     }
-                    return Json("true", JsonRequestBehavior.AllowGet);
+                    return Json("true");
                 }
                 else
                 {
@@ -280,7 +282,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     if (exist != null)
                     {
-                        return Json("false", JsonRequestBehavior.AllowGet);
+                        return Json("false");
                     }
 
                     else
@@ -309,7 +311,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             }
 
                         }
-                        return Json("true", JsonRequestBehavior.AllowGet);
+                        return Json("true");
                     }
                 }
             }
@@ -318,20 +320,20 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult DeleteSkillCategory(string SkillCategory)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -344,25 +346,25 @@ namespace Trianz.Enterprise.Operations.Controllers
                     }
 
 
-                    return Json("true", JsonRequestBehavior.AllowGet);
+                    return Json("true");
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                    // return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult GetSkillSetbySkillCategory(string SortDirection, string SkillCategory)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
             {
@@ -412,21 +414,21 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public ActionResult AddSkillSet(string SkillCategory, string SkillSet)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
             {
@@ -435,7 +437,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var exist = db.SkillMasters.Where(p => p.SkillCategory == SkillCategory && p.Skillset == SkillSet && p.IsActive == true).Select(p => p.Skillset).FirstOrDefault();
                 if (exist != null)
                 {
-                    return Json("false", JsonRequestBehavior.AllowGet);
+                    return Json("false");
 
                 }
                 var Practice = db.SkillMasters.Where(p => p.SkillCategory == SkillCategory && p.IsActive == true).Select(p => p.Practice).FirstOrDefault();
@@ -475,28 +477,28 @@ namespace Trianz.Enterprise.Operations.Controllers
                     }
                 }
                 db.SaveChanges();
-                return Json("true", JsonRequestBehavior.AllowGet);
+                return Json("true");
 
             }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                    // return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult DeleteSkillSet(int SkillID, string SkillCategory, string SkillSet)
 
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
                 try
@@ -508,26 +510,26 @@ namespace Trianz.Enterprise.Operations.Controllers
                         p.IsActive = false;
                     db.SaveChanges();
                 }
-                return Json("true", JsonRequestBehavior.AllowGet);
+                return Json("true");
             }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public ActionResult UpdateSkillSet(int SkillID, string SkillCategory, string SkillSet, string ExistingPratice)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
             {
@@ -536,7 +538,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var exist = db.SkillMasters.Where(p => p.SkillCategory == SkillCategory && p.Skillset == SkillSet && p.Practice == Practice && p.IsActive == true && p.SkillId != SkillID).Select(p => p.Skillset).FirstOrDefault();
                 if (exist != null)
                 {
-                    return Json("false", JsonRequestBehavior.AllowGet);
+                    return Json("false");
 
                 }
 
@@ -548,36 +550,36 @@ namespace Trianz.Enterprise.Operations.Controllers
                     db.SaveChanges();
 
                 }
-                return Json("true", JsonRequestBehavior.AllowGet);
+                return Json("true");
             }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                    // return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public ActionResult ExportReport()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
 
-                return Json("success", JsonRequestBehavior.AllowGet);
+                return Json("success");
         }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -585,7 +587,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                int? EmpId = Convert.ToInt32(Session["EmployeeId"]);
+                int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 Skills = (Skills.ToLower() == "Skillcategory") ? "" : Skills.ToUpper();
                 List<SkillMaster> skillsreport = new List<SkillMaster>();
                 if (Skills != null && Skills != string.Empty)
@@ -604,14 +606,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 #region Export to Excel
 
                 using (ExcelPackage package = new ExcelPackage())
-                {
-                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("TR Information");
+            {
+                        ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("TR Information");
                     worksheet.TabColor = System.Drawing.Color.Green;
                     worksheet.DefaultRowHeight = 18f;
                     worksheet.Row(1).Height = 20f;
 
                     using (var range = worksheet.Cells[1, 1, 1, 47])
-                    {
+{
                         range.Style.Font.Bold = true;
                         range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                         range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -650,8 +652,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                         if (row % 2 == 1)
                         {
                             using (var range = worksheet.Cells[row, 1, row, 3])
-                            {
-                                range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+{
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                 range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
                                 range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -670,14 +672,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
-                    Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=" + ((Skills == "") ? "My" : Skills) + "SkillReport" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    
+                    Response.Headers.Add("content-disposition", "attachment;filename=" + ((Skills == "") ? "My" : Skills) + "SkillReport" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                    Response.Charset = "";
+                    
                     Response.ContentType = "application/vnd.ms-excel";
                     StringWriter sw = new StringWriter();
-                    Response.BinaryWrite(fileBytes);
-                    Response.End();
+                    Response.Body.Write(fileBytes);
+                    
                 }
 
                 #endregion
@@ -688,7 +690,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 Common.WriteExceptionErrorLog(ex);
                 return RedirectToAction("Error", "Error");
-                //return Json("Error", JsonRequestBehavior.AllowGet);
+                //return Json("Error");
             }
         }
 

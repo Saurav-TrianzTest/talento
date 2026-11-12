@@ -2,19 +2,25 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using System.Data.Entity;
-using System.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.General;
 using Trianz.Enterprise.Operations.Models;
 
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Primitives;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class ProposeAssociateController : Controller
     {
+    private readonly IWebHostEnvironment Env;
         TrianzOperationsEntities db = new TrianzOperationsEntities();
         // Get all Constant
         string role_OM = System.Configuration.ConfigurationManager.AppSettings["Role_OM"].ToString();
@@ -66,13 +72,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var Cancel_ReasonList = from cancel in db.TR_CancelReason orderby cancel.CancelReasonName select cancel.CancelReasonName;
                 ViewData["_Cancel_ReasonList"] = Cancel_ReasonList;
                 //List<HRRFRemarksinfo> TRremaklst = new List<HRRFRemarksinfo>();
-                //TRremaklst = db.Database.SqlQuery<TR_Remakrinfo>("exec GetRemarkEmp").ToList<TR_Remakrinfo>();
+                //TRremaklst = db.Set<TR_Remakrinfo>().FromSqlRaw("exec GetRemarkEmp").ToList<TR_Remakrinfo>();
                 //ValidationModel objvalidate = new ValidationModel();
                 var emp = new ValidationModel();
 
-                var remakrinfos= db.Database.SqlQuery<HRRFRemarksinfo>("exec GetRemarkEmp").ToList<HRRFRemarksinfo>();
+                var remakrinfos= db.Set<HRRFRemarksinfo>().FromSqlRaw("exec GetRemarkEmp").ToList<HRRFRemarksinfo>();
 
-                var statusinfos = db.Database.SqlQuery<HRRFStatusHistoryDetails>("exec GetHRRFStatusHistory").ToList<HRRFStatusHistoryDetails>();
+                var statusinfos = db.Set<HRRFStatusHistoryDetails>().FromSqlRaw("exec GetHRRFStatusHistory").ToList<HRRFStatusHistoryDetails>();
 
                 string id="";
 
@@ -82,11 +88,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 if (TempData["hrrnumber"] == null && hrrfno == null)
                 {
-                    id = Session["Hrrfno"].ToString();
+                    id = HttpContext.Session.GetString("Hrrfno").ToString();
                 }
                 if (remakrinfos.Count > 0)
                 {
-                    remakrinfos = db.Database.SqlQuery<HRRFRemarksinfo>("exec GetRemarkEmp").ToList<HRRFRemarksinfo>();
+                    remakrinfos = db.Set<HRRFRemarksinfo>().FromSqlRaw("exec GetRemarkEmp").ToList<HRRFRemarksinfo>();
                     if (hrrfno != null && id == "")
                     {
                         remakrinfos = remakrinfos.Where(tr => tr.HrrfNo == hrrfno).OrderByDescending(h=>h.Submitteddate).ToList();
@@ -109,7 +115,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 if (statusinfos.Count > 0)
                 {
-                    statusinfos = db.Database.SqlQuery<HRRFStatusHistoryDetails>("exec GetHRRFStatusHistory").ToList<HRRFStatusHistoryDetails>();
+                    statusinfos = db.Set<HRRFStatusHistoryDetails>().FromSqlRaw("exec GetHRRFStatusHistory").ToList<HRRFStatusHistoryDetails>();
 
                     if (hrrfno != null && id == "")
                     {
@@ -134,7 +140,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 if (hrrfno != null)
                 {
-                    Session["hrrfno"] = hrrfno.Trim().ToString();
+                    HttpContext.Session.SetString("hrrfno", hrrfno.Trim().ToString().ToString());
                 }
                 int? hrrfCreatedBy = 0;
                 if (hrrfno != null)
@@ -143,39 +149,39 @@ namespace Trianz.Enterprise.Operations.Controllers
                                      where hr.HRRFNumber == hrrfno
                                      select hr.HRRFCreatedBy).FirstOrDefault();
                 }
-                var employeeId = Session["EmployeeId"];
+                var employeeId = HttpContext.Session.GetString("EmployeeId");
                 ViewBag.HRRFCreatedBy = hrrfCreatedBy;
                 List<string> dashBoardViewers = System.Configuration.ConfigurationManager.AppSettings["DHAndRLRoleUsers"].Split(',').ToList();
                 bool flag = dashBoardViewers.Contains(employeeId.ToString());
                 if (flag)
                     ViewBag.ShowApprovalButton = true;
-                if (Session["Role"] != null && Session["Role"].ToString() == "OM")
+                if (HttpContext.Session.GetString("Role") != null && HttpContext.Session.GetString("Role").ToString() == "OM")
                 {
-                    Session["IsPractice"] = true;
+                    HttpContext.Session.SetString("IsPractice", true.ToString());
                 }
                 else
                 {
                     if (hrrfno != null)
                     {
-                        Session["hrrfno"] = hrrfno.Trim().ToString();
+                        HttpContext.Session.SetString("hrrfno", hrrfno.Trim().ToString().ToString());
                         // get practice for hrrf and logged-in user
                         // then redirect  
                         string userLoggedinPractice = string.Empty;
-                        if (Session["Practice"] != null)
+                        if (HttpContext.Session.GetString("Practice") != null)
                         {
-                            userLoggedinPractice = Session["Practice"].ToString();
+                            userLoggedinPractice = HttpContext.Session.GetString("Practice").ToString();
                         }
 
                         var hrrfPractice = db.HRRFs.Where(h => h.HRRFNumber == hrrfno).FirstOrDefault();
                         if (hrrfPractice.Practice.ToLower() == userLoggedinPractice.ToLower())
                         {
                             bool IsPractice = true;
-                            Session["IsPractice"] = IsPractice;
+                            HttpContext.Session.SetString("IsPractice", IsPractice.ToString());
                         }
                         else
                         {
                             bool IsPractice = false;
-                            Session["IsPractice"] = IsPractice;
+                            HttpContext.Session.SetString("IsPractice", IsPractice.ToString());
                         }
                     }
                     else
@@ -183,18 +189,18 @@ namespace Trianz.Enterprise.Operations.Controllers
                         if (TempData["hrrfno"] != null)
                         {
                             string TempHrrfNo = TempData["hrrfno"].ToString();
-                            Session["hrrfno"] = TempHrrfNo;
-                            string userLoggedinPractice = Session["Practice"].ToString();
+                            HttpContext.Session.SetString("hrrfno", TempHrrfNo.ToString());
+                            string userLoggedinPractice = HttpContext.Session.GetString("Practice").ToString();
                             var hrrfPractice = db.HRRFs.Where(h => h.HRRFNumber == TempHrrfNo).FirstOrDefault();
                             if (hrrfPractice.Practice.ToLower() == userLoggedinPractice.ToLower())
                             {
                                 bool IsPractice = true;
-                                Session["IsPractice"] = IsPractice;
+                                HttpContext.Session.SetString("IsPractice", IsPractice.ToString());
                             }
                             else
                             {
                                 bool IsPractice = false;
-                                Session["IsPractice"] = IsPractice;
+                                HttpContext.Session.SetString("IsPractice", IsPractice.ToString());
                             }
                         }
                     }
@@ -215,7 +221,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
                 var viewResult = new ValidationModel();
-                string hrrf = Session["hrrfno"].ToString();
+                string hrrf = HttpContext.Session.GetString("hrrfno").ToString();
 
                 // to bind hrrf history
                 IList<TRHistory> _history = new List<TRHistory>();
@@ -237,10 +243,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 ViewData["HRRFHistory"] = _history;
 
-                if (Session["Role"] != null && Session["IsPractice"] != null)
+                if (HttpContext.Session.GetString("Role") != null && HttpContext.Session.GetString("IsPractice") != null)
                 {
-                    string role = Session["Role"].ToString();
-                    bool ispracticeCheck = Convert.ToBoolean(Session["IsPractice"]);
+                    string role = HttpContext.Session.GetString("Role").ToString();
+                    bool ispracticeCheck = Convert.ToBoolean(HttpContext.Session.GetString("IsPractice"));
                     // Operation Manager or Pratice Manager
                     if (role == role_OM)
                     {
@@ -290,11 +296,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                  IsMandatoy = hr.IsMandatoy == true ? "Yes" : "NO"
                                              }).ToList();
 
-                        if (Request.QueryString != null)
+                        if (Request.Query != null)
                         {
-                            if (Request.QueryString["flag"] != null)
+                            if (!StringValues.IsNullOrEmpty(Request.Query["flag"]))
                             {
-                                ViewBag.IsButtonEnabled = Convert.ToBoolean(Request.QueryString["flag"]);
+                                ViewBag.IsButtonEnabled = Convert.ToBoolean(Request.Query["flag"]);
                             }
                         }
 
@@ -364,7 +370,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             HRRFStatusHistoryDetails = statusinfos
                         };
 
-                        //ViewBag.EmployeeID =  (Session["EmployeeId"] != null) ? Session["EmployeeId"] : 0;
+                        //ViewBag.EmployeeID =  (HttpContext.Session.GetString("EmployeeId") != null) ? HttpContext.Session.GetString("EmployeeId") : 0;
                     }
                     // Pratice Head
                     if (role == role_DH || role == role_RL || role == role_SM || role == role_LDAdmin || role == role_CompetencyAdmin || role == role_Finance)
@@ -398,11 +404,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                             }
                         }
 
-                        if (Request.QueryString != null)
+                        if (Request.Query != null)
                         {
-                            if (Request.QueryString["flag"] != null)
+                            if (!StringValues.IsNullOrEmpty(Request.Query["flag"]))
                             {
-                                ViewBag.IsButtonEnabled = Convert.ToBoolean(Request.QueryString["flag"]);
+                                ViewBag.IsButtonEnabled = Convert.ToBoolean(Request.Query["flag"]);
                             }
                         }
                         var hrrfskillinfo = (from hr in db.HRRFSkills_ExpertiseLevel
@@ -543,10 +549,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                 
                 return View(viewResult);
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -566,7 +572,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
 
         }
@@ -669,9 +675,9 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         private bool IsValidDH(ValidationModel viewResult)
         {
-            if (Session["EmployeeId"] != null)
+            if (HttpContext.Session.GetString("EmployeeId") != null)
             {
-                string emp = Session["EmployeeId"].ToString();
+                string emp = HttpContext.Session.GetString("EmployeeId").ToString();
 
                 if (viewResult.HRRFs.Count() == 1)
                 {
@@ -710,7 +716,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
                 #region External TRs dh approval code
-                //if (Session["EmployeeId"].ToString() == "100816") // Sujit Sahoo
+                //if (HttpContext.Session.GetString("EmployeeId").ToString() == "100816") // Sujit Sahoo
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -729,7 +735,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "60126") // Anusuya R Chaman
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "60126") // Anusuya R Chaman
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -748,7 +754,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "103406") // Prasad Prabhakar
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "103406") // Prasad Prabhakar
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -767,7 +773,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "101404") // Prashant V.S. Bhavaraju
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "101404") // Prashant V.S. Bhavaraju
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -786,7 +792,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "101034") // Gangadhar Aka
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "101034") // Gangadhar Aka
 
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
@@ -806,7 +812,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "101441") // Vivek	Sambasivam
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "101441") // Vivek	Sambasivam
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -822,7 +828,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "103237") // Vishwanath MS
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "103237") // Vishwanath MS
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -838,7 +844,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "102968") // Ganesh Arunachala
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "102968") // Ganesh Arunachala
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -871,11 +877,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //                        || (viewResult.ExternalFulfillments.First().Practice.ToLower() == "it services others"
                 //                        && viewResult.HRRFs.First().CostCenter.ToLower() != "quality"))
                 //                    {
-                //                        if (Session["EmployeeId"].ToString() == "103673" && viewResult.HRRFs.First().Grade <= 4) // Ashutosh Uprety
+                //                        if (HttpContext.Session.GetString("EmployeeId").ToString() == "103673" && viewResult.HRRFs.First().Grade <= 4) // Ashutosh Uprety
                 //                        {
                 //                            return true;
                 //                        }
-                //                        else if (Session["EmployeeId"].ToString() != "103673" && viewResult.HRRFs.First().Grade > 4)
+                //                        else if (HttpContext.Session.GetString("EmployeeId").ToString() != "103673" && viewResult.HRRFs.First().Grade > 4)
                 //                        {
                 //                            return true;
                 //                        }
@@ -888,7 +894,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 #endregion
 
                 #region Internal TRs dh approval code
-                //if (Session["EmployeeId"].ToString() == "100816") // Sujit Sahoo
+                //if (HttpContext.Session.GetString("EmployeeId").ToString() == "100816") // Sujit Sahoo
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -907,7 +913,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "60126") // Anusuya R Chaman 
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "60126") // Anusuya R Chaman 
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -926,7 +932,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "103406") // Prasad Prabhakar 
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "103406") // Prasad Prabhakar 
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -945,7 +951,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "101404") // Prashant V.S. Bhavaraju
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "101404") // Prashant V.S. Bhavaraju
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -964,7 +970,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "101034") // Gangadhar Aka
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "101034") // Gangadhar Aka
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -983,7 +989,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "101441") // Vivek	Sambasivam
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "101441") // Vivek	Sambasivam
                 //{
                 //    if (viewResult.HRRFs.First().RequestStatus.ToLower() == "pending for dh approval" &&
                 //            viewResult.HRRFs.First().RequestType.ToLower() == "internal" &&
@@ -998,7 +1004,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "103237") // Vishwanath MS
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "103237") // Vishwanath MS
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -1016,7 +1022,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        }
                 //    }
                 //}
-                //else if (Session["EmployeeId"].ToString() == "102968") // Ganesh Arunachala
+                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "102968") // Ganesh Arunachala
                 //{
                 //    if (viewResult.HRRFs.Count() == 1)
                 //    {
@@ -1052,11 +1058,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //                    || (viewResult.HRRFs.First().Practice.ToLower() == "it services others"
                 //                    && viewResult.HRRFs.First().CostCenter.ToLower() != "quality"))
                 //                {
-                //                    if (Session["EmployeeId"].ToString() == "103673" && viewResult.HRRFs.First().Grade <= 4) // Ashutosh Uprety
+                //                    if (HttpContext.Session.GetString("EmployeeId").ToString() == "103673" && viewResult.HRRFs.First().Grade <= 4) // Ashutosh Uprety
                 //                    {
                 //                        return true;
                 //                    }
-                //                    else if (Session["EmployeeId"].ToString() != "103673" && viewResult.HRRFs.First().Grade > 4)
+                //                    else if (HttpContext.Session.GetString("EmployeeId").ToString() != "103673" && viewResult.HRRFs.First().Grade > 4)
                 //                    {
                 //                        return true;
                 //                    }
@@ -1258,7 +1264,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             }
             #endregion
 
-            string HRRFNumber = Session["hrrfno"].ToString();
+            string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
             var skillMatch = (from empskills in db.EmployeeSkills
                               join hrrfskills in db.HRRFSkills on empskills.Skills equals hrrfskills.Skills
                               //join masterLkup in db.MasterLookUps on hrrfskills.Skills equals masterLkup.LookupID
@@ -1363,9 +1369,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
 
                     EmployeeID = EmpId;
-                    lstHRRF = db.Database.SqlQuery<TRMagicData>("exec GetTrMagicForEmployee @hrrf_number, @EmployeeID",
-           new System.Data.SqlClient.SqlParameter("hrrf_number", Hrrfn),
-            new System.Data.SqlClient.SqlParameter("EmployeeID", EmployeeID)).ToList<TRMagicData>();
+                    lstHRRF = db.Set<TRMagicData>().FromSqlRaw("exec GetTrMagicForEmployee @hrrf_number, @EmployeeID",
+           new Microsoft.Data.SqlClient.SqlParameter("hrrf_number", Hrrfn),
+            new Microsoft.Data.SqlClient.SqlParameter("EmployeeID", EmployeeID)).ToList<TRMagicData>();
 
 
 
@@ -1395,17 +1401,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                     skillbillingst = "Bench";
 
 
-                lstHRRF = db.Database.SqlQuery<TRMagicData>("exec GetEmployeeDetailsByHRRFNumber @hrrf_number, @start_date,@end_date, @grade,@skills,@Billing_status,@location,@Practice",
+                lstHRRF = db.Set<TRMagicData>().FromSqlRaw("exec GetEmployeeDetailsByHRRFNumber @hrrf_number, @start_date,@end_date, @grade,@skills,@Billing_status,@location,@Practice",
 
-               new System.Data.SqlClient.SqlParameter("hrrf_number", Hrrfn == null ? (object)DBNull.Value : Hrrfn),
-                   // new System.Data.SqlClient.SqlParameter("start_date", ValueOrDBNullIfZero(stdate)),
-                   new System.Data.SqlClient.SqlParameter("start_date", stdate == null ? (object)DBNull.Value : stdate),
-                   new System.Data.SqlClient.SqlParameter("end_date", etdate == null ? (object)DBNull.Value : etdate),
-                    new System.Data.SqlClient.SqlParameter("grade", (object)DBNull.Value),
-                     new System.Data.SqlClient.SqlParameter("skills", (object)DBNull.Value),
-                      new System.Data.SqlClient.SqlParameter("Billing_status", skillbillingst == null ? (object)DBNull.Value : skillbillingst),
-                       new System.Data.SqlClient.SqlParameter("location", (object)DBNull.Value),
-                        new System.Data.SqlClient.SqlParameter("Practice", (object)DBNull.Value)).ToList<TRMagicData>();
+               new Microsoft.Data.SqlClient.SqlParameter("hrrf_number", Hrrfn == null ? (object)DBNull.Value : Hrrfn),
+                   // new Microsoft.Data.SqlClient.SqlParameter("start_date", ValueOrDBNullIfZero(stdate)),
+                   new Microsoft.Data.SqlClient.SqlParameter("start_date", stdate == null ? (object)DBNull.Value : stdate),
+                   new Microsoft.Data.SqlClient.SqlParameter("end_date", etdate == null ? (object)DBNull.Value : etdate),
+                    new Microsoft.Data.SqlClient.SqlParameter("grade", (object)DBNull.Value),
+                     new Microsoft.Data.SqlClient.SqlParameter("skills", (object)DBNull.Value),
+                      new Microsoft.Data.SqlClient.SqlParameter("Billing_status", skillbillingst == null ? (object)DBNull.Value : skillbillingst),
+                       new Microsoft.Data.SqlClient.SqlParameter("location", (object)DBNull.Value),
+                        new Microsoft.Data.SqlClient.SqlParameter("Practice", (object)DBNull.Value)).ToList<TRMagicData>();
                 #endregion
             }
 
@@ -1451,15 +1457,15 @@ namespace Trianz.Enterprise.Operations.Controllers
             string skillbillingst = "Bench";
 
 
-            var lstHRRF = db.Database.SqlQuery<TRMagicData>("exec GetEmployeeDetailsByHRRFNumber @hrrf_number, @start_date,@end_date, @grade,@skills,@Billing_status,@location,@Practice",
-                          new System.Data.SqlClient.SqlParameter("hrrf_number", Hrrfn),
-                                new System.Data.SqlClient.SqlParameter("start_date", stdate == null ? (object)DBNull.Value : stdate),
-                new System.Data.SqlClient.SqlParameter("end_date", etdate == null ? (object)DBNull.Value : etdate),
-                 new System.Data.SqlClient.SqlParameter("grade", (object)DBNull.Value),
-                  new System.Data.SqlClient.SqlParameter("skills", (object)DBNull.Value),
-                   new System.Data.SqlClient.SqlParameter("Billing_status", skillbillingst == null ? (object)DBNull.Value : skillbillingst),
-                    new System.Data.SqlClient.SqlParameter("location", (object)DBNull.Value),
-                     new System.Data.SqlClient.SqlParameter("Practice", (object)DBNull.Value)).ToList<TRMagicData>();
+            var lstHRRF = db.Set<TRMagicData>().FromSqlRaw("exec GetEmployeeDetailsByHRRFNumber @hrrf_number, @start_date,@end_date, @grade,@skills,@Billing_status,@location,@Practice",
+                          new Microsoft.Data.SqlClient.SqlParameter("hrrf_number", Hrrfn),
+                                new Microsoft.Data.SqlClient.SqlParameter("start_date", stdate == null ? (object)DBNull.Value : stdate),
+                new Microsoft.Data.SqlClient.SqlParameter("end_date", etdate == null ? (object)DBNull.Value : etdate),
+                 new Microsoft.Data.SqlClient.SqlParameter("grade", (object)DBNull.Value),
+                  new Microsoft.Data.SqlClient.SqlParameter("skills", (object)DBNull.Value),
+                   new Microsoft.Data.SqlClient.SqlParameter("Billing_status", skillbillingst == null ? (object)DBNull.Value : skillbillingst),
+                    new Microsoft.Data.SqlClient.SqlParameter("location", (object)DBNull.Value),
+                     new Microsoft.Data.SqlClient.SqlParameter("Practice", (object)DBNull.Value)).ToList<TRMagicData>();
 
             #endregion
             ViewData["BenchEmployeesWithMatchedSkills"] = lstHRRF;
@@ -1489,9 +1495,9 @@ namespace Trianz.Enterprise.Operations.Controllers
             if (propsedlist != null && propsedlist != string.Empty)
             {
 
-                lstHRRF = db.Database.SqlQuery<ProposedResourcesList>("exec GetTrMagicForEmployee @hrrf_number, @EmployeeID",
-                new System.Data.SqlClient.SqlParameter("hrrf_number", Hrrfn),
-                new System.Data.SqlClient.SqlParameter("EmployeeID", propsedlist)).ToList<ProposedResourcesList>();
+                lstHRRF = db.Set<ProposedResourcesList>().FromSqlRaw("exec GetTrMagicForEmployee @hrrf_number, @EmployeeID",
+                new Microsoft.Data.SqlClient.SqlParameter("hrrf_number", Hrrfn),
+                new Microsoft.Data.SqlClient.SqlParameter("EmployeeID", propsedlist)).ToList<ProposedResourcesList>();
             }
 
             #endregion
@@ -1503,8 +1509,8 @@ namespace Trianz.Enterprise.Operations.Controllers
             try { 
             int empi = 0;
             empi = Convert.ToInt32(EMPID);
-            var etdet = db.Database.SqlQuery<EmpoloyeeAssigmentDetails>("exec GetEMployeeAssignmnetDetails @EmployeeID",
-                                                           new System.Data.SqlClient.SqlParameter("EmployeeID", empi)).ToList<EmpoloyeeAssigmentDetails>();
+            var etdet = db.Set<EmpoloyeeAssigmentDetails>().FromSqlRaw("exec GetEMployeeAssignmnetDetails @EmployeeID",
+                                                           new Microsoft.Data.SqlClient.SqlParameter("EmployeeID", empi)).ToList<EmpoloyeeAssigmentDetails>();
 
             var viewResult = new ValidationModel()
             {
@@ -1518,7 +1524,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
         public ActionResult GetEmployeeSkill(string EmpID)
@@ -1526,8 +1532,8 @@ namespace Trianz.Enterprise.Operations.Controllers
             try { 
             Int32 EmployeeId = Convert.ToInt32(EmpID);
 
-            var objStudent = db.Database.SqlQuery<EmployeeSkills_NewDetails>("exec GetEmployeeSkills @EmployeeId",
-                  new System.Data.SqlClient.SqlParameter("EmployeeId", EmployeeId)).ToList<EmployeeSkills_NewDetails>();
+            var objStudent = db.Set<EmployeeSkills_NewDetails>().FromSqlRaw("exec GetEmployeeSkills @EmployeeId",
+                  new Microsoft.Data.SqlClient.SqlParameter("EmployeeId", EmployeeId)).ToList<EmployeeSkills_NewDetails>();
 
             var viewResult = new ValidationModel()
             {
@@ -1541,14 +1547,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
         public List<BenchEmployees> GetListRecommendResources()
         {
             List<BenchEmployees> lstBenchEmployes = new List<BenchEmployees>();
-            string HRRFNumber = Session["hrrfno"].ToString();
+            string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
             //Int32 EmployeeID = 0;
             #region skillmatch
 
@@ -1650,7 +1656,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                HRRFNumber = Session["hrrfno"].ToString();
+                HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
 
 
                 TempData["hrrfno"] = HRRFNumber;
@@ -1717,10 +1723,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 return Json(recommendedalready);
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -1740,15 +1746,15 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
         public JsonResult ResourceProposement(string[] chkAssociateId, string HRRFNumber)
         {
-            JsonResult js = new JsonResult();
+            JsonResult js = new JsonResult(null);
             try
             {
-                HRRFNumber = Session["hrrfno"].ToString();
+                HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                 TempData["hrrfno"] = HRRFNumber;
                 if (chkAssociateId != null && HRRFNumber != null)
                 {
@@ -1828,7 +1834,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             var hrrfcr = db.HRRFs.Where(x => x.HRRFNumber == mt.HRRFNumber && x.RequestStatus != "Fulfilled").FirstOrDefault();
                                             if (hrrfcr != null)
                                             {
-                                                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(hrrfcr.HRRFCreatedBy),
+                                                InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(hrrfcr.HRRFCreatedBy),
                                                     "This is to inform you that " + objEmployee.FirstName + " " + objEmployee.LastName + "(" + CheckedItem + ")" + " Resource accepted for another TR so we are removing this resource from your propsed list for the " + mt.HRRFNumber,
                                                     "Proposed Resource Removing", mt.HRRFNumber, "<b>" +
                                                     ConfigurationManager.AppSettings["ProposedResource"] + "</b>" + mt.EmpName, null);
@@ -1845,7 +1851,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                                                 TRScernarioHistroy(mt.HRRFNumber, objEmployee.FirstName + " " + objEmployee.MiddleName + " " + objEmployee.LastName
                                                     + " - " + "accepted for another TR removing the resource from propsed list for the" + " - " + HRRFNumber,
-                                                    null, Convert.ToInt32(Session["EmployeeId"]), strPrevReqStatus1);
+                                                    null, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevReqStatus1);
 
                                             }
                                             ProposeAssociate pt = db.ProposeAssociates.Find(mt.ProposedID);
@@ -1896,7 +1902,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         objProposeAssociate.DeliveryStatus = delivery_recommend;
                         objProposeAssociate.DeliveryRemarks = string.Empty;
                         objProposeAssociate.PracticeStatus = practice_recommend;
-                        objProposeAssociate.ProposedBy = Session["EmployeeId"].ToString(); //objHRRF.HRRFCreatedBy.ToString();
+                        objProposeAssociate.ProposedBy = HttpContext.Session.GetString("EmployeeId").ToString(); //objHRRF.HRRFCreatedBy.ToString();
                         objProposeAssociate.ProposedDate = DateTime.Now;
                         objProposeAssociate.ApprovedBy = objHRRF.ModifiedBy.ToString();
                         // objProposeAssociate.ApproverEmailId = objHRRF.RequesterEmailId;
@@ -1907,7 +1913,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         db.ProposeAssociates.Add(objProposeAssociate);
                         //HRRF Histroy
-                        TRScernarioHistroy(HRRFNumber, objEmployee.FirstName + " " + objEmployee.LastName + " " + "has been Proposed for" + " - " + HRRFNumber, objProposeAssociate.DeliveryRemarks, Convert.ToInt32(Session["EmployeeId"]), strPrevReqStatus);
+                        TRScernarioHistroy(HRRFNumber, objEmployee.FirstName + " " + objEmployee.LastName + " " + "has been Proposed for" + " - " + HRRFNumber, objProposeAssociate.DeliveryRemarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevReqStatus);
                         //saving proposed resources
                         db.SaveChanges();
                         // configure smtp mail server here 
@@ -1928,31 +1934,30 @@ namespace Trianz.Enterprise.Operations.Controllers
                         var isvalidbusinessgroup = db.IncludedBussinessGroups.Where(i => i.BusinessGroup.Contains(proposedEmpName.BusinessGroup)).FirstOrDefault();
                         var isinvalidemployetype = db.ExcludedEmployeeTypes.Where(i => i.EmployeeType.Contains(proposedEmpName.EmployeeType)).FirstOrDefault();
                         //added ops team in cc
-                        InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrProposedResources"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["ProposedResource"] + "</b>" + proposedEmpName.FirstName + proposedEmpName.LastName, ConfigurationManager.AppSettings["ITS-OPS"]);
+                        InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrProposedResources"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["ProposedResource"] + "</b>" + proposedEmpName.FirstName + proposedEmpName.LastName, ConfigurationManager.AppSettings["ITS-OPS"]);
                         //lakshmi
                         if (isvalidbusinessgroup != null && isinvalidemployetype == null)
                         {
-                            InsertNotification(Session["EmployeeId"].ToString(), CheckedItem, ConfigurationManager.AppSettings["Proposedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["TrProposedRes_NOtification"], HRRFNumber, string.Empty, deliverymanager);
+                            InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), CheckedItem, ConfigurationManager.AppSettings["Proposedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["TrProposedRes_NOtification"], HRRFNumber, string.Empty, deliverymanager);
                         }
-                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrProposedResources_by"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"], HRRFNumber, string.Empty, null);
+                        InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), ConfigurationManager.AppSettings["TrProposedResources_by"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"], HRRFNumber, string.Empty, null);
 
                         #endregion
-                        js.Data = true;
+                        js.Value = true;
 
                     }
                 }
             }
             //catch (Exception ex)
             //{
-            //    js.Data = false;
+            //    js.Value = false;
             //}
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
-            js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
             return js;
         }
         /// <summary>
@@ -1965,10 +1970,10 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                string HRRFNumber = Session["hrrfno"].ToString();
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                 TempData["hrrfno"] = HRRFNumber;
                 List<string> strAlreadyAcceptedList = new List<string>();
-                int loginempID = Convert.ToInt32(Session["EmployeeId"]);
+                int loginempID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
                 foreach (string proposedEmpid in ProposedId)
                 {
@@ -1991,7 +1996,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 var hrrfcr = db.HRRFs.Where(x => x.HRRFNumber == mt.HRRFNumber && x.RequestStatus != "Fulfilled" && x.RequestStatus != "Cancelled").FirstOrDefault();
                                 if (hrrfcr != null)
                                 {
-                                    InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(hrrfcr.HRRFCreatedBy),
+                                    InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(hrrfcr.HRRFCreatedBy),
                                         "This is to inform you that " + objEmployee.FirstName + " " + objEmployee.LastName + "(" + ProposedId + ")" + " Resource accepted for another TR so we are removing this resource from your propsed list for the " + mt.HRRFNumber,
                                         "Proposed Resource Removing", mt.HRRFNumber, "<b>" +
                                         ConfigurationManager.AppSettings["ProposedResource"] + "</b>" + mt.EmpName, null);
@@ -2006,7 +2011,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                                     TRScernarioHistroy(mt.HRRFNumber, objEmployee.FirstName + " " + objEmployee.MiddleName + " " + objEmployee.LastName
                                         + " - " + "accepted for another TR removing the resource from propsed list for the" + " - " + HRRFNumber,
-                                        null, Convert.ToInt32(Session["EmployeeId"]), strPrevReqStatus);
+                                        null, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevReqStatus);
 
                                     //var hrrfhistr = db.HRRFHistories.Where(x => x.HRRFNumber == mt.HRRFNumber && x.PrevRequestStatus == "Qualified").OrderByDescending(x => x.ModifiedDate).FirstOrDefault();
                                     //if (hrrfhistr != null)
@@ -2157,7 +2162,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     db.ProjectAssignmenthistories.Add(pash);
                                     #endregion
 
-                                    db.Entry(lt).State = System.Data.Entity.EntityState.Modified;
+                                    db.Entry(lt).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                                     db.SaveChanges();
                                 }
                             }
@@ -2317,16 +2322,16 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 var objProposing = db.ProposeAssociates.Where(p => p.EmpID == proposedEmpid && p.HRRFNumber == HRRFNumber).FirstOrDefault();
                                 objHRRF.ResourceName = objPropose.EmpID + "(" + objPropose.EmpName + ")";
                                 objProposing.PracticeStatus = praticeAccept;
-                                db.Entry(objProposing).State = System.Data.Entity.EntityState.Modified;
+                                db.Entry(objProposing).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                                 // fulfill positions
                                 var objHrrfFulfillment = db.HRRFs.Where(p => p.HRRFNumber == HRRFNumber).FirstOrDefault();
                                 string strPrevReqStatus = objHrrfFulfillment.RequestStatus;
                                 objHrrfFulfillment.RequestStatus = fulfilled;
                                 objHrrfFulfillment.ModifiedDate = DateTime.Now;
-                                db.Entry(objHrrfFulfillment).State = System.Data.Entity.EntityState.Modified;
+                                db.Entry(objHrrfFulfillment).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                                 // HRRF histroy 
-                                TRScernarioHistroy(HRRFNumber, objPropose.EmpName + " - " + "has been Accepted for" + " - " + HRRFNumber, objHrrfFulfillment.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevReqStatus);
-                                TRScernarioHistroy(HRRFNumber, objPropose.EmpName + " - " + "has been Fulfilled for" + " - " + HRRFNumber, objHrrfFulfillment.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevReqStatus);
+                                TRScernarioHistroy(HRRFNumber, objPropose.EmpName + " - " + "has been Accepted for" + " - " + HRRFNumber, objHrrfFulfillment.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevReqStatus);
+                                TRScernarioHistroy(HRRFNumber, objPropose.EmpName + " - " + "has been Fulfilled for" + " - " + HRRFNumber, objHrrfFulfillment.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevReqStatus);
                                 // Project Assignment & Change Assignment status for Employee in EmployeeTable
 
 
@@ -2341,7 +2346,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     {
                                         objEmployeeAssignment.AssignmentStatus = emp_Assignment;
                                         objEmployeeAssignment.ProjectManagerId = objProject.ProjectManagerId;
-                                        db.Entry(objEmployeeAssignment).State = System.Data.Entity.EntityState.Modified;
+                                        db.Entry(objEmployeeAssignment).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                                     }
                                     #region ProjectAssignment
                                     var objprojectmanagername = db.Employees.Where(a => a.EmployeeId == objProject.ProjectManagerId).FirstOrDefault();
@@ -2521,13 +2526,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 var isvalidbusinessgroup = db.IncludedBussinessGroups.Where(i => i.BusinessGroup.Contains(proposedEmpName.BusinessGroup)).FirstOrDefault();
                                 var isinvalidemployetype = db.ExcludedEmployeeTypes.Where(i => i.EmployeeType.Contains(proposedEmpName.EmployeeType)).FirstOrDefault();
                                 // email configure added ops team in cc
-                                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["AcceptedResource"] + ":</b>" + proposedEmpName.FirstName + proposedEmpName.LastName, ConfigurationManager.AppSettings["ITS-OPS"]+","+ ConfigurationManager.AppSettings["Assurance"]);
+                                InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["AcceptedResource"] + ":</b>" + proposedEmpName.FirstName + proposedEmpName.LastName, ConfigurationManager.AppSettings["ITS-OPS"]+","+ ConfigurationManager.AppSettings["Assurance"]);
                                 //lakshmi
                                 if (isvalidbusinessgroup != null && isinvalidemployetype == null)
                                 {
-                                    InsertNotification(Session["EmployeeId"].ToString(), proposedEmpid, ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["AcceptedResource"], HRRFNumber, string.Empty, null);
+                                    InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), proposedEmpid, ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["AcceptedResource"], HRRFNumber, string.Empty, null);
                                 }
-                                InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"] + objHRRF.ProjectName, HRRFNumber, string.Empty, null);
+                                InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"] + objHRRF.ProjectName, HRRFNumber, string.Empty, null);
                             }
                         }
                     }
@@ -2566,7 +2571,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     {
 
                         Common.WriteExceptionErrorLog(ex);
-                        return Json("Error", JsonRequestBehavior.AllowGet);
+                        return Json("Error");
                     }
                     finally
                     {
@@ -2581,10 +2586,10 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 return Json(AlreadyAccepted);
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -2604,7 +2609,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
@@ -2614,7 +2619,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //{
         //    try
         //    {
-        //        string HRRFNumber = Session["hrrfno"].ToString();
+        //        string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
         //        TempData["hrrfno"] = HRRFNumber;
         //        List<string> strAlreadyAcceptedList = new List<string>();
         //        foreach (string proposedEmpid in ProposedId)
@@ -2647,16 +2652,16 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                        var objProposing = db.ProposeAssociates.Where(p => p.EmpID == proposedEmpid && p.HRRFNumber == HRRFNumber).FirstOrDefault();
         //                        objHRRF.ResourceName = objPropose.EmpName;
         //                        objProposing.PracticeStatus = praticeAccept;
-        //                        db.Entry(objProposing).State = System.Data.Entity.EntityState.Modified;
+        //                        db.Entry(objProposing).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
         //                        // fulfill positions
         //                        var objHrrfFulfillment = db.HRRFs.Where(p => p.HRRFNumber == HRRFNumber).FirstOrDefault();
         //                        string strPrevReqStatus = objHrrfFulfillment.RequestStatus;
         //                        objHrrfFulfillment.RequestStatus = fulfilled;
         //                        objHrrfFulfillment.ModifiedDate = DateTime.Now;
-        //                        db.Entry(objHrrfFulfillment).State = System.Data.Entity.EntityState.Modified;
+        //                        db.Entry(objHrrfFulfillment).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
         //                        // HRRF histroy 
-        //                        TRScernarioHistroy(HRRFNumber, objPropose.EmpName + " - " + "has been Accepted for" + " - " + HRRFNumber, objHrrfFulfillment.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevReqStatus);
-        //                        TRScernarioHistroy(HRRFNumber, objPropose.EmpName + " - " + "has been Fulfilled for" + " - " + HRRFNumber, objHrrfFulfillment.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevReqStatus);
+        //                        TRScernarioHistroy(HRRFNumber, objPropose.EmpName + " - " + "has been Accepted for" + " - " + HRRFNumber, objHrrfFulfillment.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevReqStatus);
+        //                        TRScernarioHistroy(HRRFNumber, objPropose.EmpName + " - " + "has been Fulfilled for" + " - " + HRRFNumber, objHrrfFulfillment.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevReqStatus);
         //                        // Project Assignment & Change Assignment status for Employee in EmployeeTable
         //                        #region ProjectAssignment
         //                        var objProjectAssignment = db.ProjectAssignments.Where(a => a.EmployeeId == propsedEmployeeid).FirstOrDefault();
@@ -2667,7 +2672,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                            objProjectAssignment.ProjectName = objHRRF.ProjectName;
         //                            objProjectAssignment.StartDate = objHRRF.AssignmentStartDate;
         //                            objProjectAssignment.EndDate = objHRRF.AssignmentEndDate;
-        //                            db.Entry(objProjectAssignment).State = System.Data.Entity.EntityState.Modified;
+        //                            db.Entry(objProjectAssignment).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
         //                        }
         //                        #endregion
         //                        #region ManagerAssignment
@@ -2679,16 +2684,16 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                            var objEmployeeAssignment = db.Employees.Where(a => a.EmployeeId == propsedEmployeeid).FirstOrDefault();
         //                            objEmployeeAssignment.AssignmentStatus = emp_Assignment;
         //                            objEmployeeAssignment.ProjectManagerId = objProject.ProjectManagerId;
-        //                            db.Entry(objEmployeeAssignment).State = System.Data.Entity.EntityState.Modified;
+        //                            db.Entry(objEmployeeAssignment).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
         //                        }
         //                        #endregion
         //                        // final saving after assigning and updating
         //                        db.SaveChanges();
         //                        var proposedEmpName = db.Employees.Where(p => p.EmployeeId == propsedEmployeeid).FirstOrDefault();
         //                        // email configure
-        //                        InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"], HRRFNumber, ConfigurationManager.AppSettings["AcceptedResource"] + proposedEmpName.FirstName + proposedEmpName.LastName);
-        //                        InsertNotification(Session["EmployeeId"].ToString(), proposedEmpid, ConfigurationManager.AppSettings["Acceptedto"], ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, HRRFNumber, string.Empty);
-        //                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"] + objHRRF.ProjectName, HRRFNumber, string.Empty);
+        //                        InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"], HRRFNumber, ConfigurationManager.AppSettings["AcceptedResource"] + proposedEmpName.FirstName + proposedEmpName.LastName);
+        //                        InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), proposedEmpid, ConfigurationManager.AppSettings["Acceptedto"], ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, HRRFNumber, string.Empty);
+        //                        InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"] + objHRRF.ProjectName, HRRFNumber, string.Empty);
         //                    }
         //                }
         //            }
@@ -2708,10 +2713,10 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         //        return Json(AlreadyAccepted);
         //    }
-        //    catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+        //    catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
         //    {
         //        Exception raise = dbEx;
-        //        foreach (var validationErrors in dbEx.EntityValidationErrors)
+        //        foreach (var validationErrors in dbEx)
         //        {
         //            foreach (var validationError in validationErrors.ValidationErrors)
         //            {
@@ -2740,7 +2745,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                string HRRFNumber = Session["hrrfno"].ToString();
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                 TempData["hrrfno"] = HRRFNumber;
 
                 foreach (string pid in ProposedId)
@@ -2762,15 +2767,15 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         propsedLog.PracticeRemarks = _Msg;
                         propsedLog.PracticeStatus = praticeReject;
-                        db.Entry(propsedLog).State = System.Data.Entity.EntityState.Modified;
+                        db.Entry(propsedLog).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
-                        TRScernarioHistroy(HRRFNumber, propsedLog.EmpName + " " + "has been Rejected for" + " - " + HRRFNumber, propsedLog.PracticeRemarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                        TRScernarioHistroy(HRRFNumber, propsedLog.EmpName + " " + "has been Rejected for" + " - " + HRRFNumber, propsedLog.PracticeRemarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
                         db.SaveChanges();
                         int empid = Convert.ToInt32(pid);
                         var proposedEmpName = db.Employees.Where(p => p.EmployeeId == empid).FirstOrDefault();
 
-                        InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrRejectedResources"], ConfigurationManager.AppSettings["TrProposedResRej_NOtification"], HRRFNumber, ConfigurationManager.AppSettings["RejectedResource"] + proposedEmpName.FirstName + proposedEmpName.LastName + "<br><b>" + ConfigurationManager.AppSettings["Remarks"] + "</b>" + _Msg, null);
-                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrRejectedResources_by"], ConfigurationManager.AppSettings["TrProposedResRej_NOtification"], HRRFNumber, "<br><b>" + ConfigurationManager.AppSettings["Remarks"] + "</b>" + _Msg, null);
+                        InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrRejectedResources"], ConfigurationManager.AppSettings["TrProposedResRej_NOtification"], HRRFNumber, ConfigurationManager.AppSettings["RejectedResource"] + proposedEmpName.FirstName + proposedEmpName.LastName + "<br><b>" + ConfigurationManager.AppSettings["Remarks"] + "</b>" + _Msg, null);
+                        InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), ConfigurationManager.AppSettings["TrRejectedResources_by"], ConfigurationManager.AppSettings["TrProposedResRej_NOtification"], HRRFNumber, "<br><b>" + ConfigurationManager.AppSettings["Remarks"] + "</b>" + _Msg, null);
                     }
                 }
 
@@ -2799,13 +2804,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //    BenchEmployee = GetListRecommendResources(),
                 //    ExternalFulfillments = db.ExternalFulfillments.Where(f => f.HRRFNumber == HRRFNumber).ToList()
                 //};
-                return Json("", JsonRequestBehavior.AllowGet);
+                return Json("");
                 //    return View("ProposeAssociate", viewResult1);
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -2825,7 +2830,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
 
         }
@@ -2838,7 +2843,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                string HRRFNumber = Session["hrrfno"].ToString();
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                 //TempData["hrrfno"] = HRRFNumber;
                 var hrrfResultQualify = db.HRRFs.Where(h => h.HRRFNumber == HRRFNumber).ToList().FirstOrDefault();
                 var projectDetails = db.Projects.Where(a => a.ProjectName == hrrfResultQualify.ProjectName).FirstOrDefault();
@@ -2852,23 +2857,23 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //hrrfResultQualify.InternalExpectedFulfilmentDate = result;//DateTime.ParseExact(InternalExpectedFulfilmentDate, "g", theCultureInfo);
                 hrrfResultQualify.InternalExpectedFulfilmentDate = DateTime.Parse(InternalExpectedFulfilmentDate);
                 hrrfResultQualify.Remarks = inputDetails;
-                db.Entry(hrrfResultQualify).State = System.Data.Entity.EntityState.Modified;
+                db.Entry(hrrfResultQualify).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 //hrrf histroy
-                //  TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Qualified","", Convert.ToInt32(Session["EmployeeId"]), hrrfResultQualify.RequestStatus);
+                //  TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Qualified","", Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), hrrfResultQualify.RequestStatus);
                 var objHrrfHistory = new HRRFHistory();
                 objHrrfHistory.HRRFNumber = HRRFNumber;
                 objHrrfHistory.Remarks = inputDetails;
                 objHrrfHistory.HistoryDescription = HRRFNumber + " - " + "has been Qualified";
-                objHrrfHistory.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
+                objHrrfHistory.ModifiedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 objHrrfHistory.ModifiedDate = DateTime.Now;
                 objHrrfHistory.PrevRequestStatus = ConfigurationManager.AppSettings["TR_Submitted"].ToString();
                 db.HRRFHistories.Add(objHrrfHistory);
                 db.SaveChanges();
 
-                if (Session["EmployeeId"] != null)
+                if (HttpContext.Session.GetString("EmployeeId") != null)
                 {
                     // Email Notifications
-                    Employee objEmp = db.Employees.Find(Session["EmployeeId"]);
+                    Employee objEmp = db.Employees.Find(HttpContext.Session.GetString("EmployeeId"));
                     string strQualifiedBy = "";
 
                     if (objEmp != null)
@@ -2887,24 +2892,24 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 deliverymanager = deliverymanager + "," + (projectDetails.ProjectManagerId).ToString();
                         }
                         // mail to TR Created By
-                        InsertNotification(Convert.ToString(Session["EmployeeId"]), Convert.ToString(hrrfResultQualify.HRRFCreatedBy), ConfigurationManager.AppSettings["TrQualified"] + " <b>" + strQualifiedBy + "</b>" + ".", ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty, deliverymanager);
+                        InsertNotification(Convert.ToString(HttpContext.Session.GetString("EmployeeId")), Convert.ToString(hrrfResultQualify.HRRFCreatedBy), ConfigurationManager.AppSettings["TrQualified"] + " <b>" + strQualifiedBy + "</b>" + ".", ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty, deliverymanager);
 
                         List<string> lstRecipients = new List<string>();
 
-                        lstRecipients.Add(Session["EmployeeId"].ToString()); // mail to self
+                        lstRecipients.Add(HttpContext.Session.GetString("EmployeeId").ToString()); // mail to self
                         ConfigurationManager.AppSettings["ITS-OPS"].Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
 
                         foreach (string recipient in lstRecipients.Distinct())
                         {
-                            InsertNotification(Convert.ToString(Session["EmployeeId"]), recipient, ConfigurationManager.AppSettings["TrQualified_By"] + " <b>" + strQualifiedBy + " </b>" + ".", ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty, null);
+                            InsertNotification(Convert.ToString(HttpContext.Session.GetString("EmployeeId")), recipient, ConfigurationManager.AppSettings["TrQualified_By"] + " <b>" + strQualifiedBy + " </b>" + ".", ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty, null);
                         }
                     }
                 }
 
                 //var qualifybyname = db.Employees.Where(q => q.EmployeeId == objHrrfHistory.ModifiedBy).FirstOrDefault();
 
-                //InsertNotification(Convert.ToString(Session["EmployeeId"]), Convert.ToString(hrrfResultQualify.HRRFCreatedBy), ConfigurationManager.AppSettings["TrQualified"] + qualifybyname.FirstName + " " + qualifybyname.LastName + ".", ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty);
-                //InsertNotification(Convert.ToString(Session["EmployeeId"]), Convert.ToString(Session["EmployeeId"]), ConfigurationManager.AppSettings["TrQualified_By"] + qualifybyname.FirstName + " " + qualifybyname.LastName + ".", ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty);
+                //InsertNotification(Convert.ToString(HttpContext.Session.GetString("EmployeeId")), Convert.ToString(hrrfResultQualify.HRRFCreatedBy), ConfigurationManager.AppSettings["TrQualified"] + qualifybyname.FirstName + " " + qualifybyname.LastName + ".", ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty);
+                //InsertNotification(Convert.ToString(HttpContext.Session.GetString("EmployeeId")), Convert.ToString(HttpContext.Session.GetString("EmployeeId")), ConfigurationManager.AppSettings["TrQualified_By"] + qualifybyname.FirstName + " " + qualifybyname.LastName + ".", ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty);
 
                 var viewResult = new ValidationModel()
                 {
@@ -2920,10 +2925,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                 return RedirectToAction("ProposeAssociate", "ProposeAssociate", new { hrrfno = HRRFNumber });
 
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -2944,7 +2949,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 Common.WriteExceptionErrorLog(ex);
                 return RedirectToAction("Error", "Error");
-                //return Json("Error", JsonRequestBehavior.AllowGet);
+                //return Json("Error");
             }
 
         }
@@ -2977,7 +2982,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             string talentoURL = ConfigurationManager.AppSettings["Talento"];
             string body = string.Empty;
             string LinktoOpen = "Please Click on link to View the details of Submitted Talent Request number #" + HrrfNumber + " : " + talentoURL;
-            using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+            using (StreamReader reader = new StreamReader(Path.Combine(Env.ContentRootPath, "Views/Shared/EmailTemplate.html")))
             {
                 body = reader.ReadToEnd();
             }
@@ -3086,7 +3091,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                string HRRFNumber = Session["hrrfno"].ToString();
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                 string strPrevRequestStatus = "";
                 // TempData["hrrfno"] = HRRFNumber; 
                 var hrrfResultQualify = db.HRRFs.Where(h => h.HRRFNumber == HRRFNumber).ToList().FirstOrDefault();
@@ -3096,7 +3101,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     hrrfResultQualify.RequestType = convertExternal;
                     hrrfResultQualify.RequestStatus = PendingForDHApproval;
-                    db.Entry(hrrfResultQualify).State = System.Data.Entity.EntityState.Modified;
+                    db.Entry(hrrfResultQualify).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     db.SaveChanges();
                 }
                 var objHRRF = db.HRRFs.Where(c => c.HRRFNumber == HRRFNumber).FirstOrDefault();
@@ -3129,7 +3134,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //saving
                     db.SaveChanges();
                     //hrrf histroy 
-                    TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Converted to External", objExternalFullfillment.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                    TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Converted to External", objExternalFullfillment.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                 }
                 // Already Converted To External
@@ -3140,15 +3145,15 @@ namespace Trianz.Enterprise.Operations.Controllers
                         objHRRFHistory.Remarks = "";
                     trConvertToExternal.Remarks = comments.Trim();
                     trConvertToExternal.ApprovalStatus = string.Empty;
-                    TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Converted to External", trConvertToExternal.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                    TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Converted to External", trConvertToExternal.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
                     db.SaveChanges();
                 }
 
 
-                if (Session["EmployeeId"] != null)
+                if (HttpContext.Session.GetString("EmployeeId") != null)
                 {
                     // Email Notifications
-                    Employee objEmp = db.Employees.Find(Session["EmployeeId"]);
+                    Employee objEmp = db.Employees.Find(HttpContext.Session.GetString("EmployeeId"));
                     string strConvertToExternalBy = "";
 
                     if (objEmp != null)
@@ -3156,34 +3161,34 @@ namespace Trianz.Enterprise.Operations.Controllers
                         strConvertToExternalBy = objEmp.FirstName.Trim() + (!string.IsNullOrWhiteSpace(objEmp.MiddleName) ? " " + objEmp.MiddleName + " " : " ") + objEmp.LastName.Trim();
                         string ApproverId = DHNameFor_Mails(objHRRF.RequestStatus, objHRRF.Practice, objHRRF.CostCenter, Convert.ToInt32(objHRRF.Grade), Convert.ToInt32(objHRRF.HRRFCreatedBy), objHRRF.HRRFNumber);
                         // mail to TR Created By
-                        InsertNotification(Convert.ToString(Session["EmployeeId"]), Convert.ToString(hrrfResultQualify.HRRFCreatedBy), ConfigurationManager.AppSettings["TrConvertToExt"] + strConvertToExternalBy + ".", ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty, null);
+                        InsertNotification(Convert.ToString(HttpContext.Session.GetString("EmployeeId")), Convert.ToString(hrrfResultQualify.HRRFCreatedBy), ConfigurationManager.AppSettings["TrConvertToExt"] + strConvertToExternalBy + ".", ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty, null);
 
                         List<string> lstRecipients = new List<string>();
 
-                        lstRecipients.Add(Session["EmployeeId"].ToString()); // mail to self
+                        lstRecipients.Add(HttpContext.Session.GetString("EmployeeId").ToString()); // mail to self
                         lstRecipients.Add(ApproverId); // mail to DH
                         ConfigurationManager.AppSettings["ITS-OPS"].Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
 
                         foreach (string recipient in lstRecipients.Distinct())
                         {
                             if (recipient != null && recipient != "") { 
-                                InsertNotification(Convert.ToString(Session["EmployeeId"]), recipient, ConfigurationManager.AppSettings["TrConvertToExt_By"] + strConvertToExternalBy + ".", ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty, null);
+                                InsertNotification(Convert.ToString(HttpContext.Session.GetString("EmployeeId")), recipient, ConfigurationManager.AppSettings["TrConvertToExt_By"] + strConvertToExternalBy + ".", ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty, null);
                             }
                         }
                     }
                 }
 
                 ////EmailNotification(ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], ConfigurationManager.AppSettings["TrConvertToExt"], HRRFNumber, ConfigurationManager.AppSettings["PHRole"]);
-                //InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrConvertToExt_By"], ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
-                //InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrConvertToExt"], ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
+                //InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), ConfigurationManager.AppSettings["TrConvertToExt_By"], ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
+                //InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrConvertToExt"], ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
 
-                return Json("success", JsonRequestBehavior.AllowGet);
+                return Json("success");
                 //return RedirectToAction("ProposeAssociate", "ProposeAssociate", new { hrrfno = HRRFNumber });
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -3203,7 +3208,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
@@ -3216,13 +3221,13 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                string HRRFNumber = Session["hrrfno"].ToString();
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                 //TempData["hrrfno"] = HRRFNumber;
                 var hrrfAcceptReject = db.ExternalFulfillments.Where(h => h.HRRFNumber == HRRFNumber).ToList().FirstOrDefault();
                 hrrfAcceptReject.ApprovalStatus = external_Accept;//Accepted
-                hrrfAcceptReject.ApprovedBy = Session["EmployeeId"].ToString(); //objHRRF.HRRFCreatedBy.ToString(); //need to get logged in user id
+                hrrfAcceptReject.ApprovedBy = HttpContext.Session.GetString("EmployeeId").ToString(); //objHRRF.HRRFCreatedBy.ToString(); //need to get logged in user id
                 hrrfAcceptReject.ApprovedDate = DateTime.Now;
-                db.Entry(hrrfAcceptReject).State = System.Data.Entity.EntityState.Modified;
+                db.Entry(hrrfAcceptReject).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 // update hrrf status
                 var objHRRF = db.HRRFs.Where(c => c.HRRFNumber == HRRFNumber).FirstOrDefault();
                 string strLocationType = (objHRRF.LocationType == "1") ? "ONSITE" : "OFFSHORE";
@@ -3247,33 +3252,33 @@ namespace Trianz.Enterprise.Operations.Controllers
                 // Client Interview changes End//
                 string strPrevRequestStatus = objHRRF.RequestStatus;
                 objHRRF.RequestStatus = "Resume Pending"; //convertExternal;
-                db.Entry(objHRRF).State = System.Data.Entity.EntityState.Modified;
+                db.Entry(objHRRF).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 //hrrf histroy
-                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Accepted for External", "", Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
-                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Changed to 'Resume Pending' status", "", Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Accepted for External", "", Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
+                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Changed to 'Resume Pending' status", "", Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
                 if (objHRRF.ClientInterview == "Yes" && clientInterviewYes !=0)
                 {
                     //Client Interview selected as No 60 days added to Billing date(30 - Mar - 2022) New Date 30 - May - 2022
-                    TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "Client Interview Selected as Yes 90 days added to Billing date (" + PresentBillingDate + " ) New Date (" + NewBillingDate + " ) ", "", Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                    TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "Client Interview Selected as Yes 90 days added to Billing date (" + PresentBillingDate + " ) New Date (" + NewBillingDate + " ) ", "", Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
                 }
                 else
                 {
                     if(clientInterviewNo !=0)
                     { 
-                    TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "Client Interview Selected as No 60 days added to Billing date (" + PresentBillingDate + " ) New Date (" + NewBillingDate + " ) ", "", Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                    TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "Client Interview Selected as No 60 days added to Billing date (" + PresentBillingDate + " ) New Date (" + NewBillingDate + " ) ", "", Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
                     }
                 }
                 db.SaveChanges();                
-                if (Session["EmployeeId"] != null)
+                if (HttpContext.Session.GetString("EmployeeId") != null)
                 {
                     // Email Notifications
-                    Employee objEmp = db.Employees.Find(Session["EmployeeId"]);
+                    Employee objEmp = db.Employees.Find(HttpContext.Session.GetString("EmployeeId"));
                     string strAcceptedBy = "";
                     if (objEmp != null)
                     {
                         strAcceptedBy = objEmp.FirstName.Trim() + (!string.IsNullOrWhiteSpace(objEmp.MiddleName) ? " " + objEmp.MiddleName + " " : " ") + objEmp.LastName.Trim();
                         List<string> lstRecipients = new List<string>();                      
-                        lstRecipients.Add(Session["EmployeeId"].ToString()); // sent mail to self
+                        lstRecipients.Add(HttpContext.Session.GetString("EmployeeId").ToString()); // sent mail to self
                         lstRecipients.Add(objHRRF.HRRFCreatedBy.ToString()); // mail to TR Created By
                         ConfigurationManager.AppSettings["ITS-OPS"].Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS                       
                         ConfigurationManager.AppSettings["Mail-RL"].Split(',').ToList<string>().ForEach(RLs => lstRecipients.Add(RLs)); // mail to RL(Divya, Nithya, Parvez, Lokesh)
@@ -3282,17 +3287,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                         //lstRLActiveEmp.ForEach(RLs => lstRecipients.Add(RLs)); // mail to all active RLs
                         foreach (string recipient in lstRecipients.Distinct())
                         {
-                            InsertNotification(Session["EmployeeId"].ToString(), recipient, ConfigurationManager.AppSettings["ExternalFullAccept"].ToString() + strAcceptedBy + ",", ConfigurationManager.AppSettings["TrExtFulfilAcep_NOtification"].ToString(), objHRRF.HRRFNumber, "", null);
+                            InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), recipient, ConfigurationManager.AppSettings["ExternalFullAccept"].ToString() + strAcceptedBy + ",", ConfigurationManager.AppSettings["TrExtFulfilAcep_NOtification"].ToString(), objHRRF.HRRFNumber, "", null);
                         }
                     }
                     TempData["Message"] = "AcceptedExternal";
                 }
                 return RedirectToAction("ProposeAssociate", "ProposeAssociate", new { hrrfno = HRRFNumber });
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -3348,13 +3353,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                     objHRRF.Remarks = comments;
                     objHRRF.InternalExpectedFulfilmentDate = DateTime.Now.AddDays(5);
                     
-                    TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been converted to Internal", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                    TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been converted to Internal", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
                     //saving
                     db.SaveChanges();
-                    //InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrConvertToExt_By"], ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
+                    //InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), ConfigurationManager.AppSettings["TrConvertToExt_By"], ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
 
                     //return RedirectToAction("Index", "ExternalReport");
-                    return Json("success", JsonRequestBehavior.AllowGet);
+                    return Json("success");
                 }
                 else
                 {
@@ -3364,9 +3369,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                     objHRRF.RequestStatus = qualified;
                     objHRRF.InternalExpectedFulfilmentDate = DateTime.Now.AddDays(5);
                     objHRRF.Remarks = comments;
-                    db.Entry(objHRRF).State = System.Data.Entity.EntityState.Modified;
+                    db.Entry(objHRRF).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
-                    TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been converted to Internal", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                    TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been converted to Internal", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
                     //Get the ID of ExternalHire Table using HrrfNumber
                     int externalid = Convert.ToInt32((from eh in db.ExternalHires where eh.HRRFNumber == HRRFNumber select eh.ExternalHireId).FirstOrDefault());
                     if (externalid != 0)
@@ -3378,14 +3383,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                     db.SaveChanges();
                     //return RedirectToAction("Index", "ExternalReport");
 
-                    return Json("success", JsonRequestBehavior.AllowGet);
+                    return Json("success");
                 }
 
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -3404,7 +3409,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
@@ -3412,7 +3417,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                string HRRFNumber = Session["hrrfno"].ToString();
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                 //TempData["hrrfno"] = HRRFNumber;
                 var objHRRF = db.HRRFs.Where(c => c.HRRFNumber == HRRFNumber).FirstOrDefault();
                 var hrrfAcceptReject = db.ExternalFulfillments.Where(h => h.HRRFNumber == HRRFNumber).ToList().FirstOrDefault();
@@ -3420,23 +3425,23 @@ namespace Trianz.Enterprise.Operations.Controllers
                 hrrfAcceptReject.Remarks = comments;
                 hrrfAcceptReject.ApprovedBy = objHRRF.HRRFCreatedBy.ToString(); //need to get logged in user id
                 hrrfAcceptReject.ApprovedDate = DateTime.Now;
-                db.Entry(hrrfAcceptReject).State = System.Data.Entity.EntityState.Modified;
+                db.Entry(hrrfAcceptReject).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 // hrrf request type Status
                 string strPrevRequestStatus = objHRRF.RequestStatus;
                 objHRRF.RequestType = convertInternal;
                 objHRRF.RequestStatus = qualified;
-                db.Entry(objHRRF).State = System.Data.Entity.EntityState.Modified;
+                db.Entry(objHRRF).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 //HRRF Histroy
-                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Rejected for External", hrrfAcceptReject.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Rejected for External", hrrfAcceptReject.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
                 //saving
                 db.SaveChanges();
-                return Json("success", JsonRequestBehavior.AllowGet);
+                return Json("success");
                 //return RedirectToAction("ProposeAssociate", "ProposeAssociate", new { hrrfno = HRRFNumber });
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -3455,7 +3460,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
 
         }
@@ -3468,14 +3473,14 @@ namespace Trianz.Enterprise.Operations.Controllers
         public ActionResult DMApproveProposedResource(int? ProposedId)
         {
             try {
-            string HRRFNumber = Session["hrrfno"].ToString();
+            string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
             TempData["hrrfno"] = HRRFNumber;
             var propsedLog = db.ProposeAssociates.Where(h => h.ProposedID == ProposedId).ToList().FirstOrDefault();
             if (propsedLog != null)
             {
                 propsedLog.DeliveryStatus = "Approved";
                 //propsedLog.DeliveryRemarks = "";
-                db.Entry(propsedLog).State = System.Data.Entity.EntityState.Modified;
+                db.Entry(propsedLog).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 db.SaveChanges();
             }
             return RedirectToAction("ProposeAssociate", "ProposeAssociate");
@@ -3496,14 +3501,14 @@ namespace Trianz.Enterprise.Operations.Controllers
         public ActionResult DMRejectProposedResource(int? ProposedId)
         {
             try { 
-            string HRRFNumber = Session["hrrfno"].ToString();
+            string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
             TempData["hrrfno"] = HRRFNumber;
             var propsedLog = db.ProposeAssociates.Where(h => h.ProposedID == ProposedId).ToList().FirstOrDefault();
             if (propsedLog != null)
             {
                 propsedLog.DeliveryStatus = "Rejected";
                 // propsedLog.DeliveryRemarks = "";
-                db.Entry(propsedLog).State = System.Data.Entity.EntityState.Modified;
+                db.Entry(propsedLog).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 db.SaveChanges();
             }
             return RedirectToAction("ProposeAssociate", "ProposeAssociate");
@@ -3524,7 +3529,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                string HRRFNumber = Session["hrrfno"].ToString();
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                 string strPrevRequestStatus = "";
                 TempData["hrrfno"] = HRRFNumber;
                 var hrrfno = HRRFNumber;
@@ -3535,20 +3540,20 @@ namespace Trianz.Enterprise.Operations.Controllers
                 hrrfRequestMoreInfo.HRRFCreatedBy = objHRRF.HRRFCreatedBy; //need to get logged in user id
                 hrrfRequestMoreInfo.HRRFCreatedDate = DateTime.Now;
                 hrrfRequestMoreInfo.Remarks = data;
-                db.Entry(hrrfRequestMoreInfo).State = System.Data.Entity.EntityState.Modified;
+                db.Entry(hrrfRequestMoreInfo).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 // Histroy
-                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Requested for More Info", hrrfRequestMoreInfo.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Requested for More Info", hrrfRequestMoreInfo.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
                 //saving
                 db.SaveChanges();
                 //mail notification
-                InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrRequestedForMoreInfo_BY"], ConfigurationManager.AppSettings["TrRequestedFormoreInfo_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["Remarks"] + "</b>" + data, null);
-                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrRequestedForMoreInfo"], ConfigurationManager.AppSettings["TrRequestedFormoreInfo_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["Remarks"] + "</b>" + data, null);
+                InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), ConfigurationManager.AppSettings["TrRequestedForMoreInfo_BY"], ConfigurationManager.AppSettings["TrRequestedFormoreInfo_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["Remarks"] + "</b>" + data, null);
+                InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrRequestedForMoreInfo"], ConfigurationManager.AppSettings["TrRequestedFormoreInfo_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["Remarks"] + "</b>" + data, null);
                 return RedirectToAction("Index", "trHome");
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -3567,7 +3572,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
@@ -3576,7 +3581,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //    try
         //    {
 
-        //        return Json(Acceptids, JsonRequestBehavior.AllowGet);
+        //        return Json(Acceptids);
         //    }
         //    catch (Exception ex)
         //    {
@@ -3594,7 +3599,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
             try
             {
-                string HRRFNumber = Session["hrrfno"].ToString();
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                 string strPrevRequestStatus = "";
                 TempData["hrrfno"] = HRRFNumber;
                 var objHRRF = db.HRRFs.Where(c => c.HRRFNumber == HRRFNumber).FirstOrDefault();
@@ -3604,7 +3609,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 hrrfTerminate.RequestStatus = tr_Terminate;
                 hrrfTerminate.Remarks = remarks;
                 hrrfTerminate.CancelReason = cancel_reasontext;
-                hrrfTerminate.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
+                hrrfTerminate.ModifiedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 hrrfTerminate.ModifiedDate = DateTime.Now;
                 if ((objHRRF.RequestType).ToLower().Contains("external"))
                 {
@@ -3640,24 +3645,24 @@ namespace Trianz.Enterprise.Operations.Controllers
                     var result = db.HRRFs.Where(p => p.HRRFNumber == duplicatehrrfno).Select(p => p.HRRFNumber).FirstOrDefault();
                     if (result == null)
                     {
-                        return Json(false, JsonRequestBehavior.AllowGet);
+                        return Json(false);
                     }
 
                     hrrfTerminate.DuplicateHRRFNo = duplicatehrrfno;
                 }
-                db.Entry(hrrfTerminate).State = System.Data.Entity.EntityState.Modified;   
+                db.Entry(hrrfTerminate).State = Microsoft.EntityFrameworkCore.EntityState.Modified;   
                 // TR Histroy 
-                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Cancelled", hrrfTerminate.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Cancelled", hrrfTerminate.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
                 //saving
                 db.SaveChanges();
-                InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrTerminate"], ConfigurationManager.AppSettings["TrTerminate_NOtification"], HRRFNumber, string.Empty, null);
-                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrTerminate"], ConfigurationManager.AppSettings["TrTerminate_NOtification"], HRRFNumber, string.Empty, null);
+                InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), ConfigurationManager.AppSettings["TrTerminate"], ConfigurationManager.AppSettings["TrTerminate_NOtification"], HRRFNumber, string.Empty, null);
+                InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrTerminate"], ConfigurationManager.AppSettings["TrTerminate_NOtification"], HRRFNumber, string.Empty, null);
                 return Json(HRRFNumber);
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -3676,7 +3681,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
 
         }
@@ -3685,26 +3690,26 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                string HRRFNumber = Session["hrrfno"].ToString();
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                 TempData["hrrfno"] = HRRFNumber;
                 var objHRRF = db.HRRFs.Where(c => c.HRRFNumber == HRRFNumber).FirstOrDefault();
                 string reqstst = objHRRF.RequestStatus;
                 objHRRF.TECHPANEL = TechPanel;
                 objHRRF.SECONDTECHPANEL = TechPanel2;
-                objHRRF.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
+                objHRRF.ModifiedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 objHRRF.ModifiedDate = DateTime.Now;
                 // TR Histroy 
-                TRScernarioHistroy(HRRFNumber, HRRFNumber + reqstst + "(Edited:  ", null, Convert.ToInt32(Session["EmployeeId"]), reqstst);
+                TRScernarioHistroy(HRRFNumber, HRRFNumber + reqstst + "(Edited:  ", null, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), reqstst);
                 //saving
                 db.SaveChanges();
-                InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), "Edited", ConfigurationManager.AppSettings["TrEdited_NOtification"], HRRFNumber, string.Empty, null);
-                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), "Edited", ConfigurationManager.AppSettings["TrEdited_NOtification"], HRRFNumber, string.Empty, null);
+                InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), "Edited", ConfigurationManager.AppSettings["TrEdited_NOtification"], HRRFNumber, string.Empty, null);
+                InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), "Edited", ConfigurationManager.AppSettings["TrEdited_NOtification"], HRRFNumber, string.Empty, null);
                 return Json(HRRFNumber);
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -3724,7 +3729,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
 
 
@@ -3743,7 +3748,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var HrrfHistory = new HRRFHistory();
                 HrrfHistory.HRRFNumber = HRRFNumber;
 
-                if (Session["Role"].ToString().ToLower() == "dh" && Description.ToLower().Contains("has been rejected for"))
+                if (HttpContext.Session.GetString("Role").ToString().ToLower() == "dh" && Description.ToLower().Contains("has been rejected for"))
                 {
                     HrrfHistory.HistoryDescription = Description + " ----  by " + EmpIdForCreatedBy;
                 }
@@ -3772,7 +3777,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var PrevStatus = Request.Form["RequestStatus"];
                 if (Flag.Trim().ToLower() == "hold")   // added for reload issue of hold button
                 {
-                    string HRRFNumber = Session["hrrfno"].ToString();
+                    string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
 
                     //Update Request status in HRRF
                     var hrrf = db.HRRFs.Where(c => c.HRRFNumber == HRRFNumber).FirstOrDefault();
@@ -3782,16 +3787,16 @@ namespace Trianz.Enterprise.Operations.Controllers
                         strPrevRequestStatus = hrrf.RequestStatus;
                         hrrf.RequestStatus = "Hold";
                         hrrf.Remarks = comments;
-                        db.Entry(hrrf).State = System.Data.Entity.EntityState.Modified;
+                        db.Entry(hrrf).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                         // TR Histroy 
-                        TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been converted to Hold ", hrrf.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                        TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been converted to Hold ", hrrf.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
                         db.SaveChanges();
                     }
-                    return Json("This TR has been hold successfully", JsonRequestBehavior.AllowGet);
+                    return Json("This TR has been hold successfully");
                 }
                 else if (Flag.Trim().ToLower() == "unhold")    // added for reload issue of hold button
                 {
-                    string HRRFNumber = Session["hrrfno"].ToString();
+                    string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
 
                     //Update Request status in HRRF
                     var hrrf = db.HRRFs.Where(c => c.HRRFNumber == HRRFNumber).FirstOrDefault();
@@ -3807,32 +3812,32 @@ namespace Trianz.Enterprise.Operations.Controllers
                             }
                         }
 
-                        db.Entry(hrrf).State = System.Data.Entity.EntityState.Modified;
+                        db.Entry(hrrf).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                         // TR Histroy 
-                        TRScernarioHistroy(HRRFNumber, HRRFNumber + " - has been unhold", "", Convert.ToInt32(Session["EmployeeId"]), hrrf.RequestStatus);
+                        TRScernarioHistroy(HRRFNumber, HRRFNumber + " - has been unhold", "", Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), hrrf.RequestStatus);
                         db.SaveChanges();
                     }
 
-                    return Json("This TR has been unhold successfully", JsonRequestBehavior.AllowGet);
+                    return Json("This TR has been unhold successfully");
                 }
-                return Json("", JsonRequestBehavior.AllowGet);
+                return Json("");
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
         public ActionResult ApproveResourceByPM(string[] ProposedId)
         {
             try { 
-            if (Session["hrrfno"] != null)
+            if (HttpContext.Session.GetString("hrrfno") != null)
             {
-                string HRRFNumber = Session["hrrfno"].ToString();
-                int EmpID = Convert.ToInt32(Session["EmployeeId"]);
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
+                int EmpID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 string PropID = ProposedId[0];
                 int proseEMpID = Convert.ToInt32(PropID);
 
@@ -3845,16 +3850,16 @@ namespace Trianz.Enterprise.Operations.Controllers
                     if (objEmployee != null)
                     {
                         // Save hrrf history in HRRFHistory table
-                        TRScernarioHistroy(HRRFNumber, objResource.FirstName + " " + objResource.LastName + " has been approved for" + " - " + HRRFNumber, "", Convert.ToInt32(Session["EmployeeId"]), PendingForPMApproval);
+                        TRScernarioHistroy(HRRFNumber, objResource.FirstName + " " + objResource.LastName + " has been approved for" + " - " + HRRFNumber, "", Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), PendingForPMApproval);
 
                         // Assigned new request status to HRRF and save details in HRRF table
                         objHRRF.RequestStatus = PendingForDHApproval;
 
-                        db.Entry(objHRRF).State = System.Data.Entity.EntityState.Modified;
+                        db.Entry(objHRRF).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                         db.SaveChanges();
                             
                         // Send Email notifications to respective members.
-                        //InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, ConfigurationManager.AppSettings["AcceptedResource"] + objResource.FirstName + " " + objResource.LastName);
+                        //InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, ConfigurationManager.AppSettings["AcceptedResource"] + objResource.FirstName + " " + objResource.LastName);
                         //lakshmi
                         var proposedEmpName = db.Employees.Where(p => p.EmployeeId == proseEMpID).FirstOrDefault();
                         var isvalidbusinessgroup = db.IncludedBussinessGroups.Where(i => i.BusinessGroup.Contains(proposedEmpName.BusinessGroup)).FirstOrDefault();
@@ -3862,20 +3867,20 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         if (isvalidbusinessgroup != null && isinvalidemployetype == null)
                         {
-                            InsertNotification(Session["EmployeeId"].ToString(), ProposedId[0], ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty, null);
+                            InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), ProposedId[0], ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty, null);
                         }
-                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty, null);
+                        InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty, null);
 
                         ProposeAssociate objProposeResource = db.ProposeAssociates.Where(pa => pa.EmpID == PropID).FirstOrDefault();
                         if (objProposeResource != null)
                         {
-                            InsertNotification(Session["EmployeeId"].ToString(), objProposeResource.ProposedBy, ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, "<b>" + ConfigurationManager.AppSettings["AcceptedResource"] + ":</b>" + objResource.FirstName + " " + objResource.LastName, ConfigurationManager.AppSettings["ITS-OPS"]+","+ ConfigurationManager.AppSettings["Assurance"]);
+                            InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), objProposeResource.ProposedBy, ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, "<b>" + ConfigurationManager.AppSettings["AcceptedResource"] + ":</b>" + objResource.FirstName + " " + objResource.LastName, ConfigurationManager.AppSettings["ITS-OPS"]+","+ ConfigurationManager.AppSettings["Assurance"]);
                         }
                     }
                 }
-                return Json(HRRFNumber, JsonRequestBehavior.AllowGet);
+                return Json(HRRFNumber);
             }
-            return Json("", JsonRequestBehavior.AllowGet);
+            return Json("");
             }
             catch (Exception ex)
             {
@@ -3889,10 +3894,10 @@ namespace Trianz.Enterprise.Operations.Controllers
         public ActionResult RejectResourceByPM(string[] ProposedId)
         {
             try { 
-            if (Session["hrrfno"] != null)
+            if (HttpContext.Session.GetString("hrrfno") != null)
             {
-                string HRRFNumber = Session["hrrfno"].ToString();
-                int EmpID = Convert.ToInt32(Session["EmployeeId"]);
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
+                int EmpID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 string PropID = ProposedId[0];
 
                 HRRF objHRRF = db.HRRFs.Where(h => h.HRRFNumber == HRRFNumber).FirstOrDefault();
@@ -3904,31 +3909,31 @@ namespace Trianz.Enterprise.Operations.Controllers
                     if (objEmployee != null)
                     {
                         // Save hrrf history in HRRFHistory table
-                        TRScernarioHistroy(HRRFNumber, objResource.FirstName + " " + objResource.LastName + " has been rejected for" + " - " + HRRFNumber, "", Convert.ToInt32(Session["EmployeeId"]), PendingForPMApproval);
+                        TRScernarioHistroy(HRRFNumber, objResource.FirstName + " " + objResource.LastName + " has been rejected for" + " - " + HRRFNumber, "", Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), PendingForPMApproval);
 
                         // Assigned new request status to HRRF and save details in HRRF table
                         objHRRF.RequestStatus = qualified;
 
-                        db.Entry(objHRRF).State = System.Data.Entity.EntityState.Modified;
+                        db.Entry(objHRRF).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                         db.SaveChanges();
 
 
 
                         //// Send Email notifications to respective members.
-                        ////InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, ConfigurationManager.AppSettings["AcceptedResource"] + objResource.FirstName + " " + objResource.LastName);
-                        //InsertNotification(Session["EmployeeId"].ToString(), ProposedId[0], ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty);
-                        //InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty);
+                        ////InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, ConfigurationManager.AppSettings["AcceptedResource"] + objResource.FirstName + " " + objResource.LastName);
+                        //InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), ProposedId[0], ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty);
+                        //InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty);
 
                         //ProposeAssociate objProposeResource = db.ProposeAssociates.Where(pa => pa.EmpID == PropID).FirstOrDefault();
                         //if (objProposeResource != null)
                         //{
-                        //    InsertNotification(Session["EmployeeId"].ToString(), objProposeResource.ProposedBy, ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, ConfigurationManager.AppSettings["AcceptedResource"] + objResource.FirstName + " " + objResource.LastName);
+                        //    InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), objProposeResource.ProposedBy, ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, ConfigurationManager.AppSettings["AcceptedResource"] + objResource.FirstName + " " + objResource.LastName);
                         //}
                     }
                 }
-                return Json(HRRFNumber, JsonRequestBehavior.AllowGet);
+                return Json(HRRFNumber);
             }
-            return Json("", JsonRequestBehavior.AllowGet);
+            return Json("");
             }
             catch (Exception ex)
             {
@@ -3945,10 +3950,10 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 DateTime todayDate = Convert.ToDateTime(DateTime.Now.Date);
-                string HRRFNumber = Session["hrrfno"].ToString();
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                 TempData["hrrfno"] = HRRFNumber;
                 List<string> strAlreadyAcceptedList = new List<string>();
-                int loginempID = Convert.ToInt32(Session["EmployeeId"]);
+                int loginempID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 int? Utilzation = null;
                 var Hrrffulldetails = db.HRRFs.Where(c => c.HRRFNumber == HRRFNumber).FirstOrDefault();
 
@@ -4097,7 +4102,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             db.ProjectAssignmenthistories.Add(pash);
                                             #endregion
 
-                                            db.Entry(lt).State = System.Data.Entity.EntityState.Modified;
+                                            db.Entry(lt).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                                             db.SaveChanges();
                                         }
                                     }
@@ -4259,16 +4264,16 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         var objProposing = db.ProposeAssociates.Where(p => p.EmpID == proposedEmpid && p.HRRFNumber == HRRFNumber).FirstOrDefault();
                                         objHRRF.ResourceName = objPropose.EmpID + "(" + objPropose.EmpName + ")";
                                         objProposing.PracticeStatus = praticeAccept;
-                                        db.Entry(objProposing).State = System.Data.Entity.EntityState.Modified;
+                                        db.Entry(objProposing).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                                         // fulfill positions
                                         var objHrrfFulfillment = db.HRRFs.Where(p => p.HRRFNumber == HRRFNumber).FirstOrDefault();
                                         string strPrevReqStatus = objHrrfFulfillment.RequestStatus;
                                         objHrrfFulfillment.RequestStatus = fulfilled;
                                         objHrrfFulfillment.ModifiedDate = DateTime.Now;
-                                        db.Entry(objHrrfFulfillment).State = System.Data.Entity.EntityState.Modified;
+                                        db.Entry(objHrrfFulfillment).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                                         // HRRF histroy 
-                                        TRScernarioHistroy(HRRFNumber, objPropose.EmpName + " - " + "has been Accepted for" + " - " + HRRFNumber, objHrrfFulfillment.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevReqStatus);
-                                        TRScernarioHistroy(HRRFNumber, objPropose.EmpName + " - " + "has been Fulfilled for" + " - " + HRRFNumber, objHrrfFulfillment.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevReqStatus);
+                                        TRScernarioHistroy(HRRFNumber, objPropose.EmpName + " - " + "has been Accepted for" + " - " + HRRFNumber, objHrrfFulfillment.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevReqStatus);
+                                        TRScernarioHistroy(HRRFNumber, objPropose.EmpName + " - " + "has been Fulfilled for" + " - " + HRRFNumber, objHrrfFulfillment.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevReqStatus);
                                         // Project Assignment & Change Assignment status for Employee in EmployeeTable
 
 
@@ -4283,7 +4288,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             {
                                                 objEmployeeAssignment.AssignmentStatus = emp_Assignment;
                                                 objEmployeeAssignment.ProjectManagerId = objProject.ProjectManagerId;
-                                                db.Entry(objEmployeeAssignment).State = System.Data.Entity.EntityState.Modified;
+                                                db.Entry(objEmployeeAssignment).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                                             }
                                             #region ProjectAssignment
                                             var objprojectmanagername = db.Employees.Where(a => a.EmployeeId == objProject.ProjectManagerId).FirstOrDefault();
@@ -4464,13 +4469,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         var isinvalidemployetype = db.ExcludedEmployeeTypes.Where(i => i.EmployeeType.Contains(proposedEmpName.EmployeeType)).FirstOrDefault();
 
                                         // email configure    added ops team in cc part                      
-                                        InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["AcceptedResource"] + ":</b>" + proposedEmpName.FirstName + proposedEmpName.LastName, ConfigurationManager.AppSettings["ITS-OPS"]+","+ ConfigurationManager.AppSettings["Assurance"]);
+                                        InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["AcceptedResource"] + ":</b>" + proposedEmpName.FirstName + proposedEmpName.LastName, ConfigurationManager.AppSettings["ITS-OPS"]+","+ ConfigurationManager.AppSettings["Assurance"]);
                                         //lakshmi
                                         if (isvalidbusinessgroup != null && isinvalidemployetype == null)
                                         {
-                                            InsertNotification(Session["EmployeeId"].ToString(), proposedEmpid, ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["AcceptedResource"], HRRFNumber, string.Empty, null);
+                                            InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), proposedEmpid, ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["AcceptedResource"], HRRFNumber, string.Empty, null);
                                         }
-                                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"] + objHRRF.ProjectName, HRRFNumber, string.Empty, null);
+                                        InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"] + objHRRF.ProjectName, HRRFNumber, string.Empty, null);
                                     }
                                 }
                             }
@@ -4500,10 +4505,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                     return Json("");
                 }
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -4524,7 +4529,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
 
         }
@@ -4537,19 +4542,19 @@ namespace Trianz.Enterprise.Operations.Controllers
                 if (result == null)
                 {
 
-                    return Json("false", JsonRequestBehavior.AllowGet);
+                    return Json("false");
                 }
 
                 else
                 {
-                    return Json("true", JsonRequestBehavior.AllowGet);
+                    return Json("true");
                 }
 
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -4569,7 +4574,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
@@ -4657,8 +4662,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                     {
                         if (status == "Fulfilled")
                         {
-                             TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  ResumePending status", comments, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
-                          // TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  ResumePending status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                             TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  ResumePending status", comments, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
+                          // TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  ResumePending status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                             objHRRF.RequestStatus = ResumePending;
                         }
@@ -4669,17 +4674,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                             var Cancelled = db.HRRFHistories.Where(c => c.HRRFNumber == HRRFNumber && c.HistoryDescription == s).FirstOrDefault();
                             if (Cancelled == null)
                             {
-                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + PendingForDHApproval + " status", comments, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + PendingForDHApproval + " status", comments, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
-                                //TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + PendingForDHApproval + " status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                                //TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + PendingForDHApproval + " status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                                 objHRRF.RequestStatus = PendingForDHApproval;
                             }
                             else
                             {
 
-                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", comments, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
-                                //TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", comments, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
+                                //TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                                 objHRRF.RequestStatus = Cancelled.PrevRequestStatus;
                             }
@@ -4694,8 +4699,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                     {
                         if (status == "Fulfilled")
                         {
-                            TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + qualified + " status", comments, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
-                            //TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + qualified + " status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                            TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + qualified + " status", comments, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
+                            //TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + qualified + " status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                             objHRRF.RequestStatus = qualified;
                         }
@@ -4707,17 +4712,17 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                             if (Cancelled == null)
                             {
-                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Submitted + " status", comments, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Submitted + " status", comments, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
-                               // TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Submitted + " status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                               // TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Submitted + " status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                                 objHRRF.RequestStatus = Submitted;
                             }
                             else
                             {
-                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", comments, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", comments, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
-                               // TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                               // TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                                 objHRRF.RequestStatus = Cancelled.PrevRequestStatus;
                             }
@@ -4733,17 +4738,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                     objHRRF.InternalExpectedFulfilmentDate = DateTime.Now.AddDays(5);
 
 
-                    //TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  ResumePending status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                    //TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  ResumePending status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
 
                     //saving
                     db.SaveChanges();
-                    //InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrConvertToExt_By"], ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
+                    //InsertNotification(HttpContext.Session.GetString("EmployeeId").ToString(), HttpContext.Session.GetString("EmployeeId").ToString(), ConfigurationManager.AppSettings["TrConvertToExt_By"], ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
 
 
 
                     //return RedirectToAction("Index", "ExternalReport");
-                    return Json("success", JsonRequestBehavior.AllowGet);
+                    return Json("success");
                 }
                 else
                 {
@@ -4756,9 +4761,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                     {
                         if (status == "Fulfilled")
                         {
-                            TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + ResumePending + " status", comments, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                            TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + ResumePending + " status", comments, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
-                           // TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + ResumePending + " status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                           // TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + ResumePending + " status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                             objHRRF.RequestStatus = ResumePending;
                         }
@@ -4769,17 +4774,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                             var Cancelled = db.HRRFHistories.Where(c => c.HRRFNumber == HRRFNumber && c.HistoryDescription == s).FirstOrDefault();
                             if (Cancelled == null)
                             {
-                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + PendingForDHApproval + " status", comments, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + PendingForDHApproval + " status", comments, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
-                              //  TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + PendingForDHApproval + " status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                              //  TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + PendingForDHApproval + " status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                                 objHRRF.RequestStatus = PendingForDHApproval;
                             }
                             else
                             {
-                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", comments, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", comments, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
-                              //  TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                              //  TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                                 objHRRF.RequestStatus = Cancelled.PrevRequestStatus;
 
@@ -4791,9 +4796,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                     {
                         if (status == "Fulfilled")
                         {
-                            TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + qualified + " status", comments, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                            TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + qualified + " status", comments, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
-                          //  TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + qualified + " status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                          //  TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + qualified + " status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                             objHRRF.RequestStatus = qualified;
                         }
@@ -4804,17 +4809,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                             var Cancelled = db.HRRFHistories.Where(c => c.HRRFNumber == HRRFNumber && c.HistoryDescription == s).FirstOrDefault();
                             if (Cancelled == null)
                             {
-                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Submitted + " status", comments, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Submitted + " status", comments, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
-                               // TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Submitted + " status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                               // TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Submitted + " status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                                 objHRRF.RequestStatus = Submitted;
                             }
                             else
                             {
-                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", comments, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                                TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", comments, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
-                                //TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                                //TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "It has been converted to  " + Cancelled.PrevRequestStatus + " status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
 
                                 objHRRF.RequestStatus = Cancelled.PrevRequestStatus;
                             }
@@ -4826,11 +4831,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                     objHRRF.ResourceName = null;
                     objHRRF.InternalExpectedFulfilmentDate = DateTime.Now.AddDays(5);
                     objHRRF.Remarks = comments;
-                    db.Entry(objHRRF).State = System.Data.Entity.EntityState.Modified;
+                    db.Entry(objHRRF).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
 
 
-                    //TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been changed to ResumePending status", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
+                    //TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been changed to ResumePending status", objHRRF.Remarks, Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")), strPrevRequestStatus);
                     //Get the ID of ExternalHire Table using HrrfNumber
                     int externalid = Convert.ToInt32((from eh in db.ExternalHires where eh.HRRFNumber == HRRFNumber select eh.ExternalHireId).FirstOrDefault());
                     if (externalid != 0)
@@ -4842,7 +4847,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     db.SaveChanges();
                     //return RedirectToAction("Index", "ExternalReport");
 
-                    return Json("success", JsonRequestBehavior.AllowGet);
+                    return Json("success");
                 }
 
             }
@@ -4850,19 +4855,19 @@ namespace Trianz.Enterprise.Operations.Controllers
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
         [HttpPost]
         public JsonResult SaveRemark(string remark)
         {
-            int empid = Convert.ToInt32(Session["EmployeeId"]);
+            int empid = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
             string hrrf = string.Empty;
 
-            if (Session["hrrfno"] != null)
+            if (HttpContext.Session.GetString("hrrfno") != null)
             {
-                hrrf = Session["hrrfno"].ToString();
+                hrrf = HttpContext.Session.GetString("hrrfno").ToString();
             }
             if (empid > 0)
             {
@@ -4873,7 +4878,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         HrrfNo = hrrf,
                         Remarks = remark,
                         Submitteddate = DateTime.Now,
-                        SubmittedBy = Convert.ToString(Session["EmployeeId"])
+                        SubmittedBy = Convert.ToString(HttpContext.Session.GetString("EmployeeId"))
                     };
 
                     db.HRRFRemarks.Add(objhrrf);
@@ -4883,20 +4888,20 @@ namespace Trianz.Enterprise.Operations.Controllers
                   
                     TempData.Keep("hrrnumber"); // above like is mandatory
 
-                    return Json("true", JsonRequestBehavior.AllowGet);
+                    return Json("true");
 
                 }
                 catch (Exception ex)
                 {
 
                     Common.WriteExceptionErrorLog(ex);
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -4904,12 +4909,12 @@ namespace Trianz.Enterprise.Operations.Controllers
         [HttpPost]
         public JsonResult SaveSatus(string status)
         {
-            int empid = Convert.ToInt32(Session["EmployeeId"]);
+            int empid = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
             string hrrf = string.Empty;
 
-            if (Session["hrrfno"] != null)
+            if (HttpContext.Session.GetString("hrrfno") != null)
             {
-                hrrf = Session["hrrfno"].ToString();
+                hrrf = HttpContext.Session.GetString("hrrfno").ToString();
             }
             if (empid > 0)
             {
@@ -4920,7 +4925,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         HrrfNo = hrrf,
                         Status = status,
                         Submitteddate = DateTime.Now,
-                        SubmittedBy = Convert.ToString(Session["EmployeeId"])
+                        SubmittedBy = Convert.ToString(HttpContext.Session.GetString("EmployeeId"))
                     };
 
                     db.HRRFStatusHistories.Add(objhrrf);
@@ -4930,20 +4935,20 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     TempData.Keep("hrrnumber"); // above like is mandatory
 
-                    return Json("true", JsonRequestBehavior.AllowGet);
+                    return Json("true");
 
                 }
                 catch (Exception ex)
                 {
 
                     Common.WriteExceptionErrorLog(ex);
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -4951,7 +4956,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                string HRRFNumber = Session["hrrfno"].ToString();
+                string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                 //TempData["hrrfno"] = HRRFNumber;
                 var hrrfResultQualify = db.HRRFs.Where(h => h.HRRFNumber == HRRFNumber).ToList().FirstOrDefault();
 
@@ -4968,7 +4973,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 Common.WriteExceptionErrorLog(ex);
                 return RedirectToAction("Error", "Error");
-                //return Json("Error", JsonRequestBehavior.AllowGet);
+                //return Json("Error");
             }
 
         }

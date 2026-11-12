@@ -3,14 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using System.Data.Entity;
-using System.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.General;
 using Trianz.Enterprise.Operations.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 
 
 namespace Trianz.Enterprise.Operations.Controllers
@@ -22,7 +24,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         // GET: SkillOrgUpdate
         public ActionResult SkillOrgUpdate()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 List<SelectListItem> lsCriticality = new List<SelectListItem>();              
                 lsCriticality.Add(new SelectListItem { Value = "P0", Text = "P0" });
@@ -55,7 +57,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         [HttpGet]
         public ActionResult SkillOrgUpdatedetails(string TRNumber)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -67,7 +69,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     var hrrfdate = hrrfdetails.HRRFSubmitedDate == null ? "" : hrrfdetails.HRRFSubmitedDate.Value.ToString("dd-MM-yyyy");
                     var skill = hrrfdetails.CSKILL == null ? "" : hrrfdetails.CSKILL;
 
-                    var Ageing = db.Database.SqlQuery<HRRFExportToExcel>
+                    var Ageing = db.Set<HRRFExportToExcel>().FromSqlRaw
                       ("exec GetAgeing @HRRFNumber", new SqlParameter("@HRRFNumber", TRNumber)).First<HRRFExportToExcel>();
 
                     string recruiter = hrrfdetails.RECRTR == null ? "" : hrrfdetails.RECRTR;
@@ -96,26 +98,26 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     };
 
-                    return Json(result, JsonRequestBehavior.AllowGet);
+                    return Json(result);
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                    //return Json("Sessionexpired");
                 }
             }
             else
             {
                 // return RedirectToAction("SessionExpire", "Signout");
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
             }
         }
         [HttpPost]
         public ActionResult SkillOrgUpdateData(HRRF hrrfdata)
         {
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -158,7 +160,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         //{
                         //    hrrfdatahistory.HRRFNumber = hrrfdata.HRRFNumber;
                         //    hrrfdatahistory.HistoryDescription = hrrfdata.HRRFNumber + " - Criticality changed from " + prevCrit + " to " + hrrfdata.Criticality;
-                        //    hrrfdatahistory.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
+                        //    hrrfdatahistory.ModifiedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                         //    hrrfdatahistory.ModifiedDate = DateTime.Now;
                         //    hrrfdatahistory.Remarks = "Update CRIT TALEAD RECTR";
                         //    hrrfdatahistory.PrevRequestStatus = prevCrit;
@@ -177,7 +179,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         //    {
                         //        hrrfdatahistory.HRRFNumber = hrrfdata.HRRFNumber;
                         //        hrrfdatahistory.HistoryDescription = hrrfdata.HRRFNumber + " - TA Lead changed from " + prevTALead + " to " + leadname;
-                        //        hrrfdatahistory.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
+                        //        hrrfdatahistory.ModifiedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                         //        hrrfdatahistory.ModifiedDate = DateTime.Now;
                         //        hrrfdatahistory.Remarks = "Update CRIT TALEAD RECTR";
                         //        hrrfdatahistory.PrevRequestStatus = prevTALead;
@@ -191,7 +193,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                       
                         //        hrrfdatahistory.HRRFNumber = hrrfdata.HRRFNumber;
                         //        hrrfdatahistory.HistoryDescription = hrrfdata.HRRFNumber + " - Recruiter changed from " + prevRectr + " to " + recruitername;
-                        //        hrrfdatahistory.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
+                        //        hrrfdatahistory.ModifiedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                         //        hrrfdatahistory.ModifiedDate = DateTime.Now;
                         //        hrrfdatahistory.Remarks = "Update CRIT TALEAD RECTR";
                         //        hrrfdatahistory.PrevRequestStatus = prevRectr;
@@ -201,7 +203,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         //    }
                         //}
                    }
-                    return Json("true", JsonRequestBehavior.AllowGet);
+                    return Json("true");
                 }
 
 
@@ -210,12 +212,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                    return Json("Sessionexpired");
                 }
             }
             else
             {
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
 
                 //    return RedirectToAction("SessionExpire", "Signout");
             }
@@ -225,7 +227,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public ActionResult TRProfilesInformation(BenchAssignment js)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -244,7 +246,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
@@ -254,7 +256,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         public ActionResult GetTRProfilesInfobyHRRFNumber(string HrrfNumber)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -262,7 +264,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     // js.ProfilesDataList = db.ProfilesInformations.Where(i => i.HRRFNumber == HrrfNumber).ToList();
 
                     List<ProfilesInfo> RecruiterLedlst = new List<ProfilesInfo>();
-                    RecruiterLedlst = db.Database.SqlQuery<ProfilesInfo>("exec GetProfilesByHrrfNumber @HrrfNumber",
+                    RecruiterLedlst = db.Set<ProfilesInfo>().FromSqlRaw("exec GetProfilesByHrrfNumber @HrrfNumber",
                       new SqlParameter("HrrfNumber", HrrfNumber)).ToList<ProfilesInfo>();
                     js.ProfilesInfoList = RecruiterLedlst;
 
@@ -273,29 +275,29 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult SaveTRProfilesInformation(ProfilesInformation profiledata)
         {
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
                     //var entity = db.AdminLogin.Where(x => x.ADMIN_ID == userid).SingleOrDefault();
                     //entity.ADMIN_PASSWORD = 'abc';
-                    //db.Entry(entity).State = System.Data.Entity.EntityState.Modified;
+                    //db.Entry(entity).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     //db.SaveChanges();
 
                     var profiledetails = db.ProfilesInformations.Where(i => i.HRRFNumber == profiledata.HRRFNumber && i.ProfilesDate == profiledata.ProfilesDate).FirstOrDefault();
-                    int Empid = Convert.ToInt32(Session["EmployeeId"]);
+                    int Empid = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                     ProfilesInformation prf = new ProfilesInformation();
                     if (profiledetails == null)
                     {
@@ -313,7 +315,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         db.ProfilesInformations.Add(prf);
                         db.SaveChanges();
                         // return RedirectToAction("GetTRProfilesInfobyHRRFNumber", "SkillOrgUpdate", new { HrrfNumber = profiledata.HRRFNumber });
-                        return Json("true", JsonRequestBehavior.AllowGet);
+                        return Json("true");
                     }
                     else
                     {
@@ -341,20 +343,20 @@ namespace Trianz.Enterprise.Operations.Controllers
                             // return RedirectToAction("GetTRProfilesInfobyHRRFNumber", "SkillOrgUpdate", new { HrrfNumber = profiledata.HRRFNumber });
 
                         }
-                        return Json("true", JsonRequestBehavior.AllowGet);
+                        return Json("true");
                     }
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 // return RedirectToAction("SessionExpire", "Signout");
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
             }
         }
 
@@ -362,7 +364,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public ActionResult CumulativeCountofProfiles()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -370,7 +372,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     // js.ProfilesDataList = db.ProfilesInformations.Where(i => i.HRRFNumber == HrrfNumber).ToList();
 
                     List<ProfilesInfo> RecruiterLedlst = new List<ProfilesInfo>();
-                    RecruiterLedlst = db.Database.SqlQuery<ProfilesInfo>("exec GetCumulativeCountForProfiles").ToList<ProfilesInfo>();
+                    RecruiterLedlst = db.Set<ProfilesInfo>().FromSqlRaw("exec GetCumulativeCountForProfiles").ToList<ProfilesInfo>();
                     js.ProfilesInfoList = RecruiterLedlst;
                     return View(js);
                 }
@@ -378,12 +380,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -397,7 +399,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         // Srinivas Changes
         public ActionResult SearchTALeadandRecruiter()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -433,7 +435,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     }
 
                     List<RecruiterLedDetails> RecruiterLedlst = new List<RecruiterLedDetails>();
-                    RecruiterLedlst = db.Database.SqlQuery<RecruiterLedDetails>("exec GetRecruiterLed @recruiter, @tAlead",
+                    RecruiterLedlst = db.Set<RecruiterLedDetails>().FromSqlRaw("exec GetRecruiterLed @recruiter, @tAlead",
                       new SqlParameter("recruiter", recruiter), new SqlParameter("@tAlead", tAlead)).ToList<RecruiterLedDetails>();
 
                     viewResult = new ValidationModel()
@@ -448,7 +450,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
@@ -458,7 +460,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         public ActionResult RecruiterLedlst(int recruiter, int tAlead)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -496,7 +498,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         str_tAlead = Convert.ToString(tAlead);
                     }
                     List<RecruiterLedDetails> RecruiterLedlst = new List<RecruiterLedDetails>();
-                    RecruiterLedlst = db.Database.SqlQuery<RecruiterLedDetails>("exec GetRecruiterLed @recruiter, @tAlead",
+                    RecruiterLedlst = db.Set<RecruiterLedDetails>().FromSqlRaw("exec GetRecruiterLed @recruiter, @tAlead",
                       new SqlParameter("recruiter", str_recruiter), new SqlParameter("@tAlead", str_tAlead)).ToList<RecruiterLedDetails>();
 
                     viewResult = new ValidationModel()

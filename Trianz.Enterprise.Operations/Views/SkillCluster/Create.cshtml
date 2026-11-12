@@ -9,10 +9,11 @@
 }
 
 @*<body>
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/Scripts/jquery.validate.min.js")
-    @Scripts.Render("~/Scripts/jquery.validate.unobtrusive.min.js")
-    @Scripts.Render("~/bundles/bootstrap")
+    <script src="~/Scripts/jquery.js"></script>
+<script src="~/Scripts/jquery.unobtrusive-ajax.js"></script>
+    <script src="~/Scripts/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Scripts/bootstrap.js"></script>
 </body>*@
 @using (Html.BeginForm("Create", "SkillCluster", FormMethod.Post))
 {

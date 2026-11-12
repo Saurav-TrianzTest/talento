@@ -92,7 +92,7 @@ new SelectListItem { Text = "Completed", Value="Completed" },
 
         <div class="col-md-3 col-sm-12 nopadding-right" style="width:190px;margin-left: 382px">
             <label style="margin-left:3px">Project</label><br />
-            @Html.DropDownList("ddlProject", new SelectList((System.Collections.IEnumerable)Session["_ProjectNames"], "ProjectCode", "ProjectName"),
+            @Html.DropDownList("ddlProject", new SelectList((System.Collections.IEnumerable)Context.Session.GetString("_ProjectNames"), "ProjectCode", "ProjectName"),
                          "Select Project", new { @class = "form-control" })
         </div>
         <div class="col-md-3 col-sm-12 nopadding-right pull-right" style="margin-right:870px;width:178px;position:relative;top:-59px;">
@@ -157,7 +157,7 @@ new SelectListItem { Text = "Not Yet Started", Value="NotYet" },
     </div>
 
     @*<div class="col-md-3 col-sm-6 padding-left pull-left" @*style="margin-top: -39px;"*>
-            @if ((Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM" || Session["Role"].ToString() == "DH" || Session["Role"].ToString() == "SM" || Session["Role"].ToString() == "RL"))
+            @if ((Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "PM" || Context.Session.GetString("Role").ToString() == "DH" || Context.Session.GetString("Role").ToString() == "SM" || Context.Session.GetString("Role").ToString() == "RL"))
             {
                 //:<button id="btnExportToExcel" type="button" class="btn btn-primary pull-left"><i class="glyphicon glyphicon-download-alt" aria-hidden="true"></i> Export to Excel</button>
                 //:<button id="btnProcessing" type="button" class="btn btn-primary pull-left" disabled><i class="fa fa-cog fa-spin fa-1x fa-fw" aria-hidden="true"></i> Downloading...</button>*
@@ -187,7 +187,7 @@ new SelectListItem { Text = "Not Yet Started", Value="NotYet" },
     <br />*@
 
 <div id="divGridContent1" class="table table-responsive" style="margin-bottom: 0px;overflow-x:scroll">
-    @Html.Partial("_ProjectAssignmentPartialView", Model)
+    @(await Html.PartialAsync("_ProjectAssignmentPartialView", Model))
 </div>
 
 <div id="dialog-view-Assignment">

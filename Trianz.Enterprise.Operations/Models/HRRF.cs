@@ -114,6 +114,26 @@ namespace Trianz.Enterprise.Operations.Models
         public string Organization_SubGroup { get; set; }
         public Nullable<int> BOSPOC { get; set; }
         public string ReasonRaisingTR { get; set; }
+        public string ReservationStatus { get; set; }
+        public string ServiceLine { get; set; }
+        public string Costcenter { get; set; }
+        public string AccountNamewithID { get; set; }
+        public string ForReplacementPosition { get; set; }
+        public string PrimarySkills { get; set; }
+        public string SecondarySkills { get; set; }
+        public string ResourceExpectedDate { get; set; }
+        public string OffshoreLocation { get; set; }
+        public string OnsiteLocation { get; set; }
+        public string TravelInfo { get; set; }
+        public string ShiftInfo { get; set; }
+        public string InfoByTCOTeam { get; set; }
+        public string InfoByHiringManager { get; set; }
+        public string Justification { get; set; }
+        public string ValidationInfo { get; set; }
+        public string FullfilmentDate { get; set; }
+        public string CSkill { get; set; }
+        public string RequesterName { get; set; }
+        public string RequesterEmailId { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ExternalFulfillment> ExternalFulfillments { get; set; }

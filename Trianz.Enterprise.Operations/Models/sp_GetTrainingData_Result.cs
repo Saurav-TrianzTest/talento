@@ -13,6 +13,7 @@ namespace Trianz.Enterprise.Operations.Models
     
     public partial class sp_GetTrainingData_Result
     {
+        public Nullable<int> TrainingID { get; set; }
         public string ProgramName { get; set; }
         public Nullable<int> EmployeeId { get; set; }
         public string EmployeeName { get; set; }

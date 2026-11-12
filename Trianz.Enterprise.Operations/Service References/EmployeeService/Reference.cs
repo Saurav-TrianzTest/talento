@@ -669,15 +669,15 @@ namespace Trianz.Enterprise.Operations.EmployeeService {
         }
         
         public EmployeeServiceClient(string endpointConfigurationName) : 
-                base(endpointConfigurationName) {
+                base() {
         }
         
         public EmployeeServiceClient(string endpointConfigurationName, string remoteAddress) : 
-                base(endpointConfigurationName, remoteAddress) {
+                base() {
         }
         
         public EmployeeServiceClient(string endpointConfigurationName, System.ServiceModel.EndpointAddress remoteAddress) : 
-                base(endpointConfigurationName, remoteAddress) {
+                base() {
         }
         
         public EmployeeServiceClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 

@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Models;
 using System.Configuration;
-using System.Data.Entity.Infrastructure;
 using System.Data;
-using System.Data.Entity.Core.EntityClient;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Trianz.Enterprise.Operations.General;
 
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using Microsoft.AspNetCore.Session;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class BulkAssignmentController : Controller
@@ -19,7 +20,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public ActionResult Index()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -98,20 +99,20 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                // Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                // Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult GetEmployeeInfobyPractice(string ProjectCode)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -205,7 +206,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
 
 
@@ -215,14 +216,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public List<SelectListItem> GetProjects()
         {
-            //if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            //if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             //{
 
                 var AllProjects = (from pro in db.Projects
@@ -243,7 +244,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //    else
         //    {
         //        //ermsg = "Session expired";
-        //        //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+        //        //return Json("Sessionexpired");
         //        return RedirectToAction("SessionExpire", "Signout");
         //    }
         //}
@@ -252,7 +253,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         public ActionResult GetDesignations(string Practice, int Grade)
 
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
                 try
@@ -266,11 +267,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             LookupCode = roles.DesignationCode,
                                         }).OrderBy(p => p.LookupName).ToList();
 
-                        return Json(GetRoles, JsonRequestBehavior.AllowGet);
+                        return Json(GetRoles);
                     }
                     else
                     {
-                        return Json(string.Empty, JsonRequestBehavior.AllowGet);
+                        return Json(string.Empty);
                     }
 
                 }
@@ -278,14 +279,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                    // return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-               //  return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+               //  return Json("Sessionexpired");
                return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -299,7 +300,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 DateTime dtStartDate = Convert.ToDateTime(StartDate);
                 DateTime dtEndDate = Convert.ToDateTime(EndDate);
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try { 
                 foreach (var eachEmployee in SelectedEmployees)
@@ -307,7 +308,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     Int32 EmpID = Convert.ToInt32(eachEmployee.EmployeeId);
                     Employee objEmp = db.Employees.Where(e => e.EmployeeId.Equals(EmpID)).FirstOrDefault();
                     DateTime ttt = objEmp.DateOfJoin.Date;
-                    // var lstHRRF = db.Database.SqlQuery<IObjectContextAdapter>("exec PrcAssignDefaultBenchUsingGrade @EmployeeId", new System.Data.SqlClient.SqlParameter("employeeId", EmpID)).ToList<IObjectContextAdapter>();
+                    // var lstHRRF = db.Set<IObjectContextAdapter>().FromSqlRaw("exec PrcAssignDefaultBenchUsingGrade @EmployeeId", new Microsoft.Data.SqlClient.SqlParameter("employeeId", EmpID)).ToList<IObjectContextAdapter>();
                     if (objEmp != null)
                     {
                         chkforpropsed = objEmp.DateOfJoin.Date <= dtStartDate.Date ? true : false;
@@ -424,7 +425,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             objHRRF.RequestStatus = "Fulfilled";
                             objHRRF.ClientInterview = "No";
                             objHRRF.IsActive = true;
-                            objHRRF.HRRFCreatedBy = Convert.ToInt32(Session["EmployeeId"]);
+                            objHRRF.HRRFCreatedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                             objHRRF.HRRFCreatedDate = DateTime.Now;
                             objHRRF.HRRFSubmitedDate = DateTime.Now;
                             objHRRF.Positions = 1;
@@ -451,7 +452,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             objHRRFHistory.HRRFNumber = HRRFNumber;
                             objHRRFHistory.HRRFID = 0;
                             objHRRFHistory.HistoryDescription = objEmp.FirstName + " " + objEmp.LastName + " - has been Fulfilled for - " + HRRFNumber + " - Auto";
-                            objHRRFHistory.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
+                            objHRRFHistory.ModifiedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                             objHRRFHistory.ModifiedDate = DateTime.Now;
                             objHRRFHistory.Remarks = "This is an auto generated TR during bulk assignment";
 
@@ -572,7 +573,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 pash1.Assigned_byNew = proAssgnt.Assigned_By;
                                 db.ProjectAssignmenthistories.Add(pash1);
 
-                                db.Entry(proAssgnt).State = System.Data.Entity.EntityState.Modified;
+                                db.Entry(proAssgnt).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                             }
 
@@ -700,7 +701,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 Common.WriteExceptionErrorLog(ex);
                 return RedirectToAction("Error", "Error");
-                //return Json("Error", JsonRequestBehavior.AllowGet);
+                //return Json("Error");
             }
 
         }
@@ -709,13 +710,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     //ermsg = "Session expired";
                 //ermsg = "Session expired";
-               // return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+               // return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
 
 
 
-            return Json(ermsg, JsonRequestBehavior.AllowGet);
+            return Json(ermsg);
             }
         }
 

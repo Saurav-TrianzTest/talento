@@ -190,9 +190,9 @@
             <div class="col-sm-4">
                  <label>Recruiter Name</label>
                 @Html.DropDownList("recruiterName", ViewData["_RecruiterName"] as SelectList, "Select Recruiter Name", new { style = "height: 32px;width:200px;margin: 0px 12px;" })
-                @if (Session["EmployeeId"].ToString() == "103422" || Session["EmployeeId"].ToString() == "102342"
-                || Session["EmployeeId"].ToString() == "102536" || Session["EmployeeId"].ToString() == "103857"
-                || Session["EmployeeId"].ToString() == "104209" || Session["EmployeeId"].ToString() == "103212" || Session["EmployeeId"].ToString() == "105009" || Session["EmployeeId"].ToString() == "105977")
+                @if (Context.Session.GetString("EmployeeId").ToString() == "103422" || Context.Session.GetString("EmployeeId").ToString() == "102342"
+                || Context.Session.GetString("EmployeeId").ToString() == "102536" || Context.Session.GetString("EmployeeId").ToString() == "103857"
+                || Context.Session.GetString("EmployeeId").ToString() == "104209" || Context.Session.GetString("EmployeeId").ToString() == "103212" || Context.Session.GetString("EmployeeId").ToString() == "105009" || Context.Session.GetString("EmployeeId").ToString() == "105977")
                 {
                     <script>
                         $('#recruiterName').removeAttr('disabled');
@@ -203,9 +203,9 @@
                 <span>
                     <label>Lead Name</label>
                     @Html.DropDownList("leadName", ViewData["_LeadName"] as SelectList, "Select lead Name", new { style = "height: 32px;width:200px;margin: 0px 12px;" })
-                    @if (Session["EmployeeId"].ToString() == "103422" || Session["EmployeeId"].ToString() == "102342"
-                    || Session["EmployeeId"].ToString() == "102536" || Session["EmployeeId"].ToString() == "103857"
-                    || Session["EmployeeId"].ToString() == "104209" || Session["EmployeeId"].ToString() == "103212" || Session["EmployeeId"].ToString() == "105009" || Session["EmployeeId"].ToString() == "105977")
+                    @if (Context.Session.GetString("EmployeeId").ToString() == "103422" || Context.Session.GetString("EmployeeId").ToString() == "102342"
+                    || Context.Session.GetString("EmployeeId").ToString() == "102536" || Context.Session.GetString("EmployeeId").ToString() == "103857"
+                    || Context.Session.GetString("EmployeeId").ToString() == "104209" || Context.Session.GetString("EmployeeId").ToString() == "103212" || Context.Session.GetString("EmployeeId").ToString() == "105009" || Context.Session.GetString("EmployeeId").ToString() == "105977")
                     {
                         <script>
                             $('#leadName').removeAttr('disabled');

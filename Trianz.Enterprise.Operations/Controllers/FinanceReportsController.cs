@@ -2,18 +2,22 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Models;
 using Trianz.Enterprise.Operations.ViewModel;
 using System.Data.Common;
 using System.Data;
-using System.Web.UI.WebControls;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class FinanceReportsController : Controller
@@ -45,7 +49,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
         }
-        [AcceptVerbs(HttpVerbs.Post)]
+        [AcceptVerbs("POST")]
         public JsonResult Autocomplete(string term)
         {
             var result = new List<KeyValuePair<string, string>>();
@@ -65,9 +69,9 @@ namespace Trianz.Enterprise.Operations.Controllers
             }
             var result3 = result.Where(s => s.Key.ToLower().Contains
                           (term.ToLower())).Select(w => w).ToList();
-            return Json(result3, JsonRequestBehavior.AllowGet);
+            return Json(result3);
         }
-        [AcceptVerbs(HttpVerbs.Post)]
+        [AcceptVerbs("POST")]
         public JsonResult Autocompletename(string term)
         {
             var result = new List<KeyValuePair<string, string>>();
@@ -87,7 +91,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             }
             var result3 = result.Where(s => s.Key.ToLower().Contains
                           (term.ToLower())).Select(w => w).ToList();
-            return Json(result3, JsonRequestBehavior.AllowGet);
+            return Json(result3);
         }
         public ActionResult SaveProjectCode(string ProjectCode, string ProjectName)
         {
@@ -137,7 +141,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             sqlStartDate.Value = StartDate;
             SqlParameter sqlEndDate = new SqlParameter("@EndDate", SqlDbType.DateTime);
             sqlEndDate.Value = EndDate;
-            var BenchReportresult = db.Database.SqlQuery<FinanceBenchDetails>("exec  sp_FinanceBenchReport @StartDate,@EndDate", sqlStartDate, sqlEndDate).ToList<FinanceBenchDetails>();
+            var BenchReportresult = db.Set<FinanceBenchDetails>().FromSqlRaw("exec  sp_FinanceBenchReport @StartDate,@EndDate", sqlStartDate, sqlEndDate).ToList<FinanceBenchDetails>();
 
             return BenchReportresult;
         }
@@ -154,9 +158,9 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         public ActionResult ExportBenchReport(DateTime StartDate, DateTime EndDate)
         {
-            return Json("success", JsonRequestBehavior.AllowGet);
+            return Json("success");
         }
-        public ActionResult GenerateBenchReport(DateTime StartDate, DateTime EndDate)
+        public async Task<ActionResult> GenerateBenchReport(DateTime StartDate, DateTime EndDate)
         {
             var BenchReport = GetBenchReport(StartDate, EndDate);
             ViewData["BenchReport"] = BenchReport;
@@ -281,14 +285,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
-                Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=" + "Bench-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                // Response.Buffer is not available in ASP.NET Core
+                Response.Headers.Add("content-disposition", "attachment;filename=" + "Bench-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                Response.Charset = "";
+                // Response.Charset is not available in ASP.NET Core
                 Response.ContentType = "application/vnd.ms-excel";
                 StringWriter sw = new StringWriter();
-                Response.BinaryWrite(fileBytes);
-                Response.End();
+                await Response.Body.WriteAsync(fileBytes, 0, fileBytes.Length);
+                // Response.End() is not available in ASP.NET Core
             }
 
             #endregion
@@ -306,7 +310,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
             List<FinanceShadowDetails> ShadowReport = new List<FinanceShadowDetails>();
 
-            var ShadowReportresult = db.Database.SqlQuery<FinanceShadowDetails>("exec sp_FinanceShadowReport @StartDate,@EndDate", new SqlParameter("StartDate", StartDate), new SqlParameter("EndDate", EndDate)).ToList<FinanceShadowDetails>();
+            var ShadowReportresult = db.Set<FinanceShadowDetails>().FromSqlRaw("exec sp_FinanceShadowReport @StartDate,@EndDate", new SqlParameter("StartDate", StartDate), new SqlParameter("EndDate", EndDate)).ToList<FinanceShadowDetails>();
 
             return ShadowReportresult;
         }
@@ -321,9 +325,9 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         public ActionResult ExportShadowReport(DateTime StartDate, DateTime EndDate)
         {
-            return Json("success", JsonRequestBehavior.AllowGet);
+            return Json("success");
         }
-        public ActionResult GenerateShadowReport(DateTime StartDate, DateTime EndDate)
+        public async Task<ActionResult> GenerateShadowReport(DateTime StartDate, DateTime EndDate)
         {
             var ShadowReport = GetShadowReport(StartDate, EndDate);
             ViewData["ShadowReport"] = ShadowReport;
@@ -444,14 +448,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
-                Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=" + "Shadow-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                // Response.Buffer is not available in ASP.NET Core
+                Response.Headers.Add("content-disposition", "attachment;filename=" + "Shadow-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                Response.Charset = "";
+                // Response.Charset is not available in ASP.NET Core
                 Response.ContentType = "application/vnd.ms-excel";
                 StringWriter sw = new StringWriter();
-                Response.BinaryWrite(fileBytes);
-                Response.End();
+                await Response.Body.WriteAsync(fileBytes, 0, fileBytes.Length);
+                // Response.End() is not available in ASP.NET Core
             }
 
             #endregion
@@ -480,15 +484,15 @@ namespace Trianz.Enterprise.Operations.Controllers
 
             List<FinanceInternalDetails> InternalReport = new List<FinanceInternalDetails>();
 
-            var InternalReportresult = db.Database.SqlQuery<FinanceInternalDetails>("exec sp_FinanceInternalReport @StartDate,@EndDate", new SqlParameter("startDate", StartDate), new SqlParameter("endDate", EndDate)).ToList<FinanceInternalDetails>();
+            var InternalReportresult = db.Set<FinanceInternalDetails>().FromSqlRaw("exec sp_FinanceInternalReport @StartDate,@EndDate", new SqlParameter("startDate", StartDate), new SqlParameter("endDate", EndDate)).ToList<FinanceInternalDetails>();
 
             return InternalReportresult;
         }
         public ActionResult ExportInternalReport(DateTime StartDate, DateTime EndDate)
         {
-            return Json("success", JsonRequestBehavior.AllowGet);
+            return Json("success");
         }
-        public ActionResult GenerateInternalReport(DateTime StartDate, DateTime EndDate)
+        public async Task<ActionResult> GenerateInternalReport(DateTime StartDate, DateTime EndDate)
         {
             var InternalReport = GetInternalReport(StartDate, EndDate);
             ViewData["InternalReport"] = InternalReport;
@@ -606,14 +610,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
-                Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=" + "Internal-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                // Response.Buffer is not available in ASP.NET Core
+                Response.Headers.Add("content-disposition", "attachment;filename=" + "Internal-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                Response.Charset = "";
+                // Response.Charset is not available in ASP.NET Core
                 Response.ContentType = "application/vnd.ms-excel";
                 StringWriter sw = new StringWriter();
-                Response.BinaryWrite(fileBytes);
-                Response.End();
+                await Response.Body.WriteAsync(fileBytes, 0, fileBytes.Length);
+                // Response.End() is not available in ASP.NET Core
             }
 
             #endregion
@@ -641,15 +645,15 @@ namespace Trianz.Enterprise.Operations.Controllers
 
             List<FinanceContractorsDetails> ContractorsReport = new List<FinanceContractorsDetails>();
 
-            var ContractorsReportresult = db.Database.SqlQuery<FinanceContractorsDetails>("exec sp_FinanceContractorsReport @StartDate,@EndDate", new SqlParameter("startDate", StartDate), new SqlParameter("endDate", EndDate)).ToList<FinanceContractorsDetails>();
+            var ContractorsReportresult = db.Set<FinanceContractorsDetails>().FromSqlRaw("exec sp_FinanceContractorsReport @StartDate,@EndDate", new SqlParameter("startDate", StartDate), new SqlParameter("endDate", EndDate)).ToList<FinanceContractorsDetails>();
 
             return ContractorsReportresult;
         }
         public ActionResult ExportContractorsReport(DateTime StartDate, DateTime EndDate)
         {
-            return Json("success", JsonRequestBehavior.AllowGet);
+            return Json("success");
         }
-        public ActionResult GenerateContractorsReport(DateTime StartDate, DateTime EndDate)
+        public async Task<ActionResult> GenerateContractorsReport(DateTime StartDate, DateTime EndDate)
         {
 
             var ContractorsReport = GetContractorsReport(StartDate, EndDate);
@@ -775,14 +779,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
-                Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=" + "Contractors-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                // Response.Buffer is not available in ASP.NET Core
+                Response.Headers.Add("content-disposition", "attachment;filename=" + "Contractors-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                Response.Charset = "";
+                // Response.Charset is not available in ASP.NET Core
                 Response.ContentType = "application/vnd.ms-excel";
                 StringWriter sw = new StringWriter();
-                Response.BinaryWrite(fileBytes);
-                Response.End();
+                await Response.Body.WriteAsync(fileBytes, 0, fileBytes.Length);
+                // Response.End() is not available in ASP.NET Core
             }
 
             #endregion
@@ -812,15 +816,15 @@ namespace Trianz.Enterprise.Operations.Controllers
 
             List<FinanceInternalspecificDetails> InternalspcReport = new List<FinanceInternalspecificDetails>();
 
-            var InternalspcReportresult = db.Database.SqlQuery<FinanceInternalspecificDetails>("exec sp_FinanceInternalSpecificReport @StartDate,@EndDate", new SqlParameter("startDate", StartDate), new SqlParameter("endDate", EndDate)).ToList<FinanceInternalspecificDetails>();
+            var InternalspcReportresult = db.Set<FinanceInternalspecificDetails>().FromSqlRaw("exec sp_FinanceInternalSpecificReport @StartDate,@EndDate", new SqlParameter("startDate", StartDate), new SqlParameter("endDate", EndDate)).ToList<FinanceInternalspecificDetails>();
 
             return InternalspcReportresult;
         }
         public ActionResult ExportInternalspcReport(DateTime StartDate, DateTime EndDate)
         {
-            return Json("success", JsonRequestBehavior.AllowGet);
+            return Json("success");
         }
-        public ActionResult GenerateInternalspcReport(DateTime StartDate, DateTime EndDate)
+        public async Task<ActionResult> GenerateInternalspcReport(DateTime StartDate, DateTime EndDate)
         {
             var InternalspcReport = GetInternalspcReport(StartDate, EndDate);
             ViewData["InternalSpcReport"] = InternalspcReport;
@@ -935,14 +939,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
-                Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=" + "Internal-SpecificReport" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                // Response.Buffer is not available in ASP.NET Core
+                Response.Headers.Add("content-disposition", "attachment;filename=" + "Internal-SpecificReport" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                Response.Charset = "";
+                // Response.Charset is not available in ASP.NET Core
                 Response.ContentType = "application/vnd.ms-excel";
                 StringWriter sw = new StringWriter();
-                Response.BinaryWrite(fileBytes);
-                Response.End();
+                await Response.Body.WriteAsync(fileBytes, 0, fileBytes.Length);
+                // Response.End() is not available in ASP.NET Core
             }
 
             #endregion
@@ -969,15 +973,15 @@ namespace Trianz.Enterprise.Operations.Controllers
 
             List<FinanceRawDataDetails> rawdataReport = new List<FinanceRawDataDetails>();
 
-            var rawdataReportresult = db.Database.SqlQuery<FinanceRawDataDetails>("exec sp_FinanceRawDataReport @StartDate,@EndDate", new SqlParameter("startDate", StartDate), new SqlParameter("endDate", EndDate)).ToList<FinanceRawDataDetails>();
+            var rawdataReportresult = db.Set<FinanceRawDataDetails>().FromSqlRaw("exec sp_FinanceRawDataReport @StartDate,@EndDate", new SqlParameter("startDate", StartDate), new SqlParameter("endDate", EndDate)).ToList<FinanceRawDataDetails>();
 
             return rawdataReportresult;
         }
         public ActionResult ExportRawDataReport(DateTime StartDate, DateTime EndDate)
         {
-            return Json("success", JsonRequestBehavior.AllowGet);
+            return Json("success");
         }
-        public ActionResult GenerateRawDataReport(DateTime StartDate, DateTime EndDate)
+        public async Task<ActionResult> GenerateRawDataReport(DateTime StartDate, DateTime EndDate)
         {
             var RawDataReport = GetRawDataReport(StartDate, EndDate);
             ViewData["RawDataReport"] = RawDataReport;
@@ -1148,14 +1152,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
-                Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=" + "Raw-Data" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                // Response.Buffer is not available in ASP.NET Core
+                Response.Headers.Add("content-disposition", "attachment;filename=" + "Raw-Data" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                Response.Charset = "";
+                // Response.Charset is not available in ASP.NET Core
                 Response.ContentType = "application/vnd.ms-excel";
                 StringWriter sw = new StringWriter();
-                Response.BinaryWrite(fileBytes);
-                Response.End();
+                await Response.Body.WriteAsync(fileBytes, 0, fileBytes.Length);
+                // Response.End() is not available in ASP.NET Core
             }
 
             #endregion
@@ -1179,13 +1183,13 @@ namespace Trianz.Enterprise.Operations.Controllers
         private List<FinanceUtilizationDetails> GetUtilizationReport(DateTime StartDate, DateTime EndDate)
         {
 
-            var UtilizationReportresult = db.Database.SqlQuery<FinanceUtilizationDetails>("exec sp_UtilizationReport @StartDate,@EndDate", new SqlParameter("startDate", StartDate), new SqlParameter("endDate", EndDate)).ToList<FinanceUtilizationDetails>();
-            Session["UtilizationReportresult"] = UtilizationReportresult;
+            var UtilizationReportresult = db.Set<FinanceUtilizationDetails>().FromSqlRaw("exec sp_UtilizationReport @StartDate,@EndDate", new SqlParameter("startDate", StartDate), new SqlParameter("endDate", EndDate)).ToList<FinanceUtilizationDetails>();
+            HttpContext.Session.SetString("UtilizationReportresult", JsonConvert.SerializeObject(UtilizationReportresult));
             return UtilizationReportresult;
         }
         public ActionResult ExportUtilizationReport(DateTime StartDate, DateTime EndDate)
         {
-            return Json("success", JsonRequestBehavior.AllowGet);
+            return Json("success");
         }
         //public ActionResult GenerateUtilizationReport()
         //{

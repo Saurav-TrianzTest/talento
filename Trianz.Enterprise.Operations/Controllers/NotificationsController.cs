@@ -4,24 +4,30 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Script.Serialization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json;
 using System.Xml;
 using Trianz.Enterprise.Operations.Models;
 using Trianz.Enterprise.Operations.General;
+using Microsoft.AspNetCore.Session;
+using Microsoft.Extensions.Hosting;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
 
     public class NotificationsController : Controller
     {
+    private readonly IWebHostEnvironment Env;
         private TrianzOperationsEntities db = new TrianzOperationsEntities();
         //ServiceAgent AgentService = new ServiceAgent();
         // GET: Notifications
         public ActionResult Mynotifications()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -29,7 +35,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     TempData["IsRoleMasterPageAccess"] = null;
 
                     //Identifying prev page
-                    TempData["PrevPage"] = Request.Url.Segments[Request.Url.Segments.Count() - 1];
+                    TempData["PrevPage"] = HttpContext.Request.Path;
                     int EmpID = 0;
 
                     //string UName = User.Identity.Name.Substring(7);
@@ -67,7 +73,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     #region for hrrf or trs
 
-                    string Practice = Session["Practice"].ToString().ToLower();
+                    string Practice = HttpContext.Session.GetString("Practice").ToString().ToLower();
                     var RoleResults = db.RoleMasters.ToList().Where(role => role.EmployeeId == EmpID && role.ApplicationCode == "TALENTREQ").ToList();
 
                     if (RoleResults != null && RoleResults.Count > 0)
@@ -77,9 +83,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                         {
                             #region External TRs
 
-                            if (Session["EmployeeId"] != null)
+                            if (HttpContext.Session.GetString("EmployeeId") != null)
                             {
-                                string emp = Session["EmployeeId"].ToString();
+                                string emp = HttpContext.Session.GetString("EmployeeId").ToString();
                                 var Externalhrrfs = (from bpr in db.PracticeWiseBenchCodes
                                                      join EF in db.ExternalFulfillments on bpr.Practice.ToLower() equals EF.Practice.ToLower()
                                                      join H in db.HRRFs on EF.HRRFNumber equals H.HRRFNumber into tmpExterFulfill
@@ -142,7 +148,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 }
                                 #region oldcode
 
-                                //if (Session["EmployeeId"].ToString() == "100816") // Sujit Sahoo and Practice = "SG&A" and CostCenter = "R&KM","STRATEGY & RESEARCH","CEO"
+                                //if (HttpContext.Session.GetString("EmployeeId").ToString() == "100816") // Sujit Sahoo and Practice = "SG&A" and CostCenter = "R&KM","STRATEGY & RESEARCH","CEO"
                                 //{
                                 //    var Externalhrrfs = (from EF in db.ExternalFulfillments
                                 //                         join H in db.HRRFs on EF.HRRFNumber equals H.HRRFNumber into tmpExterFulfill
@@ -165,7 +171,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "60126") // Anusuya R Chaman and Practice = "SG&A" and CostCenter = "ADMIN","FINANCE"
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "60126") // Anusuya R Chaman and Practice = "SG&A" and CostCenter = "ADMIN","FINANCE"
                                 //{
                                 //    var Externalhrrfs = (from EF in db.ExternalFulfillments
                                 //                         join H in db.HRRFs on EF.HRRFNumber equals H.HRRFNumber into tmpExterFulfill
@@ -187,7 +193,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "103406") // Prasad Prabhakar and Practice = "SG&A" and CostCenter = "BDM","HR"
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "103406") // Prasad Prabhakar and Practice = "SG&A" and CostCenter = "BDM","HR"
                                 //{
                                 //    var Externalhrrfs = (from EF in db.ExternalFulfillments
                                 //                         join H in db.HRRFs on EF.HRRFNumber equals H.HRRFNumber into tmpExterFulfill
@@ -209,7 +215,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "101404") // Prashant V.S. Bhavaraju and Practice = "SG&A" and CostCenter = "MARKETING"
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "101404") // Prashant V.S. Bhavaraju and Practice = "SG&A" and CostCenter = "MARKETING"
                                 //{
                                 //    var Externalhrrfs = (from EF in db.ExternalFulfillments
                                 //                         join H in db.HRRFs on EF.HRRFNumber equals H.HRRFNumber into tmpExterFulfill
@@ -231,7 +237,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "101034") // Gangadhar Aka and Practice = "SG&A" and CostCenter = "IT"
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "101034") // Gangadhar Aka and Practice = "SG&A" and CostCenter = "IT"
                                 //{
                                 //    var Externalhrrfs = (from EF in db.ExternalFulfillments
                                 //                         join H in db.HRRFs on EF.HRRFNumber equals H.HRRFNumber into tmpExterFulfill
@@ -253,7 +259,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "101441") // Vivek	Sambasivam and Practice = "IMS" (all IMS)
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "101441") // Vivek	Sambasivam and Practice = "IMS" (all IMS)
                                 //{
                                 //    var Externalhrrfs = (from EF in db.ExternalFulfillments
                                 //                         join H in db.HRRFs on EF.HRRFNumber equals H.HRRFNumber into tmpExterFulfill
@@ -275,7 +281,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "103237") // Vishwanath MS and Practice = "Cloud Solutions"
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "103237") // Vishwanath MS and Practice = "Cloud Solutions"
                                 //{
                                 //    var Externalhrrfs = (from EF in db.ExternalFulfillments
                                 //                         join H in db.HRRFs on EF.HRRFNumber equals H.HRRFNumber into tmpExterFulfill
@@ -297,7 +303,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "102968") // Ganesh Arunachala and Practice = "IT SERVICES OTHERS" and CostCenter = "QUALITY"
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "102968") // Ganesh Arunachala and Practice = "IT SERVICES OTHERS" and CostCenter = "QUALITY"
                                 //{
                                 //    var Externalhrrfs = (from EF in db.ExternalFulfillments
                                 //                         join H in db.HRRFs on EF.HRRFNumber equals H.HRRFNumber into tmpExterFulfill
@@ -360,7 +366,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        {
                                 //            Notifications objnotifications = new Notifications();
 
-                                //            if (Session["EmployeeId"].ToString() == "103673" && hrrf.Grade <= 4) // Ashutosh Uprety
+                                //            if (HttpContext.Session.GetString("EmployeeId").ToString() == "103673" && hrrf.Grade <= 4) // Ashutosh Uprety
                                 //            {
                                 //                objnotifications.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTR"].ToString();
                                 //                objnotifications.AssetID = hrrf.HRRFNumber;
@@ -368,7 +374,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                                 //                Timesheets.Add(objnotifications);
                                 //            }
-                                //            else if (Session["EmployeeId"].ToString() != "103673" && hrrf.Grade > 4)
+                                //            else if (HttpContext.Session.GetString("EmployeeId").ToString() != "103673" && hrrf.Grade > 4)
                                 //            {
                                 //                objnotifications.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTR"].ToString();
                                 //                objnotifications.AssetID = hrrf.HRRFNumber;
@@ -386,9 +392,9 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                             #region Internal TRs
 
-                            if (Session["EmployeeId"] != null)
+                            if (HttpContext.Session.GetString("EmployeeId") != null)
                             {
-                                //if (Session["EmployeeId"].ToString() == "100816") // Sujit Sahoo
+                                //if (HttpContext.Session.GetString("EmployeeId").ToString() == "100816") // Sujit Sahoo
                                 //{
                                 //    var hrrfs = (from h in db.HRRFs
                                 //                 join pa in db.ProposeAssociates on h.HRRFNumber equals pa.HRRFNumber
@@ -409,7 +415,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "60126") // Anusuya R Chaman
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "60126") // Anusuya R Chaman
                                 //{
                                 //    var hrrfs = (from h in db.HRRFs
                                 //                 join pa in db.ProposeAssociates on h.HRRFNumber equals pa.HRRFNumber
@@ -430,7 +436,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "103406") // Prasad Prabhakar
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "103406") // Prasad Prabhakar
                                 //{
                                 //    var hrrfs = (from h in db.HRRFs
                                 //                 join pa in db.ProposeAssociates on h.HRRFNumber equals pa.HRRFNumber
@@ -451,7 +457,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "101404") // Prashant V.S. Bhavaraju
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "101404") // Prashant V.S. Bhavaraju
                                 //{
                                 //    var hrrfs = (from h in db.HRRFs
                                 //                 join pa in db.ProposeAssociates on h.HRRFNumber equals pa.HRRFNumber
@@ -472,7 +478,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "101034") // Gangadhar Aka
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "101034") // Gangadhar Aka
                                 //{
                                 //    var hrrfs = (from h in db.HRRFs
                                 //                 join pa in db.ProposeAssociates on h.HRRFNumber equals pa.HRRFNumber
@@ -493,7 +499,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "101441") // Vivek	Sambasivam
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "101441") // Vivek	Sambasivam
                                 //{
                                 //    var hrrfs = (from h in db.HRRFs
                                 //                 join pa in db.ProposeAssociates on h.HRRFNumber equals pa.HRRFNumber
@@ -513,7 +519,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "103237") // Vishwanath MS
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "103237") // Vishwanath MS
                                 //{
                                 //    var hrrfs = (from h in db.HRRFs
                                 //                 join pa in db.ProposeAssociates on h.HRRFNumber equals pa.HRRFNumber
@@ -533,7 +539,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        Timesheets.Add(objnotifications);
                                 //    }
                                 //}
-                                //else if (Session["EmployeeId"].ToString() == "102968") // Ganesh Arunachala
+                                //else if (HttpContext.Session.GetString("EmployeeId").ToString() == "102968") // Ganesh Arunachala
                                 //{
                                 //    var hrrfs = (from h in db.HRRFs
                                 //                 join pa in db.ProposeAssociates on h.HRRFNumber equals pa.HRRFNumber
@@ -579,7 +585,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //        {
                                 //            Notifications objnotifications = new Notifications();
 
-                                //            if (Session["EmployeeId"].ToString() == "103673" && hrrf.Grade <= 4) // Ashutosh Uprety
+                                //            if (HttpContext.Session.GetString("EmployeeId").ToString() == "103673" && hrrf.Grade <= 4) // Ashutosh Uprety
                                 //            {
                                 //                objnotifications.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTR"].ToString();
                                 //                objnotifications.AssetID = hrrf.HRRFNumber;
@@ -587,7 +593,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                                 //                Timesheets.Add(objnotifications);
                                 //            }
-                                //            else if (Session["EmployeeId"].ToString() != "103673" && hrrf.Grade > 4) // Satish Katragadda
+                                //            else if (HttpContext.Session.GetString("EmployeeId").ToString() != "103673" && hrrf.Grade > 4) // Satish Katragadda
                                 //            {
                                 //                objnotifications.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTR"].ToString();
                                 //                objnotifications.AssetID = hrrf.HRRFNumber;
@@ -712,11 +718,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                     var TotalEmps = db.Employees.Where(e => e.SupervisorId == EmpID && e.IsActive == true).ToList();
                     //if(TotalEmps.Count>0)
                     //{
-                        Session["loginId"] = EmpID;
+                        HttpContext.Session.SetString("loginId", EmpID.ToString());
                    // }
                     // var emps= db.Employees.Where(e => e.SupervisorId == EmpID && e.IsActive == true).ToList();
                     var skillsToBeApproved = new List<Notifications>();
-                    if (TotalEmps.Count > 0 && Session["LeadId"] == null)
+                    if (TotalEmps.Count > 0 && HttpContext.Session.GetString("LeadId") == null)
                     {
                         foreach (var emp in TotalEmps)
                         {
@@ -788,12 +794,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //else
                     //    return View(Timesheets);
                     #region ClusterLead
-                   else if (TotalEmps.Count == 0 && Session["LeadId"] != null)
+                   else if (TotalEmps.Count == 0 && HttpContext.Session.GetString("LeadId") != null)
                     {
-                        EmpID = Convert.ToInt32(Session["LeadId"].ToString());
+                        EmpID = Convert.ToInt32(HttpContext.Session.GetString("LeadId").ToString());
                         List<ClusterLead> lstCluster = new List<ClusterLead>();
 
-                        lstCluster = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember_test").ToList();
+                        lstCluster = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember_test").ToList();
                         lstCluster = lstCluster.Where(m => m.EmployeeId == EmpID).ToList();
                         var skillsToBeApprovedcluster = new List<Notifications>();
                         if (lstCluster.Count > 0)
@@ -839,12 +845,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                     #endregion
 
                     #region ClusterLead and manager
-                   else if (TotalEmps.Count > 0 && Session["LeadId"] != null)
+                   else if (TotalEmps.Count > 0 && HttpContext.Session.GetString("LeadId") != null)
                     {
-                        EmpID = Convert.ToInt32(Session["LeadId"].ToString());
+                        EmpID = Convert.ToInt32(HttpContext.Session.GetString("LeadId").ToString());
                         List<ClusterLead> lstCluster = new List<ClusterLead>();
 
-                        lstCluster = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember_test").ToList();
+                        lstCluster = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember_test").ToList();
                         lstCluster = lstCluster.Where(m => m.EmployeeId == EmpID).ToList();
                         var skillsToBeApprovedcluster = new List<Notifications>();
                         if (TotalEmps.Count > 0)
@@ -943,7 +949,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -961,7 +967,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         // POST: Notifications/Create
         [HttpPost]
-        public ActionResult Create(FormCollection collection)
+        public ActionResult Create(IFormCollection collection)
         {
             try
             {
@@ -984,7 +990,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             if (AppCode == "TALENTREQ")
             {
                 TempData["hrrfno"] = id;
-                Session["Hrrfno"] = id;
+                HttpContext.Session.SetString("Hrrfno", id.ToString());
                 return RedirectToAction("ProposeAssociate", "ProposeAssociate");
             }
             else if (AppCode == "SKILLS")
@@ -1011,7 +1017,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         // POST: Notifications/Edit/5
         [HttpPost]
-        public ActionResult Edit(int id, FormCollection collection)
+        public ActionResult Edit(int id, IFormCollection collection)
         {
             try
             {
@@ -1032,7 +1038,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         // POST: Notifications/Delete/5
         [HttpPost]
-        public ActionResult Delete(int id, FormCollection collection)
+        public ActionResult Delete(int id, IFormCollection collection)
         {
             try
             {
@@ -1084,7 +1090,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        tblNotification.AssetID = Convert.ToString(TimesheetID);
                 //        tblNotification.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTimesheet"].ToString();
                 //        string body = string.Empty;
-                //        using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+                //        using (StreamReader reader = new StreamReader(Path.Combine(Env.ContentRootPath, "Views/Shared/EmailTemplate.html")))
                 //        {
                 //            body = reader.ReadToEnd();
                 //        }
@@ -1154,9 +1160,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //hrrfAcceptReject.Remarks = _Remarks; // needs to get from popup
                     //hrrfAcceptReject.ApprovedBy = EmployeeID.EmployeeId.ToString(); //need to get logged in user id
                     //hrrfAcceptReject.ApprovedDate = DateTime.Now;
-                    // db.Entry(hrrfAcceptReject).State = System.Data.Entity.EntityState.Modified;
+                    // db.Entry(hrrfAcceptReject).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
-                    //string HRRFNumber = Session["hrrfno"].ToString();
+                    //string HRRFNumber = HttpContext.Session.GetString("hrrfno").ToString();
                     //TempData["hrrfno"] = HRRFNumber;
                     var objHRRF = db.HRRFs.Where(c => c.HRRFNumber == HRRFNumber).FirstOrDefault();
                     var hrrfAcceptReject = db.ExternalFulfillments.Where(h => h.HRRFNumber == HRRFNumber).ToList().FirstOrDefault();
@@ -1164,16 +1170,16 @@ namespace Trianz.Enterprise.Operations.Controllers
                     hrrfAcceptReject.Remarks = _Remarks; // needs to get from popup
                     hrrfAcceptReject.ApprovedBy = objHRRF.HRRFCreatedBy.ToString(); //need to get logged in user id
                     hrrfAcceptReject.ApprovedDate = DateTime.Now;
-                    db.Entry(hrrfAcceptReject).State = System.Data.Entity.EntityState.Modified;
+                    db.Entry(hrrfAcceptReject).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     // hrrf request type Status
                     objHRRF.RequestType = ConfigurationManager.AppSettings["I_RequestType"].ToString();
                     objHRRF.RequestStatus = ConfigurationManager.AppSettings["TR_Qualified"].ToString();
-                    db.Entry(objHRRF).State = System.Data.Entity.EntityState.Modified;
+                    db.Entry(objHRRF).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     //HRRF Histroy
                     var objHrrfHistory = new HRRFHistory();
                     objHrrfHistory.HRRFNumber = HRRFNumber;
                     objHrrfHistory.HistoryDescription = HRRFNumber + "-" + "has been Rejected for External";
-                    objHrrfHistory.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
+                    objHrrfHistory.ModifiedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                     objHrrfHistory.ModifiedDate = DateTime.Now;
                     db.HRRFHistories.Add(objHrrfHistory);
 
@@ -1193,7 +1199,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     tblNotification.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTR"].ToString();
 
                     string body = string.Empty;
-                    using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+                    using (StreamReader reader = new StreamReader(Path.Combine(Env.ContentRootPath, "Views/Shared/EmailTemplate.html")))
                     {
                         body = reader.ReadToEnd();
                     }
@@ -1255,7 +1261,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //        tblNotification.AssetID = Convert.ToString(TimeSheetID);
                 //        tblNotification.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTimesheet"];
                 //        string body = string.Empty;
-                //        using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+                //        using (StreamReader reader = new StreamReader(Path.Combine(Env.ContentRootPath, "Views/Shared/EmailTemplate.html")))
                 //        {
                 //            body = reader.ReadToEnd();
                 //        }
@@ -1313,7 +1319,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //hrrfAcceptReject.Remarks = _Remarks; // needs to get from popup
                     //hrrfAcceptReject.ApprovedBy = EmployeeID.EmployeeId.ToString(); //need to get logged in user id
                     //hrrfAcceptReject.ApprovedDate = DateTime.Now;
-                    //db.Entry(hrrfAcceptReject).State = System.Data.Entity.EntityState.Modified;
+                    //db.Entry(hrrfAcceptReject).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
 
                     //TempData["hrrfno"] = HRRFNumber;
@@ -1322,7 +1328,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     var objHRRF = db.HRRFs.Where(c => c.HRRFNumber == HRRFNumber).FirstOrDefault();
                     objHRRF.RequestStatus = ConfigurationManager.AppSettings["E_RequestType"].ToString();
 
-                    db.Entry(objHRRF).State = System.Data.Entity.EntityState.Modified;
+                    db.Entry(objHRRF).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     ExternalFulfillment hrrfAcceptReject = db.ExternalFulfillments.Where(h => h.HRRFNumber == HRRFNumber).FirstOrDefault();
                     hrrfAcceptReject.ApprovalStatus = ConfigurationManager.AppSettings["ExternalAccepted"].ToString();
@@ -1330,13 +1336,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                     hrrfAcceptReject.ApprovedDate = DateTime.Now;
                     hrrfAcceptReject.Remarks = _Remarks;
 
-                    db.Entry(hrrfAcceptReject).State = System.Data.Entity.EntityState.Modified;
+                    db.Entry(hrrfAcceptReject).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
 
                     //hrrf histroy
                     var objHrrfHistory = new HRRFHistory();
                     objHrrfHistory.HRRFNumber = HRRFNumber;
                     objHrrfHistory.HistoryDescription = HRRFNumber + "-" + "has been Accepted for External";
-                    objHrrfHistory.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
+                    objHrrfHistory.ModifiedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                     objHrrfHistory.ModifiedDate = DateTime.Now;
 
                     db.HRRFHistories.Add(objHrrfHistory);
@@ -1354,7 +1360,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     tblNotification.AssetID = Convert.ToString(HRRFNumber);
                     tblNotification.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTR"];
                     string body = string.Empty;
-                    using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+                    using (StreamReader reader = new StreamReader(Path.Combine(Env.ContentRootPath, "Views/Shared/EmailTemplate.html")))
                     {
                         body = reader.ReadToEnd();
                     }

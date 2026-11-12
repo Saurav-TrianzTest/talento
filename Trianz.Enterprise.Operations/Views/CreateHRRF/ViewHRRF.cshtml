@@ -1117,7 +1117,7 @@ new SelectListItem { Text ="P3",Value="P3"}
             $("#Positions").prop("disabled", true);
         }
 
-        var rolebind = @Html.Raw(Json.Encode(ViewData["_Role"]));
+        var rolebind = @Html.Raw(Json.Serialize(ViewData["_Role"]));
         @{
                 //List<string> rolebind = new List<string>();
                 //rolebind = (Html.Raw(Json.Encode(ViewData["_Role"]))).ToString;
@@ -2574,7 +2574,7 @@ new SelectListItem { Text ="P3",Value="P3"}
         var LocationType = $('#LocationType').val()
         DivVisaTypes = document.getElementById('DivVisaTypes')
         DivrequID = document.getElementById('DivrequID')
-        var role="@Session["Role"].ToString()";
+        var role="@Context.Session.GetString("Role").ToString()";
         if (LocationType == 1) {
             DivVisaTypes.style.visibility = "visible";
             if (role == "OM") {
@@ -2589,7 +2589,7 @@ new SelectListItem { Text ="P3",Value="P3"}
         var LocationType = $('#LocationType').val()
         DivVisaTypes = document.getElementById('DivVisaTypes')
         DivrequID = document.getElementById('DivrequID')
-        var role="@Session["Role"].ToString()";
+        var role="@Context.Session.GetString("Role").ToString()";
         if (LocationType == 1) {
             DivVisaTypes.style.visibility = "visible";
             if (role == "OM") {

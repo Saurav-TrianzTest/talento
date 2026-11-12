@@ -2,19 +2,24 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Models;
 using Trianz.Enterprise.Operations.ViewModel;
+using Microsoft.Extensions.Hosting;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
 
     public class TrainingController : Controller
     {
+    private readonly IWebHostEnvironment Env;
         TrianzOperationsEntities db = new TrianzOperationsEntities();
         // GET: Training
         public ActionResult Index()
@@ -31,21 +36,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                 return View();
 
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;
@@ -58,7 +52,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
 
-        //public ActionResult InsertTrainingData(FormCollection form, HttpPostedFileBase file)
+        //public ActionResult InsertTrainingData(IFormCollection form, IFormFile file)
         //{
 
         //    ValidateUploadTemplate validateUploadTemplate = new ValidateUploadTemplate();
@@ -68,22 +62,23 @@ namespace Trianz.Enterprise.Operations.Controllers
         //    DataSet ds = new DataSet();
         //    try
         //    {
-        //        if (Request.Files["file"].ContentLength > 0)
+        //        if (HttpContext.Request.Form.Files["file"].Length > 0)
         //        {
         //            string fileExtension =
-        //                                 System.IO.Path.GetExtension(Request.Files["file"].FileName);
+        //                                 System.IO.Path.GetExtension(HttpContext.Request.Form.Files["file"].FileName);
 
         //            if (fileExtension == ".xls" || fileExtension == ".xlsx")
         //            {
-        //                //string fileLocation = Server.MapPath("~/Content/") + Request.Files["file"].FileName;
-        //                string fileLocation = Server.MapPath("~/Content/") + string.Format(@"{0}.xlsx","Training"+DateTime.Now.Ticks);
+        //                //string fileLocation = Path.Combine(Env.ContentRootPath, "Content/") + HttpContext.Request.Form.Files["file"].FileName;
+        //                string fileLocation = Path.Combine(Env.ContentRootPath, "Content/") + string.Format(@"{0}.xlsx","Training"+DateTime.Now.Ticks);
         //                if (System.IO.File.Exists(fileLocation))
         //                {
 
         //                    System.IO.File.Delete(fileLocation);
 
         //                }
-        //                Request.Files["file"].SaveAs(fileLocation);
+        //                using (var stream = System.IO.File.Create(fileLocation))
+        //                { HttpContext.Request.Form.Files["file"].CopyTo(stream); }
 
         //                var File = new FileInfo(fileLocation);
 
@@ -225,7 +220,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                    uploadReportDT.WriteXml(oStringWriter, XmlWriteMode.IgnoreSchema);
         //                    sXMLDataRport = oStringWriter.ToString();
         //                    var xmlSchemaData = new SqlParameter("@xml", sXMLDataRport);
-        //                    var dataReuslt = db.Database.SqlQuery<List<int>>("exec sp_TrainingReport @xml", xmlSchemaData).ToList();
+        //                    var dataReuslt = db.Set<List<int>>().FromSqlRaw("exec sp_TrainingReport @xml", xmlSchemaData).ToList();
         //                    if (dataReuslt != null)
         //                    {
         //                        if (dataReuslt.Count > 0)
@@ -244,10 +239,10 @@ namespace Trianz.Enterprise.Operations.Controllers
         //        }
 
         //    }
-        //    catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+        //    catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
         //    {
         //        Exception raise = dbEx;
-        //        foreach (var validationErrors in dbEx.EntityValidationErrors)
+        //        foreach (var validationErrors in dbEx)
         //        {
         //            foreach (var validationError in validationErrors.ValidationErrors)
         //            {
@@ -264,13 +259,13 @@ namespace Trianz.Enterprise.Operations.Controllers
         //        throw raise;
         //    }
 
-        //    return Json(validateUploadTemplate, JsonRequestBehavior.AllowGet); ;
+        //    return Json(validateUploadTemplate); ;
         //}
 
-        public JsonResult InsertTrainingData(FormCollection form, HttpPostedFileBase file)
+        public JsonResult InsertTrainingData(IFormCollection form, IFormFile file)
         {
 
-            JsonResult validateUploadTemplate = new JsonResult();
+            JsonResult validateUploadTemplate = new JsonResult(null);
             ClientOutput ct = new ClientOutput();
 
             DataTable uploadReportDT = new DataTable();
@@ -278,22 +273,23 @@ namespace Trianz.Enterprise.Operations.Controllers
             try
             {
                 List<TrainingData> errlist = new List<TrainingData>();
-                if (Request.Files["file"].ContentLength > 0)
+                if (HttpContext.Request.Form.Files["file"].Length > 0)
                 {
                     string fileExtension =
-                                         System.IO.Path.GetExtension(Request.Files["file"].FileName);
+                                         System.IO.Path.GetExtension(HttpContext.Request.Form.Files["file"].FileName);
 
                     if (fileExtension == ".xls" || fileExtension == ".xlsx")
                     {
-                        //string fileLocation = Server.MapPath("~/Content/") + Request.Files["file"].FileName;
-                        string fileLocation = Server.MapPath("~/Content/") + string.Format(@"{0}.xlsx", "Training" + DateTime.Now.Ticks);
+                        //string fileLocation = Path.Combine(Env.ContentRootPath, "Content/") + HttpContext.Request.Form.Files["file"].FileName;
+                        string fileLocation = Path.Combine(Env.ContentRootPath, "Content/") + string.Format(@"{0}.xlsx", "Training" + DateTime.Now.Ticks);
                         if (System.IO.File.Exists(fileLocation))
                         {
 
                             System.IO.File.Delete(fileLocation);
 
                         }
-                        Request.Files["file"].SaveAs(fileLocation);
+                        using (var stream = System.IO.File.Create(fileLocation))
+                    { HttpContext.Request.Form.Files["file"].CopyTo(stream); }
 
                         var File = new FileInfo(fileLocation);
 
@@ -838,7 +834,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                     uploadReportDT.WriteXml(oStringWriter, XmlWriteMode.IgnoreSchema);
                                                     sXMLDataRport = oStringWriter.ToString();
                                                     var xmlSchemaData = new SqlParameter("@xml", sXMLDataRport);
-                                                    var dataReuslt = db.Database.SqlQuery<List<int>>("exec sp_TrainingReport @xml", xmlSchemaData).ToList();
+                                                    var dataReuslt = db.Set<List<int>>().FromSqlRaw("exec sp_TrainingReport @xml", xmlSchemaData).ToList();
                                                     if (dataReuslt != null)
                                                     {
                                                         if (dataReuslt.Count > 0)
@@ -942,14 +938,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
 
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 ct.Isvalid = false;
                 ct.message = "";
 
             }
-            validateUploadTemplate.Data = ct;
-            validateUploadTemplate.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+            validateUploadTemplate.Value = ct;
 
             return validateUploadTemplate;
         }
@@ -983,10 +978,10 @@ namespace Trianz.Enterprise.Operations.Controllers
         //        table.TableName = "TraningReport";
 
         //    }
-        //    catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+        //    catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
         //    {
         //        Exception raise = dbEx;
-        //        foreach (var validationErrors in dbEx.EntityValidationErrors)
+        //        foreach (var validationErrors in dbEx)
         //        {
         //            foreach (var validationError in validationErrors.ValidationErrors)
         //            {
@@ -1105,21 +1100,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                 return View();
             }
 
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;
@@ -1144,25 +1128,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 par.Add(new SqlParameter("@EndDate", string.IsNullOrEmpty(EndDate) ? (object)DBNull.Value : EndDate));
 
 
-                var TrainingInfo = db.Database.SqlQuery<sp_GetTrainingData_Result>("exec sp_GetTrainingData @ProgramName,@Location,@Practice,@AttendanceStatus,@Source,@Category,@Mode,@StartDate,@EndDate", par.ToArray()).ToList();
+                var TrainingInfo = db.Set<sp_GetTrainingData_Result>().FromSqlRaw("exec sp_GetTrainingData @ProgramName,@Location,@Practice,@AttendanceStatus,@Source,@Category,@Mode,@StartDate,@EndDate", par.ToArray()).ToList();
 
                 return PartialView("_GenerateReport", TrainingInfo);
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;
@@ -1185,7 +1158,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var mode = new SqlParameter("@Mode", Mode == "" ? (object)DBNull.Value : Mode);
                 var startDate = new SqlParameter("@StartDate", StartDate == "" ? (object)DBNull.Value : StartDate);
                 var endDate = new SqlParameter("@EndDate", EndDate == "" ? (object)DBNull.Value : EndDate);
-                var TrainingInfo = db.Database.SqlQuery<sp_GetTrainingData_Result>("exec sp_GetTrainingData @ProgramName,@Location,@Practice,@AttendanceStatus,@Source,@Category,@Mode,@StartDate,@EndDate", programName, location, practice, attendanceStatus, source, category, mode, startDate, endDate).ToList();
+                var TrainingInfo = db.Set<sp_GetTrainingData_Result>().FromSqlRaw("exec sp_GetTrainingData @ProgramName,@Location,@Practice,@AttendanceStatus,@Source,@Category,@Mode,@StartDate,@EndDate", programName, location, practice, attendanceStatus, source, category, mode, startDate, endDate).ToList();
                 var s = (from emp in TrainingInfo
                          select new sp_GetTrainingData_Result
                          {
@@ -1216,14 +1189,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 #region Export to Excel
 
                 using (ExcelPackage package = new ExcelPackage())
-                {
-                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Training Information");
+            {
+                        ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Training Information");
                     worksheet.TabColor = System.Drawing.Color.Green;
                     worksheet.DefaultRowHeight = 18f;
                     worksheet.Row(1).Height = 20f;
 
                     using (var range = worksheet.Cells[1, 1, 1, 19])
-                    {
+{
                         range.Style.Font.Bold = true;
                         range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                         range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -1313,8 +1286,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                         if (row % 2 == 1)
                         {
                             using (var range = worksheet.Cells[row, 1, row, 19])
-                            {
-                                range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+{
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                 range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
                                 range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -1334,14 +1307,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
-                    Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=" + "Training Data" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    
+                    Response.Headers.Add("content-disposition", "attachment;filename=" + "Training Data" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                    Response.Charset = "";
+                    
                     Response.ContentType = "application/vnd.ms-excel";
                     //StringWriter sw = new StringWriter();
-                    Response.BinaryWrite(fileBytes);
-                    Response.End();
+                    Response.Body.Write(fileBytes);
+                    
 
                 }
 
@@ -1349,21 +1322,10 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 return new EmptyResult();
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;
@@ -1391,7 +1353,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         public FileResult DownloadTainingReportTemplate()
         {
-            byte[] fileBytes = System.IO.File.ReadAllBytes(Server.MapPath(@"~\Content\Document\Training Sample Template.xlsx"));
+            byte[] fileBytes = System.IO.File.ReadAllBytes(Path.Combine(Env.ContentRootPath, "Content", "Document", "Training Sample Template.xlsx"));
             string fileName = "Training Sample Template.xlsx";
             return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
         }

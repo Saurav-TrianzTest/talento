@@ -411,9 +411,9 @@ new SelectListItem { Text ="P3",Value="P3"}
                 <div class="col-md-5 nopadding pull-left text-right">
                     @*<label style="color:cornflowerblue" for="textinput">Client interview</label>
                         <input type="checkbox" id="Clientint" name="Clientint" value="Yes">*@
-                    @if (Session["Role"].ToString() == "PM")
+                    @if (Context.Session.GetString("Role").ToString() == "PM")
                     {
-                        <input type="hidden" value="@Session["Role"].ToString()" id="PMRole" name="PMRole" />
+                        <input type="hidden" value="@Context.Session.GetString("Role").ToString()" id="PMRole" name="PMRole" />
                     }
                 </div>
                 <div class="clear-both"></div>
@@ -494,7 +494,7 @@ new SelectListItem { Text ="P3",Value="P3"}
                             </div>
                             <div class="col-md-12 nopadding">
                                 <div class="form-group col-md-6 col-sm-12" id="primarypractice">
-                                    @Html.Label("PrimaryPractice", new { @id = "" })
+                                    @Html.Label("PrimaryPractice", null, new { @id = "" })
                                     <input type="text" name="hdnPrimaryPractice" id="hdnPrimaryPractice" class="form-control" />
                                 </div>
                                 <div class="form-group col-md-3 col-sm-12" style=" width: 324px; margin-left: 350px; margin-top: -78px;">
@@ -2406,7 +2406,7 @@ salest.style.visibility = "visible";
         });
         if (LocationTypes == "1") {
             Name.style.visibility = "visible";
-            var role="@Session["Role"].ToString()";
+            var role="@Context.Session.GetString("Role").ToString()";
 
             if (role == "OM") {
                 requestID.style.visibility = "visible";
@@ -3167,7 +3167,7 @@ salest.style.visibility = "visible";
                 msg = msg + "<li>Enter Industry Domain Skill</li>";
             }
         }
-        //if (Session["EmployeeId"].Tostring() == 0) {
+        //if (Context.Session.GetString("EmployeeId").Tostring() == 0) {
         //    msg = msg + "<li>Seesion has been expired please login again.</li>";
         //}
 

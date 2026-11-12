@@ -162,9 +162,9 @@
                 <div>
                     <label style="margin-left:15px">Recruiter Name</label>&nbsp;&nbsp;
                     @Html.DropDownList("RecruiterName", new SelectList((System.Collections.IEnumerable)ViewData["_RecruiterName"], "Value", "Text"), "Select Recruiter Name", new { style = "height: 32px;width:200px" })
-                    @if (Session["EmployeeId"].ToString() == "103422" || Session["EmployeeId"].ToString() == "102342"
-                    || Session["EmployeeId"].ToString() == "102536" || Session["EmployeeId"].ToString() == "103857"
-                    || Session["EmployeeId"].ToString() == "104209" || Session["EmployeeId"].ToString() == "103212" || Session["EmployeeId"].ToString() == "105009" || Session["EmployeeId"].ToString() == "105977")
+                    @if (Context.Session.GetString("EmployeeId").ToString() == "103422" || Context.Session.GetString("EmployeeId").ToString() == "102342"
+                    || Context.Session.GetString("EmployeeId").ToString() == "102536" || Context.Session.GetString("EmployeeId").ToString() == "103857"
+                    || Context.Session.GetString("EmployeeId").ToString() == "104209" || Context.Session.GetString("EmployeeId").ToString() == "103212" || Context.Session.GetString("EmployeeId").ToString() == "105009" || Context.Session.GetString("EmployeeId").ToString() == "105977")
                     {
                         <script>
                             $('#RecruiterName').removeAttr('disabled');
@@ -173,9 +173,9 @@
 
                     <label>Lead Name</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     @Html.DropDownList("leadName", new SelectList((System.Collections.IEnumerable)ViewData["_RecruiterName"], "Value", "Text"), "Select lead Name", new { style = "height: 32px;width:200px" })
-                    @if (Session["EmployeeId"].ToString() == "103422" || Session["EmployeeId"].ToString() == "102342"
-                    || Session["EmployeeId"].ToString() == "102536" || Session["EmployeeId"].ToString() == "103857"
-                    || Session["EmployeeId"].ToString() == "104209" || Session["EmployeeId"].ToString() == "103212" || Session["EmployeeId"].ToString() == "105009" || Session["EmployeeId"].ToString() == "105977")
+                    @if (Context.Session.GetString("EmployeeId").ToString() == "103422" || Context.Session.GetString("EmployeeId").ToString() == "102342"
+                    || Context.Session.GetString("EmployeeId").ToString() == "102536" || Context.Session.GetString("EmployeeId").ToString() == "103857"
+                    || Context.Session.GetString("EmployeeId").ToString() == "104209" || Context.Session.GetString("EmployeeId").ToString() == "103212" || Context.Session.GetString("EmployeeId").ToString() == "105009" || Context.Session.GetString("EmployeeId").ToString() == "105977")
                     {
                         <script>
                             $('#leadName').removeAttr('disabled');

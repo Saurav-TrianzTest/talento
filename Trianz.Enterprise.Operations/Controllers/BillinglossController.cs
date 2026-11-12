@@ -4,16 +4,16 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Script.Serialization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json;
 using Trianz.Enterprise.Operations.Filters;
 using Trianz.Enterprise.Operations.Models;
-using Microsoft.Owin.Security;
-using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.OpenIdConnect;
 using Trianz.Enterprise.Operations.General;
 using DocumentFormat.OpenXml.Drawing.Charts;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
@@ -28,7 +28,7 @@ namespace Trianz.Enterprise.Operations.Controllers
    
         public ActionResult GetHRRFsByFilters(string strreqstatus, string strCrtticality, DateTime? fromdate, DateTime? todate)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
             try
             {
@@ -43,13 +43,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Todate = Convert.ToDateTime(todate);
                 }
-                int? EmpId = Convert.ToInt32(Session["EmployeeId"]);
+                int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                // strRequest = strRequest != null ? (strRequest.ToLower() == "myrequest") ? "" : strRequest.ToUpper() : string.Empty;
-                    var lstHRRF = db.Database.SqlQuery<sp_GetBillingsLossList_Result>("exec [dbo].[sp_GetBillingsLossList]  @Criticality, @FromDate, @ToDate,@RequestStatus",          
-                    new System.Data.SqlClient.SqlParameter("Criticality", strCrtticality),
-                    new System.Data.SqlClient.SqlParameter("FromDate", Fromdate ?? (object)DBNull.Value),
-                    new System.Data.SqlClient.SqlParameter("ToDate", Todate ?? (object)DBNull.Value),
-                    new System.Data.SqlClient.SqlParameter("RequestStatus", strreqstatus)).ToList<sp_GetBillingsLossList_Result>();
+                    var lstHRRF = db.Set<sp_GetBillingsLossList_Result>().FromSqlRaw("exec [dbo].[sp_GetBillingsLossList]  @Criticality, @FromDate, @ToDate,@RequestStatus",          
+                    new Microsoft.Data.SqlClient.SqlParameter("Criticality", strCrtticality),
+                    new Microsoft.Data.SqlClient.SqlParameter("FromDate", Fromdate ?? (object)DBNull.Value),
+                    new Microsoft.Data.SqlClient.SqlParameter("ToDate", Todate ?? (object)DBNull.Value),
+                    new Microsoft.Data.SqlClient.SqlParameter("RequestStatus", strreqstatus)).ToList<sp_GetBillingsLossList_Result>();
 
                     List<BillingLoss> billinglosslist = new List<BillingLoss>();              
                     DateTime date2 = DateTime.Now;
@@ -153,14 +153,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
           }
 
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }

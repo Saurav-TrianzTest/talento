@@ -1,12 +1,14 @@
-﻿using PagedList;
+﻿using X.PagedList;
 using System;
+using System.Web.Helpers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Models;
 using System.Configuration;
-using System.Web.Helpers;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
@@ -24,8 +26,8 @@ namespace Trianz.Enterprise.Operations.Controllers
             ViewBag.CurrentSort = sortOrder;
             //ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "HRRF Number desc" : "";
             ViewData["Status"] = liststatus;
-            Session["Status"] = ddlStatus;
-            Session["searchString"] = searchString;
+            HttpContext.Session.SetString("Status", ddlStatus.ToString());
+            HttpContext.Session.SetString("searchString", searchString.ToString());
             if (searchString != null)
             {
                 page = 1;
@@ -172,14 +174,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 List<ProposeAssociate> listpropose = new List<ProposeAssociate>();
 
                 string ddlStatus = string.Empty;
-                if (Session["Status"] != null)
+                if (HttpContext.Session.GetString("Status") != null)
                 {
-                    ddlStatus = Session["Status"].ToString();
+                    ddlStatus = HttpContext.Session.GetString("Status").ToString();
                 }
                 string SearchEmployee = string.Empty;
-                if (Session["searchString"] != null)
+                if (HttpContext.Session.GetString("searchString") != null)
                 {
-                    SearchEmployee = Session["searchString"].ToString();
+                    SearchEmployee = HttpContext.Session.GetString("searchString").ToString();
                 }
 
                 if (string.IsNullOrEmpty(SearchEmployee))
@@ -236,28 +238,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                   grid.Column("ProposedBy", "ProposedBy")
                                )
                 ).ToString();
-                Response.ClearContent();
-                Response.AddHeader("content-disposition", "attachment; filename=ProposeInfo.xls");
+                Response.Clear();
+                Response.Headers.Add("content-disposition", "attachment; filename=ProposeInfo.xls");
                 Response.ContentType = "application/excel";
-                Response.Write(gridData);
-                Response.End();
+                Response.WriteAsync(gridData);
+                
 
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;

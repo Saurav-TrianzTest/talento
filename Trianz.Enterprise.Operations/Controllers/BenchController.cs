@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.General;
 //using ResourceEXPERT.Models;
 //using ResourceEXPERT.ViewModels;
 using Trianz.Enterprise.Operations.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
@@ -17,7 +19,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         // GET: Bench
          public ActionResult Resources(string page = "", string ddlPractise = "", string EmpFName = "")
          {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -53,13 +55,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
 
@@ -68,19 +70,19 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public ActionResult GetResource(string term)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
                 var result = (from r in _db.Employees
                               where r.ReservationStatus != "Free" && r.FirstName.ToLower().Contains(term)
                               select r.FirstName).Distinct();
 
-                return Json(result, JsonRequestBehavior.AllowGet);
+                return Json(result);
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -88,7 +90,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public JsonResult GetBenchResourcewithID()
         {
-            JsonResult result = new JsonResult();
+            JsonResult result = new JsonResult(null);
 
             var Reources = (from e in _db.Employees
                             join be in _db.BenchEmployees on e.EmployeeId
@@ -100,15 +102,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                             LastName=e.LastName,
                             EmpID=e.EmployeeId
                             }).Distinct().ToList();
-            result.Data = Reources.ToList();
-            result.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
+            result.Value = Reources.ToList();
             return result;
         }
 
 
         public ActionResult GetBenchResource(string term)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -118,25 +119,25 @@ namespace Trianz.Enterprise.Operations.Controllers
                                   where e.FirstName.ToLower().Contains(term) && e.ReservationStatus == "Free"
                                   select e.FirstName).Distinct();
 
-                    return Json(result, JsonRequestBehavior.AllowGet);
+                    return Json(result);
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult GetBenchSPOC(string term)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -145,19 +146,19 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //              where r.Supervisor.ToLower().Contains(term)
                     //              select r.Supervisor).Distinct();
 
-                    return Json(result, JsonRequestBehavior.AllowGet);
+                    return Json(result);
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
 
@@ -166,7 +167,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
 
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -240,7 +241,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
                
                 //return View();
@@ -248,7 +249,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -296,25 +297,25 @@ namespace Trianz.Enterprise.Operations.Controllers
                 if (!string.IsNullOrEmpty(existingEmpNumber))
                 {
                     existingEmpNumber = existingEmpNumber.Substring(1);
-                    return Json(new { success = true, responseText = existingEmpNumber }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = true, responseText = existingEmpNumber });
                 }
                 else
                 {
-                    return Json(_benchEmployee, JsonRequestBehavior.AllowGet);
+                    return Json(_benchEmployee);
                 }
             }
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
                // return RedirectToAction("Error", "Error");
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
            
         }
         [HttpPost]
         public ActionResult Resources(int? empNum)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -328,7 +329,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //                       select emp).FirstOrDefault();
 
                     ViewBag.SelectedEmployee = selectedEmployee.FirstOrDefault();
-                    //return Json(selectedEmployee.ToList(), JsonRequestBehavior.AllowGet);
+                    //return Json(selectedEmployee.ToList());
                     //return PartialView("_EmployeeGrid", selectedEmployee.ToList());
                     return View(selectedEmployee);
                 }
@@ -336,7 +337,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
 
 
@@ -344,14 +345,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-              //  return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+              //  return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
 
             }
         public ActionResult EmployeeDetails(int empNum)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -365,7 +366,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
 
 
@@ -373,14 +374,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         [HttpPost]
         public ActionResult EmployeeDetails(int? empNum)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
                 try
@@ -397,7 +398,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     // return View("EmployeeDetails",selectedEmployee);
 
                     return RedirectToAction("EmployeeDetails", "Bench", new { empNum = empNum });
-                    //return Json(selectedEmployee.ToList(), JsonRequestBehavior.AllowGet);
+                    //return Json(selectedEmployee.ToList());
                     //return PartialView("_EmployeeGrid", selectedEmployee.ToList());
                     //return View("Resources", selectedEmployee.ToList());
                 }
@@ -405,7 +406,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
 
 
@@ -413,7 +414,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
 
@@ -422,7 +423,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         [HttpPost]
         public ActionResult SearchResources(string employeeName)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -432,14 +433,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                     ViewBag.DefaultEmployee = searchEmployee.FirstOrDefault();
                     return View("Resources", searchEmployee.ToList());
 
-                    //return Json(searchEmployee.ToList(), JsonRequestBehavior.AllowGet);
+                    //return Json(searchEmployee.ToList());
                     //return PartialView("_EmployeeGrid", searchEmployee.ToList());
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
 
 
@@ -448,7 +449,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
 
@@ -457,7 +458,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         [HttpGet]
         public ActionResult SearchBenchEmployee()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -490,7 +491,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
 
 
@@ -498,7 +499,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
 
@@ -506,7 +507,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         [HttpPost]
         public ActionResult SearchBenchEmployee(string SPOC, string Practice, string Resource)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -561,14 +562,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
                     //return PartialView("_BenchEmployeeGrid", benchEmployees.ToList());
-                    //return Json(benchEmployees.ToList(), JsonRequestBehavior.AllowGet);
+                    //return Json(benchEmployees.ToList());
                     return View("AddResources", benchEmployees.ToList());
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                    // return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
 
@@ -577,7 +578,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
             }
@@ -585,7 +586,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         [HttpGet]
         public ActionResult SearchEmployeeWithPractice()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -595,29 +596,29 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //    strPractice =Convert.ToString(TempData["Practice"]);
                     //}
 
-                    if (Session["Practice"] != null)
+                    if (HttpContext.Session.GetString("Practice") != null)
                     {
-                        strPractice = Convert.ToString(Session["Practice"]);
+                        strPractice = Convert.ToString(HttpContext.Session.GetString("Practice"));
                     }
                     var searchPractice = from e in _db.Employees
                                          where e.Practice == strPractice
                                          select e;
                     ViewBag.DefaultEmployee = searchPractice.FirstOrDefault();
-                    //return Json(searchEmployee.ToList(), JsonRequestBehavior.AllowGet);
+                    //return Json(searchEmployee.ToList());
                     return View("Resources", searchPractice.ToList());
-                    //return Json(searchEmployee.ToList(), JsonRequestBehavior.AllowGet);
+                    //return Json(searchEmployee.ToList());
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
 
@@ -626,7 +627,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         [HttpPost]
         public ActionResult SearchEmployeeWithPractice(string Practice)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -634,23 +635,23 @@ namespace Trianz.Enterprise.Operations.Controllers
                                          where e.Practice == Practice
                                          select e;
                     //TempData["Practice"] = Practice;
-                    Session["Practice"] = Practice;
+                    HttpContext.Session.SetString("Practice", Practice.ToString());
                     ViewBag.DefaultEmployee = searchPractice.FirstOrDefault();
-                    //return Json(searchEmployee.ToList(), JsonRequestBehavior.AllowGet);
+                    //return Json(searchEmployee.ToList());
                     return View("Resources", searchPractice.ToList());
-                    //return Json(searchEmployee.ToList(), JsonRequestBehavior.AllowGet);
+                    //return Json(searchEmployee.ToList());
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
              else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -658,7 +659,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         [HttpPost]
         public ActionResult UpdateBenchResource(int BenchEmployeeID, string SPOC, string ProjectCode, DateTime StartDate, DateTime EndDate, string LocationType, string Location, string Status, int Utilization, string Comments)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -677,19 +678,19 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     _db.SaveChanges();
 
-                    return Json(benchEmployee, JsonRequestBehavior.AllowGet);
+                    return Json(benchEmployee);
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                    // return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                // return RedirectToAction("SessionExpire", "Signout");
             }
             }

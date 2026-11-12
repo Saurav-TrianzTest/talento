@@ -10,19 +10,21 @@
 namespace Trianz.Enterprise.Operations.Models
 {
     using System;
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
     
     public partial class TZ_CorporateOperationsEntities : DbContext
     {
-        public TZ_CorporateOperationsEntities()
-            : base("name=TZ_CorporateOperationsEntities")
+        private readonly IConfiguration _configuration;
+
+        public TZ_CorporateOperationsEntities(DbContextOptions<TZ_CorporateOperationsEntities> options)
+            : base(options)
         {
         }
     
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            throw new UnintentionalCodeFirstException();
+            // Model configuration migrated from EF6 EDMX
         }
     
         public virtual DbSet<Application> Applications { get; set; }

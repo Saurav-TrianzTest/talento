@@ -12,10 +12,12 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>TR-Trianz Corporate Operations</title>
     <!-- Bootstrap css -->
-    @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/modernizr")
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
+    <link href="~/Content/bootstrap.css" rel="stylesheet" />
+<link href="~/Content/site.css" rel="stylesheet" />
+    <script src="~/Scripts/modernizr.js"></script>
+    <script src="~/Scripts/jquery.js"></script>
+<script src="~/Scripts/jquery.unobtrusive-ajax.js"></script>
+    <script src="~/Scripts/bootstrap.js"></script>
     @RenderSection("scripts", required: false)
     @*<link href="~/Content/custom.css" rel="stylesheet" />*@
     @*<link href="~/Content/datatable.css" rel="stylesheet" />*@
@@ -155,9 +157,9 @@
     </style>
 
 </head>
-@if (!Request.IsAuthenticated)
+@if (!User.Identity.IsAuthenticated)
 {
-    ((TRHomeController)this.ViewContext.Controller).SignIn();
+    Context.Response.Redirect(Url.Action("SignIn", "TRHome"));
 
 }
 else
@@ -204,7 +206,7 @@ else
                         </div>
 
                         <div>
-                            @if ((Convert.ToInt32(Session["EmployeeId"]) != 105825)) //acceess restriction
+                            @if ((Convert.ToInt32(Context.Session.GetString("EmployeeId")) != 105825)) //acceess restriction
                             {
 
 
@@ -229,21 +231,21 @@ else
                                                 {*@
                                             <ul class="nav navbar-nav left-nav" style="position: relative;top: 1px;left:0px;padding: 0px 54px;width: 101%;background-color: #FFFFFF;
 ">
-                                                @if (Session["Role"] != null)
+                                                @if (Context.Session.GetString("Role") != null)
                                                 {
-                                                    if (Session["Role"].ToString() == "PM")
+                                                    if (Context.Session.GetString("Role").ToString() == "PM")
                                                     {
                                                         @*<li id="MenuTrianzOperations"><span></span>@Html.ActionLink( "index", "trhome")<span class="sr-only">(current)</span></li>*@
                                                         <li id="MenuTrianzOperations"><a href="@Url.Action("index", "trhome")"><span class="sr-only">(current)</span><span class="glyphicon glyphicon-home" aria-hidden="true"></span><b style="position: relative;left: 6px;">Home</b></a></li>
                                                         <li id="MenuEmployee"><a href="@Url.Action("addnewskills", "employeeskills")"><span class="icon icon-profile"></span><b> My Profile</b></a></li>
                                                         <li id="MenuApprovals"><a href="@Url.Action("mynotifications", "notifications")"><span class="icon icon-Approvals"></span><b>Approvals</b></a></li>
 
-                                                        if (Session["Supervisor"] != null)
+                                                        if (Context.Session.GetString("Supervisor") != null)
                                                         {
                                                             @*<li id="MenuTeamTrack"><a href="@Url.Action("TeamTrack", "TeamTrack")">TeamTrack</a></li>*@
                                                         }
                                                         @*<li id="TrainingApprovals"><a href="@Url.Action("UploadTrainingDocument", "Training" )">Training</a></li>*@
-                                                        if (Session["EmployeeId"].ToString() == "103170") // Surya.Medisetti
+                                                        if (Context.Session.GetString("EmployeeId").ToString() == "103170") // Surya.Medisetti
                                                         {
                                                             <li class="dropdown" id="MenuReport" style="margin-left:-6px;">
                                                                 <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="icon icon-report"></span><b>Report</b> <span class="caret"></span></a>
@@ -271,7 +273,7 @@ else
                                                                 @{
                                                                     List<string> lstEmpIDsforActiveassg = System.Configuration.ConfigurationManager.AppSettings["ActiveAssignmentDownload"].Split(',').ToList();
 
-                                                                    bool IsValid = lstEmpIDsforActiveassg.Where(e => Session["EmployeeId"].ToString().Contains(e)).Any();
+                                                                    bool IsValid = lstEmpIDsforActiveassg.Where(e => Context.Session.GetString("EmployeeId").ToString().Contains(e)).Any();
                                                                     if (IsValid)
                                                                     {
                                                                         @:
@@ -281,7 +283,7 @@ else
                                                                 @{
                                                                     List<string> ListRiseTeam = System.Configuration.ConfigurationManager.AppSettings["RiseTeam"].Split(',').ToList();
 
-                                                                    bool IsValidDash = ListRiseTeam.Where(e => Session["EmployeeId"].ToString().Contains(e)).Any();
+                                                                    bool IsValidDash = ListRiseTeam.Where(e => Context.Session.GetString("EmployeeId").ToString().Contains(e)).Any();
                                                                     if (IsValidDash && !isDM)
                                                                     {
                                                                         @:
@@ -310,7 +312,7 @@ else
                                                         //Need to remove later
                                                         @*
                 <li class="dropdown" id="MenuAdminDashboard">
-                    @if (Session["Role"].ToString() != "" && Session["Role"].ToString() == "Admin")
+                    @if (Context.Session.GetString("Role").ToString() != "" && Context.Session.GetString("Role").ToString() == "Admin")
                     {
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> Admin <span class="caret"></span></a>
                     <ul class="dropdown-menu">
@@ -341,7 +343,7 @@ else
                     </ul>
                 </li>*@
                                                     }
-                                                    if (Session["Role"].ToString() == "OM")
+                                                    if (Context.Session.GetString("Role").ToString() == "OM")
                                                     {
                                                         @*<li id="MenuTrianzOperations">@Html.ActionLink("TR Home", "index", "trhome")<span></span><span class="sr-only"> (current)</span></li>*@
                                                         <li id="MenuTrianzOperations"><a href="@Url.Action("index", "trhome")"><span class="sr-only">(current)</span><span class="glyphicon glyphicon-home" aria-hidden="true"></span><b style="position: relative;left: 6px;">Home</b></a></li>
@@ -355,11 +357,11 @@ else
                 </li>*@
                                                         <li id="MenuApprovals"><a href="@Url.Action("mynotifications", "notifications")"><span class="icon icon-Approvals"></span><b>Approvals</b></a></li>
                                                         @*<li id="Employees"><a href="@Url.Action(" ", "MasterReport")"><span class="icon icon-employees"></span><b>Employees</b> </a></li>*@
-                                                        if (Session["Supervisor"] != null)
+                                                        if (Context.Session.GetString("Supervisor") != null)
                                                         {
                                                             @*<li id="MenuTeamTrack"><a href="@Url.Action("TeamTrack", "TeamTrack")">TeamTrack</a></li>*@
                                                         }
-                                                        if (Session["EmployeeId"].ToString() == "107881" || Session["EmployeeId"].ToString() == "107461" || Session["EmployeeId"].ToString() == "107510" || Session["EmployeeId"].ToString() == "101035" || Session["EmployeeId"].ToString() == "107077")
+                                                        if (Context.Session.GetString("EmployeeId").ToString() == "107881" || Context.Session.GetString("EmployeeId").ToString() == "107461" || Context.Session.GetString("EmployeeId").ToString() == "107510" || Context.Session.GetString("EmployeeId").ToString() == "101035" || Context.Session.GetString("EmployeeId").ToString() == "107077")
                                                         {
                                                             <li class="dropdown" id="MenuReport">
                                                                 <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="icon icon-report"></span><b>Report</b> <span class="caret"></span></a>
@@ -417,7 +419,7 @@ else
                                                                 @{
                                                                     List<string> lstEmpIDsforActiveassg = System.Configuration.ConfigurationManager.AppSettings["ActiveAssignmentDownload"].Split(',').ToList();
 
-                                                                    bool IsValid = lstEmpIDsforActiveassg.Where(e => Session["EmployeeId"].ToString().Contains(e)).Any();
+                                                                    bool IsValid = lstEmpIDsforActiveassg.Where(e => Context.Session.GetString("EmployeeId").ToString().Contains(e)).Any();
                                                                     if (IsValid)
                                                                     {
                                                                         @:
@@ -448,7 +450,7 @@ else
                                                             </ul>
                                                         </li>
                                                     }
-                                                    if (Session["Role"].ToString() == "DH" || Session["Role"].ToString() == "SM") // && (Convert.ToInt16(Session["Grade"]) >= 5)
+                                                    if (Context.Session.GetString("Role").ToString() == "DH" || Context.Session.GetString("Role").ToString() == "SM") // && (Convert.ToInt16(Context.Session.GetString("Grade")) >= 5)
                                                     {
                                                         <li id="MenuTrianzOperations"><a href="@Url.Action("index", "trhome")"><span class="sr-only">(current)</span><span class="glyphicon glyphicon-home" aria-hidden="true"></span><b style="position: relative;left: 6px;">Home</b></a></li>
                                                         <li id="MenuEmployee"><a href="@Url.Action("addnewskills", "employeeskills")"><span class="icon icon-profile"></span><b> My Profile</b></a></li>
@@ -462,7 +464,7 @@ else
                                                         <li id="MenuApprovals"><a href="@Url.Action("mynotifications", "notifications")"><span class="icon icon-Approvals"></span><b>Approvals</b></a></li>
 
 
-                                                        if (Session["Supervisor"] != null)
+                                                        if (Context.Session.GetString("Supervisor") != null)
                                                         {
                                                             @*<li id="MenuTeamTrack"><a href="@Url.Action("TeamTrack", "TeamTrack" )">TeamTrack</a></li>*@
                                                         }
@@ -489,7 +491,7 @@ else
                                                                 @{
                                                                     List<string> lstEmpIDsforActiveassg = System.Configuration.ConfigurationManager.AppSettings["ActiveAssignmentDownload"].Split(',').ToList();
 
-                                                                    bool IsValid = lstEmpIDsforActiveassg.Where(e => Session["EmployeeId"].ToString().Contains(e)).Any();
+                                                                    bool IsValid = lstEmpIDsforActiveassg.Where(e => Context.Session.GetString("EmployeeId").ToString().Contains(e)).Any();
                                                                     if (IsValid)
                                                                     {
                                                                         @:
@@ -520,7 +522,7 @@ else
 
 
                                                     }
-                                                    if (Session["Role"].ToString() == "LDAdmin")
+                                                    if (Context.Session.GetString("Role").ToString() == "LDAdmin")
                                                     {
                                                         @*<li id="MenuTrianzOperations">@Html.ActionLink("TR Home", "index", "trhome")<span class="sr-only">(current)</span></li>*@
                                                         <li id="MenuTrianzOperations"><a href="@Url.Action("index", "trhome")"><span class="sr-only">(current)</span><span class="glyphicon glyphicon-home" aria-hidden="true"></span><b style="position: relative;left: 6px;">TR Home</b></a></li>
@@ -538,13 +540,13 @@ else
                                                             </ul>
                                                         </li>
                                                     }
-                                                    if (Session["Role"].ToString() == "CompetencyAdmin")
+                                                    if (Context.Session.GetString("Role").ToString() == "CompetencyAdmin")
                                                     {
                                                         @*<li id="MenuTrianzOperations">@Html.ActionLink("TR Home", "index", "trhome")<span class="sr-only">(current)</span></li>*@
                                                         <li id="MenuTrianzOperations"><a href="@Url.Action("index", "trhome")"><span class="sr-only">(current)</span><span class="glyphicon glyphicon-home" aria-hidden="true"></span><b>TR Home</b></a></li>
                                                         <li id="MenuEmployee"><a href="@Url.Action("addnewskills", "employeeskills")"><b>My Profile</b></a></li>
                                                         <li id="MenuApprovals"><a href="@Url.Action("mynotifications", "notifications")"><b>My Approvals</b></a></li>
-                                                        if (Session["Supervisor"] != null)
+                                                        if (Context.Session.GetString("Supervisor") != null)
                                                         {
                                                             @*<li id="MenuTeamTrack"><a href="@Url.Action("TeamTrack", "TeamTrack" )">TeamTrack</a></li>*@
                                                         }
@@ -556,7 +558,7 @@ else
                                                             </ul>
                                                         </li>
                                                     }
-                                                    if (Session["Role"].ToString() == "Admin")
+                                                    if (Context.Session.GetString("Role").ToString() == "Admin")
                                                     {
                                                         @*<li id="MenuTrianzOperations">@Html.ActionLink("TR Home", "index", "trhome")<span class="sr-only">(current)</span></li>*@
                                                         <li id="MenuTrianzOperations"><a href="@Url.Action("index", "trhome")"><span class="sr-only">(current)</span><span class="glyphicon glyphicon-home" aria-hidden="true"></span><b>TR Home</b></a></li>
@@ -570,7 +572,7 @@ else
                 </li>*@
 
                                                         <li id="MenuApprovals"><a href="@Url.Action("mynotifications", "notifications")"><b>My Approvals</b></a></li>
-                                                        if (Session["Supervisor"] != null)
+                                                        if (Context.Session.GetString("Supervisor") != null)
                                                         {
                                                             @*<li id="MenuTeamTrack"><a href="@Url.Action("TeamTrack", "TeamTrack" )">TeamTrack</a></li>*@
                                                         }
@@ -619,7 +621,7 @@ else
                                                         <!-- **** Above code is commented by Sarath, because code is not specified by this 'Admin' role, hence getting page exception error. **** -->
                                                     }
                                                     @* Project asssignment *@
-                                                    @*@if (Session["Role"].ToString() != "" && (Session["Role"].ToString() == "PM" || Session["Role"].ToString() == "OM"))
+                                                    @*@if (Context.Session.GetString("Role").ToString() != "" && (Context.Session.GetString("Role").ToString() == "PM" || Context.Session.GetString("Role").ToString() == "OM"))
             {
             <li class="dropdown" id="">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Assignment<span class="caret"></span></a>
@@ -629,14 +631,14 @@ else
             </li>
             }*@
 
-                                                    if (Session["Role"].ToString() == "RL")
+                                                    if (Context.Session.GetString("Role").ToString() == "RL")
                                                     {
                                                         @*<li id="MenuTrianzOperations">@Html.ActionLink("TR Home", "index", "trhome")<span class="sr-only">(current)</span></li>*@
                                                         <li id="MenuTrianzOperations"><a href="@Url.Action("index", "trhome")"><span class="sr-only">(current)</span><span class="glyphicon glyphicon-home" aria-hidden="true"></span><b style="margin: 0 7px;">Home</b></a></li>
 
                                                         <li id="MenuApprovals"><a href="@Url.Action("mynotifications", "notifications")"><span class="icon icon-Approvals"></span><b>Approvals</b></a></li>
 
-                                                        if (Session["Supervisor"] != null)
+                                                        if (Context.Session.GetString("Supervisor") != null)
                                                         {
                                                             @*<li id="MenuTeamTrack"><a href="@Url.Action("TeamTrack", "TeamTrack" )">TeamTrack</a></li>*@
                                                         }
@@ -651,7 +653,7 @@ else
                 </li>*@
                                                     };
 
-                                                    if (Session["Role"].ToString() != "OM" && Session["ClusterManager"].ToString() == "1")
+                                                    if (Context.Session.GetString("Role").ToString() != "OM" && Context.Session.GetString("ClusterManager").ToString() == "1")
                                                     {
                                                         <li id="MenuCluster">
                                                             <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="icon icon-cluster"></span></a>
@@ -661,7 +663,7 @@ else
                                                         </li>
 
                                                     }
-                                                    if (Session["Role"].ToString() != "OM" && Session["ClusterLeadId"].ToString() == "1")
+                                                    if (Context.Session.GetString("Role").ToString() != "OM" && Context.Session.GetString("ClusterLeadId").ToString() == "1")
                                                     {
                                                         <li id="MenuCluster">
                                                             <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><b>Cluster</b></a>
@@ -671,11 +673,11 @@ else
                                                         </li>
 
                                                     }
-                                                    if (Session["Role"].ToString() == "OM")
+                                                    if (Context.Session.GetString("Role").ToString() == "OM")
                                                     {
                                                         <li id="MenuTrianzOperations" class="externalactive"><a href="@Url.Action("index", "externalreport")"><span class="icon icon-fulfillment"></span><b>External Fulfillment</b></a></li>
                                                         @*<li id="MenuCluster"><a href="@Url.Action("Index","SkillCluster")">Cluster Master</a></li>*@
-                                                        //if (Session["ClusterLeadId"].ToString() == "Cl")
+                                                        //if (Context.Session.GetString("ClusterLeadId").ToString() == "Cl")
                                                         //{
                                                         <li id="MenuCluster">
                                                             <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="icon icon-cluster"></span><b>Cluster</b></a>
@@ -706,7 +708,7 @@ else
 
 
 
-                                                    if (Session["Role"].ToString() == "User")
+                                                    if (Context.Session.GetString("Role").ToString() == "User")
                                                     {
                                                         <li id="MenuEmployee">
                                                             <a href="@Url.Action("addnewskills", "employeeskills")"><b>My Profile</b></a>
@@ -719,7 +721,7 @@ else
                     </ul>
                 </li>*@
                                                     }
-                                                    if (Session["Role"].ToString() == "Finance")
+                                                    if (Context.Session.GetString("Role").ToString() == "Finance")
                                                     {
 
 
@@ -727,7 +729,7 @@ else
                                                         <li id="MenuTrianzOperations"><a href="@Url.Action("index", "trhome")"><span class="sr-only">(current)</span><span class="glyphicon glyphicon-home" aria-hidden="true"></span><b>TR Home</b></a></li>
                                                         <li id="MenuEmployee"><a href="@Url.Action("addnewskills", "employeeskills")"><b>My Profile</b></a></li>
                                                         <li id="MenuApprovals"><a href="@Url.Action("mynotifications", "notifications")"><b>My Approvals</b></a></li>
-                                                        if (Session["Supervisor"] != null)
+                                                        if (Context.Session.GetString("Supervisor") != null)
                                                         {
                                                             @*<li id="MenuTeamTrack"><a href="@Url.Action("TeamTrack", "TeamTrack")">TeamTrack</a></li>*@
                                                         }
@@ -745,7 +747,7 @@ else
                                                                 @{
                                                                     List<string> lstEmpIDsforActiveassg = System.Configuration.ConfigurationManager.AppSettings["ActiveAssignmentDownload"].Split(',').ToList();
 
-                                                                    bool IsValid = lstEmpIDsforActiveassg.Where(e => Session["EmployeeId"].ToString().Contains(e)).Any();
+                                                                    bool IsValid = lstEmpIDsforActiveassg.Where(e => Context.Session.GetString("EmployeeId").ToString().Contains(e)).Any();
                                                                     if (IsValid)
                                                                     {
                                                                         @:
@@ -796,25 +798,25 @@ else
                                                          <li id="MenuSignout" style="position: relative;left: 116px; top: 15px;"><a href="@Url.Action("SignOut", "signout")"><i class="fa fa-sign-out" aria-hidden="true"></i> Sign out</a></li>
                                                 </ul>*@
 
-                                            @*@if ((Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "SM" || Session["Role"].ToString() == "LDAdmin" || Session["Role"].ToString() == "CompetencyAdmin" || Session["Role"].ToString() == "Finance"))
+                                            @*@if ((Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "SM" || Context.Session.GetString("Role").ToString() == "LDAdmin" || Context.Session.GetString("Role").ToString() == "CompetencyAdmin" || Context.Session.GetString("Role").ToString() == "Finance"))
                                                 {
                                                     <ul class="nav navbar-nav" style="margin-top: -14px;">
                                                         <li id="MenuSignout" style="position: relative;left: 116px; top: 15px;"><a href="@Url.Action("SignOut", "signout")"><i class="fa fa-sign-out" aria-hidden="true"></i> Sign out</a></li>
                                                     </ul>
                                                 }
-                                                @if ((Session["Role"].ToString() == "PM"))
+                                                @if ((Context.Session.GetString("Role").ToString() == "PM"))
                                                 {
                                                     <ul class="nav navbar-nav" style="margin-top: -14px;">
                                                         <li id="MenuSignout" style="position: relative;left: 710px; top: 15px;"><a href="@Url.Action("SignOut", "signout")"><i class="fa fa-sign-out" aria-hidden="true"></i> Sign out</a></li>
                                                     </ul>
                                                 }
-                                                @if ((Session["Role"].ToString() == "DH"))
+                                                @if ((Context.Session.GetString("Role").ToString() == "DH"))
                                                 {
                                                     <ul class="nav navbar-nav" style="margin-top: -14px;">
                                                         <li id="MenuSignout" style="position: relative;left: 516px; top: 15px;"><a href="@Url.Action("SignOut", "signout")"><i class="fa fa-sign-out" aria-hidden="true"></i> Sign out</a></li>
                                                     </ul>
                                                 }
-                                                @if ((Session["Role"].ToString() == "RL"))
+                                                @if ((Context.Session.GetString("Role").ToString() == "RL"))
                                                 {
                                                     <ul class="nav navbar-nav" style="margin-top: -14px;">
                                                         <li id="MenuSignout" style="position: relative;left: 771px; top: 15px;"><a href="@Url.Action("SignOut", "signout")"><i class="fa fa-sign-out" aria-hidden="true"></i> Sign out</a></li>

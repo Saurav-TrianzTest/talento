@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Models;
 using OfficeOpenXml;
 using Trianz.Enterprise.Operations.General;
 
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using Microsoft.AspNetCore.Session;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class ProjectsMasterController : Controller
@@ -17,7 +20,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         public ActionResult Index()
 
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -30,62 +33,62 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
 
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult ExportReport()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                     return Json("success", JsonRequestBehavior.AllowGet);
+                     return Json("success");
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
 
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult GenerateProjectInfo(string strPractice, string strProject, string strBillingStatus)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    string Role = (string)Session["Role"];
+                    string Role = (string)HttpContext.Session.GetString("Role");
 
                     List<Project> ProjectsInfo = db.Projects.Where(p => p.IsActive.Equals(true)).ToList();
 
                     #region Export to Excel
 
                     using (ExcelPackage package = new ExcelPackage())
-                    {
+            {
                         ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Project Information");
                         worksheet.TabColor = System.Drawing.Color.Green;
                         worksheet.DefaultRowHeight = 18f;
                         worksheet.Row(1).Height = 20f;
 
                         using (var range = worksheet.Cells[1, 1, 1, 7])
-                        {
-                            range.Style.Font.Bold = true;
+{
+                        range.Style.Font.Bold = true;
                             range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                             range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#5B9BD5"));
@@ -135,8 +138,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (row % 2 == 1)
                             {
                                 using (var range = worksheet.Cells[row, 1, row, 7])
-                                {
-                                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+{
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                     range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
                                     range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -156,14 +159,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         Byte[] fileBytes = package.GetAsByteArray();
                         Response.Clear();
-                        Response.Buffer = true;
-                        Response.AddHeader("content-disposition", "attachment;filename=" + "Project Master" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                        
+                        Response.Headers.Add("content-disposition", "attachment;filename=" + "Project Master" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                        Response.Charset = "";
+                        
                         Response.ContentType = "application/vnd.ms-excel";
                         //StringWriter sw = new StringWriter();
-                        Response.BinaryWrite(fileBytes);
-                        Response.End();
+                        Response.Body.Write(fileBytes);
+                        
                     }
 
                     #endregion
@@ -174,13 +177,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }

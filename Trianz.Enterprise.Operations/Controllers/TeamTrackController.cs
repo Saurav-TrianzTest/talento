@@ -1,13 +1,16 @@
 ﻿using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Models;
 using Trianz.Enterprise.Operations.ViewModel;
 
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using Microsoft.AspNetCore.Session;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class TeamTrackController : Controller
@@ -58,7 +61,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 ViewBag.CloudSolutionTracks = new SelectList(cloudSolutionTracks);
 
 
-                int? empID = (int)Session["EmployeeId"];
+                int? empID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
                 var role = _db.RoleMasters.Where(r => r.EmployeeId == empID && r.ApplicationCode == "TALENTREQ").Select(p => p.Role).FirstOrDefault();
 
@@ -66,7 +69,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
                 // var empId = new SqlParameter("@LoginId", empID == 1? (object)DBNull.Value : empID);
-                //var ReportDetails = _db.Database.SqlQuery<TeamTrackViewModel>("exec sp_MidYearDetailedReportfor18 @AppraisalId,@WorkflowName", empID).ToList();
+                //var ReportDetails = _db.Set<TeamTrackViewModel>().FromSqlRaw("exec sp_MidYearDetailedReportfor18 @AppraisalId,@WorkflowName", empID).ToList();
 
                 List<TeamTrackViewModel> tms;
               
@@ -167,7 +170,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                int empID = (int)Session["EmployeeId"];
+                int empID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 if (trackData.Count() > 0)
                 {
                     for (int i = 0; i < trackData.Count(); i++)
@@ -195,13 +198,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                     _db.SaveChanges();
 
                 }
-                return Json(true, JsonRequestBehavior.AllowGet);
+                return Json(true);
             }
             catch (Exception ex)
             {
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(ex);
-                return Json(false, JsonRequestBehavior.AllowGet);
+                return Json(false);
 
             }
 
@@ -216,7 +219,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
             try
             {
-                int empID = (int)Session["EmployeeId"];
+                int empID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
 
                 var role = _db.RoleMasters.Where(r => r.EmployeeId == empID && r.ApplicationCode == "TALENTREQ").Select(p => p.Role).FirstOrDefault();
@@ -225,7 +228,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
                 // var empId = new SqlParameter("@LoginId", empID == 1? (object)DBNull.Value : empID);
-                //var ReportDetails = _db.Database.SqlQuery<TeamTrackViewModel>("exec sp_MidYearDetailedReportfor18 @AppraisalId,@WorkflowName", empID).ToList();
+                //var ReportDetails = _db.Set<TeamTrackViewModel>().FromSqlRaw("exec sp_MidYearDetailedReportfor18 @AppraisalId,@WorkflowName", empID).ToList();
 
                 List<TeamTrackViewModel> data;
 
@@ -285,14 +288,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 #region Export to Excel
 
                 using (ExcelPackage package = new ExcelPackage())
-                {
-                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Team Track Report");
+            {
+                        ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Team Track Report");
                     worksheet.TabColor = System.Drawing.Color.Green;
                     worksheet.DefaultRowHeight = 18f;
                     worksheet.Row(1).Height = 20f;
 
                     using (var range = worksheet.Cells[1, 1, 1, 8])
-                    {
+{
                         range.Style.Font.Bold = true;
                         range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                         range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -339,8 +342,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                         if (row % 2 == 1)
                         {
                             using (var range = worksheet.Cells[row, 1, row, 8])
-                            {
-                                range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+{
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                 range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
                                 range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -360,14 +363,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
-                    Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=" + "Team Track Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    
+                    Response.Headers.Add("content-disposition", "attachment;filename=" + "Team Track Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                    Response.Charset = "";
+                    
                     Response.ContentType = "application/vnd.ms-excel";
                     //StringWriter sw = new StringWriter();
-                    Response.BinaryWrite(fileBytes);
-                    Response.End();
+                    Response.Body.Write(fileBytes);
+                    
 
                 }
 
@@ -379,7 +382,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(ex);
-                return Json(false, JsonRequestBehavior.AllowGet);
+                return Json(false);
 
             }
 
@@ -406,14 +409,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                                ).ToList();
 
 
-                return Json(trackhistory, JsonRequestBehavior.AllowGet);
+                return Json(trackhistory);
 
             }
             catch (Exception ex)
             {
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(ex);
-                return Json(false, JsonRequestBehavior.AllowGet);
+                return Json(false);
 
             }
 
@@ -426,7 +429,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
 
-                int? empID = (int)Session["EmployeeId"];
+                int? empID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
                 var role = _db.RoleMasters.Where(r => r.EmployeeId == empID && r.ApplicationCode == "TALENTREQ").Select(p => p.Role).FirstOrDefault();
                 List<TeamTrackViewModel> tms;

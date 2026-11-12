@@ -2,14 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Net;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Models;
-using PagedList;
+using X.PagedList;
 using Trianz.Enterprise.Operations.General;
+using Microsoft.AspNetCore.Session;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
@@ -21,7 +23,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         // GET: DesignationMasters
         public ActionResult Index(string sortOrder, string currentFilter, string searchString, int? page, string ddlGrade, string ddlPractice)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -96,29 +98,29 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public ActionResult Details(long? id)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             DesignationMaster designationMaster = db.DesignationMasters.Find(id);
             if (designationMaster == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
            
             return View(designationMaster);
@@ -126,7 +128,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -134,7 +136,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         // GET: DesignationMasters/Create
         public ActionResult Create()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -160,14 +162,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -177,9 +179,9 @@ namespace Trianz.Enterprise.Operations.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(FormCollection formcollection)
+        public ActionResult Create(IFormCollection formcollection)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 if (ModelState.IsValid)
                 {
@@ -210,7 +212,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     {
                         Common.WriteExceptionErrorLog(ex);
                         return RedirectToAction("Error", "Error");
-                        //return Json("Error", JsonRequestBehavior.AllowGet);
+                        //return Json("Error");
                     }
 
                 }
@@ -220,7 +222,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -228,7 +230,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         // GET: DesignationMasters/Edit/5
         public ActionResult Edit(long? id)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
                 try
@@ -266,12 +268,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //ViewData["selectedPractice"] = sp;
                     if (id == null)
                     {
-                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                        return BadRequest();
                     }
                     DesignationMaster designationMaster = db.DesignationMasters.Find(id);
                     if (designationMaster == null)
                     {
-                        return HttpNotFound();
+                        return NotFound();
                     }
                     return View(designationMaster);
                 }
@@ -279,14 +281,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -297,15 +299,15 @@ namespace Trianz.Enterprise.Operations.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(FormCollection formcollection)
+        public ActionResult Edit(IFormCollection formcollection)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
             {
                 if (ModelState.IsValid)
                 {
-                    if (Session["Role"] != null && Session["Role"].ToString().ToUpper() == "OM")
+                    if (HttpContext.Session.GetString("Role") != null && HttpContext.Session.GetString("Role").ToString().ToUpper() == "OM")
                     {
                         DesignationMaster designationMaster = db.DesignationMasters.Find(Convert.ToInt32(formcollection["DesignationID"]));
                         if (designationMaster != null)
@@ -346,21 +348,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 return View();
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException ex)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
             {
                 Exception raise = ex;
-                foreach (var validationErrors in ex.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors to iterate
+                // Log the exception directly
+                string message = string.Format("{0}:{1}",
+                    ex.InnerException?.Message ?? ex.Message,
+                    ex.Message);
+                // raise a new exception nesting
+                // the current instance as InnerException
+                raise = new InvalidOperationException(message, raise);
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;
@@ -369,7 +367,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -378,24 +376,24 @@ namespace Trianz.Enterprise.Operations.Controllers
         // GET: DesignationMasters/Delete/5
         public ActionResult Delete(long? id)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
                 if (id == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return BadRequest();
             }
             DesignationMaster designationMaster = db.DesignationMasters.Find(id);
             if (designationMaster == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View(designationMaster);
         }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -405,7 +403,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(long id)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -418,14 +416,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -440,7 +438,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public JsonResult CheckDisignationCode(string DesigCode)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -453,20 +451,20 @@ namespace Trianz.Enterprise.Operations.Controllers
                         Result = "false";
                     else
                         Result = "true";
-                    return Json(Result, JsonRequestBehavior.AllowGet);
+                    return Json(Result);
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     //return RedirectToAction("Error", "Error");
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }

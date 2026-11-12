@@ -92,7 +92,7 @@
                     Export to Excel
                 </button>*@
 
-            @if ((Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM" || Session["Role"].ToString() == "DH" || Session["Role"].ToString() == "SM" || Session["Role"].ToString() == "RL"))
+            @if ((Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "PM" || Context.Session.GetString("Role").ToString() == "DH" || Context.Session.GetString("Role").ToString() == "SM" || Context.Session.GetString("Role").ToString() == "RL"))
             {
                 @*@:<button id="btnExportToExcel" type="button" class="btn btn-default pull-right" style="margin-top: -8px;"><i class="glyphicon glyphicon-download-alt" aria-hidden="true"></i> Export to Excel</button>
                     @:<button id="btnProcessing" type="button" class="btn btn-default pull-right" style="margin-top: -8px;" disabled><i class="fa fa-cog fa-spin fa-1x fa-fw" aria-hidden="true"></i> Downloading...</button>*@

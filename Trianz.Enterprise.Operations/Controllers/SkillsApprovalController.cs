@@ -1,18 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.General;
 using Trianz.Enterprise.Operations.Models;
 
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
+using Microsoft.Extensions.Hosting;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class SkillsApprovalController : Controller
     {
+    private readonly IWebHostEnvironment Env;
         private TrianzOperationsEntities db = new TrianzOperationsEntities();
         // GET: SkillsApproval
         public ActionResult GetAllReportees()
@@ -83,17 +89,17 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 var Emplst = db.Employees.Where(e => e.EmployeeId == EmployeeID && e.IsActive == true).FirstOrDefault();
                 int loginId = 0;
-                if (Session["loginId"] != null)
+                if (HttpContext.Session.GetString("loginId") != null)
                 {
-                     loginId = Convert.ToInt32(Session["loginId"].ToString());
+                     loginId = Convert.ToInt32(HttpContext.Session.GetString("loginId").ToString());
                 }
                 var superviserId = Emplst.SupervisorId;
                 //   if(superviserId==Loginuser)
                 int LeadId = 0;
-                //   LeadId = Convert.ToInt32(Session["LeadId"].ToString());
+                //   LeadId = Convert.ToInt32(HttpContext.Session.GetString("LeadId").ToString());
                 List<ClusterLead> lstCluster = new List<ClusterLead>();
 
-                lstCluster = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember_test").ToList();
+                lstCluster = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember_test").ToList();
                 var clusterlead = lstCluster.Where(m => m.TeamMemberID == EmployeeID).FirstOrDefault();
                 if (clusterlead != null)
                 {
@@ -103,7 +109,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 List<EmployeeSkills_NewDetails> emplyeeskills = new List<EmployeeSkills_NewDetails>();
                 List<EmployeeSkills_NewDetails> empSkils = new List<EmployeeSkills_NewDetails>();
                 var employeeId = new SqlParameter("@EmployeeId", EmployeeID);
-                emplyeeskills = db.Database.SqlQuery<EmployeeSkills_NewDetails>("exec GetEmployeeSkills @EmployeeId", employeeId).ToList();
+                emplyeeskills = db.Set<EmployeeSkills_NewDetails>().FromSqlRaw("exec GetEmployeeSkills @EmployeeId", employeeId).ToList();
 
                 if (emplyeeskills.Count > 0)
                 {
@@ -172,7 +178,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     List<ClusterLead> lstCluster = new List<ClusterLead>();
 
-                    lstCluster = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember_test").ToList();
+                    lstCluster = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember_test").ToList();
                     var teammember = lstCluster.Where(m => m.EmployeeId == Loginuser && m.TeamMemberID == EmployeeId).ToList();
 
                     if (teammember.Count > 0)
@@ -221,7 +227,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 string LinktoOpen = "Please Click on link to View the status of skills " + talentoURL;
                 string body = string.Empty;
 
-                using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+                using (StreamReader reader = new StreamReader(Path.Combine(Env.ContentRootPath, "Views/Shared/EmailTemplate.html")))
                 {
                     body = reader.ReadToEnd();
                 }
@@ -245,7 +251,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //GetEmployeeDetails(EmployeeId);
                 //return View("GetAllReportees");
 
-                return Json("success", JsonRequestBehavior.AllowGet);
+                return Json("success");
             }
             catch (Exception ex)
             {
@@ -319,7 +325,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //            string LinktoOpen = "Please Click on link to View the status of skills " + talentoURL;
         //            string body = string.Empty;
 
-        //            using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+        //            using (StreamReader reader = new StreamReader(Path.Combine(Env.ContentRootPath, "Views/Shared/EmailTemplate.html")))
         //            {
         //                body = reader.ReadToEnd();
         //            }
@@ -343,7 +349,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //            //GetEmployeeDetails(EmployeeId);
         //            //return View("GetAllReportees");
 
-        //            return Json("success", JsonRequestBehavior.AllowGet);
+        //            return Json("success");
         //        }
         //        catch (Exception ex)
         //        {

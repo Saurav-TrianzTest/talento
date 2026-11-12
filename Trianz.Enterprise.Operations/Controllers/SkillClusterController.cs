@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.General;
 using Trianz.Enterprise.Operations.Models;
 using Trianz.Enterprise.Operations.ViewModel;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Session;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class SkillClusterController : Controller
@@ -15,21 +17,21 @@ namespace Trianz.Enterprise.Operations.Controllers
         private TrianzOperationsEntities db = new TrianzOperationsEntities();
         public ActionResult Index()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 return View(db.PRTCSKILLCLUSTERs.ToList());
             }
             else
             {
                 //ermsg = "Session expired";
-               // return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+               // return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public ActionResult Create()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -41,13 +43,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                // return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                // return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -65,9 +67,9 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(FormCollection form, [Bind(Include = "PRACTICE,SKILLCLUSTER,CSKILLS,SKILLCODE,CLSTRJD")] SkillCluster skillCluster)
+        public ActionResult Create(IFormCollection form, [Microsoft.AspNetCore.Mvc.Bind] SkillCluster skillCluster)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -121,7 +123,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         [HttpGet]
         public ActionResult Edit(string SKILLCODE)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -142,13 +144,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -156,9 +158,9 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(FormCollection form,[Bind(Include = "SKILLCODE,CLSTRJD")] SkillCluster skillCluster)
+        public ActionResult Edit(IFormCollection form,[Microsoft.AspNetCore.Mvc.Bind] SkillCluster skillCluster)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -179,13 +181,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -194,7 +196,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         [HttpGet]
         public ActionResult Delete(string SKILLCODE)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -205,7 +207,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     {
                         // ModelState.AddModelError("SKILLCODE", "Skill Code already exist...");
                         //return RedirectToAction("Index");
-                        return Json(false, JsonRequestBehavior.AllowGet);
+                        return Json(false);
                     }
                     else
                     {
@@ -214,7 +216,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         objcluster.SKILLCLUSTER = skill.SKILLCLUSTER;
                         objcluster.CSKILLS = skill.CSKILLS;
                         objcluster.SKILLCODE = skill.SKILLCODE;
-                        objcluster.CreatedBy = Convert.ToInt32(Session["EmployeeId"]);
+                        objcluster.CreatedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                         objcluster.CreatedDate = DateTime.Now;
                         db.PRTCSKILLCLUSTER_delete.Add(objcluster);
                         db.SaveChanges();
@@ -223,27 +225,27 @@ namespace Trianz.Enterprise.Operations.Controllers
                         objskill.CLSTRDESC = jd.CLSTRDESC;
                         objskill.CLSTRJD = jd.CLSTRJD;
                         objskill.CLSTRJDVER = jd.CLSTRJDVER;
-                        objskill.CreatedBy = Convert.ToInt32(Session["EmployeeId"]);
+                        objskill.CreatedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                         objskill.CreatedDate = DateTime.Now;
                         db.SKILLCLSTRJD_Delete.Add(objskill);
                         db.SaveChanges();
                         var removeskillcluster = db.SKILLCLSTRJDs.Remove(jd);
                         var removeprtskill = db.PRTCSKILLCLUSTERs.Remove(skill);
                         db.SaveChanges();
-                        return Json(true, JsonRequestBehavior.AllowGet);
+                        return Json(true);
                     }
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
                     return RedirectToAction("Error", "Error");
-                    //return Json("Error", JsonRequestBehavior.AllowGet);
+                    //return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
 

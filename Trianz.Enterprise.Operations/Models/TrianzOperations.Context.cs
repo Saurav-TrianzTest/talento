@@ -10,41 +10,13 @@
 namespace Trianz.Enterprise.Operations.Models
 {
     using System;
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
+    using Microsoft.EntityFrameworkCore;
     
     public partial class TrianzOperationsEntities : DbContext
     {
-        public TrianzOperationsEntities()
-            : base("name=TrianzOperationsEntities")
-        {
-        }
-    
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
-        {
-            throw new UnintentionalCodeFirstException();
-        }
-    
-        public virtual DbSet<Application> Applications { get; set; }
-        public virtual DbSet<ApplicationSetting> ApplicationSettings { get; set; }
-        public virtual DbSet<BenchEmployee> BenchEmployees { get; set; }
-        public virtual DbSet<Employee> Employees { get; set; }
-        public virtual DbSet<EmployeeProfile> EmployeeProfiles { get; set; }
-        public virtual DbSet<ExternalFulfillment> ExternalFulfillments { get; set; }
-        public virtual DbSet<HRRFHistory> HRRFHistories { get; set; }
-        public virtual DbSet<MasterLookUp> MasterLookUps { get; set; }
-        public virtual DbSet<Project> Projects { get; set; }
-        public virtual DbSet<ProjectAssignment> ProjectAssignments { get; set; }
-        public virtual DbSet<ProjectTask> ProjectTasks { get; set; }
         public virtual DbSet<TempDashboard> TempDashboards { get; set; }
-        public virtual DbSet<Timesheet> Timesheets { get; set; }
         public virtual DbSet<TimesheetItem> TimesheetItems { get; set; }
-        public virtual DbSet<HRRF> HRRFs { get; set; }
-        public virtual DbSet<HRRFSkill> HRRFSkills { get; set; }
         public virtual DbSet<NumberingSystem> NumberingSystems { get; set; }
-        public virtual DbSet<RoleMaster> RoleMasters { get; set; }
-        public virtual DbSet<Notification> Notifications { get; set; }
-        public virtual DbSet<EmployeeSkill> EmployeeSkills { get; set; }
-        public virtual DbSet<ProposeAssociate> ProposeAssociates { get; set; }
+        public virtual DbSet<TimesheetComment> TimesheetComments { get; set; }
     }
 }

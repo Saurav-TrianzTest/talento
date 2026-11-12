@@ -5,21 +5,27 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Core.Objects;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Web.Mvc;
-using System.Web.Script.Serialization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Newtonsoft.Json;
 using Trianz.Enterprise.Operations.General;
 using Trianz.Enterprise.Operations.Models;
+using Microsoft.AspNetCore.Session;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Primitives;
 
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class CreateHRRFController : Controller
     {
+    private readonly IWebHostEnvironment Env;
 
         private TrianzOperationsEntities db = new TrianzOperationsEntities();
         ServiceAgent AgentService = new ServiceAgent();
@@ -38,7 +44,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         // GET: CreateHRRF
         public ActionResult Index()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -55,7 +61,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
             }
@@ -67,27 +73,27 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         public ActionResult ExportCumulativeReport()
         {
-            return Json("success", JsonRequestBehavior.AllowGet);
+            return Json("success");
         }
         public ActionResult GenerateCumulativeFReport(string strPractice)
         {
             List < HRRFSkillCluster > list = new List<HRRFSkillCluster>();
-            list = db.Database.SqlQuery<HRRFSkillCluster>("USP_GetCumulativeReportByPractice @Practice",
-                new System.Data.SqlClient.SqlParameter("Practice", strPractice)).ToList();
+            list = db.Set<HRRFSkillCluster>().FromSqlRaw("USP_GetCumulativeReportByPractice @Practice",
+                new Microsoft.Data.SqlClient.SqlParameter("Practice", strPractice)).ToList();
 
 
             #region Export to Excel
 
             using (ExcelPackage package = new ExcelPackage())
             {
-                ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("CumulativeReport Information");
+                        ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("CumulativeReport Information");
                 worksheet.TabColor = System.Drawing.Color.Green;
                 worksheet.DefaultRowHeight = 18f;
                 worksheet.Row(1).Height = 20f;
 
                 using (var range = worksheet.Cells[1, 1, 1, 4])
-                {
-                    range.Style.Font.Bold = true;
+{
+                        range.Style.Font.Bold = true;
                     range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                     range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                     range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#5B9BD5"));
@@ -122,8 +128,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                     if (row % 2 == 1)
                     {
                         using (var range = worksheet.Cells[row, 1, row, 4])
-                        {
-                            range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+{
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                             range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
                             range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -142,14 +148,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 Byte[] fileBytes = package.GetAsByteArray();
                 Response.Clear();
-                Response.Buffer = true;
-                Response.AddHeader("content-disposition", "attachment;filename=CumulativeReport.xlsx");
+                
+                Response.Headers.Add("content-disposition", "attachment;filename=CumulativeReport.xlsx");
 
-                Response.Charset = "";
+                
                 Response.ContentType = "application/vnd.ms-excel";
                 StringWriter sw = new StringWriter();
-                Response.BinaryWrite(fileBytes);
-                Response.End();
+                Response.Body.Write(fileBytes);
+                
             }
 
             #endregion
@@ -160,8 +166,8 @@ namespace Trianz.Enterprise.Operations.Controllers
         public ActionResult GetSkillClusterByPractice(string strPractice)
         {
             List<HRRFSkillCluster> list = new List<HRRFSkillCluster>();
-            list = db.Database.SqlQuery<HRRFSkillCluster>("USP_GetCumulativeReportByPractice @Practice",
-                new System.Data.SqlClient.SqlParameter("Practice", strPractice)).ToList();
+            list = db.Set<HRRFSkillCluster>().FromSqlRaw("USP_GetCumulativeReportByPractice @Practice",
+                new Microsoft.Data.SqlClient.SqlParameter("Practice", strPractice)).ToList();
             return PartialView("");
         }
 
@@ -170,9 +176,9 @@ namespace Trianz.Enterprise.Operations.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "HRRFID,HRRFNumber,Purpose,AccountName,CostCenter,ProjectName,ProjectCode,DemandType,ResourceType,Criticality,IsContracting,Grade,RoleRequired,ExpFrom,ExpTo,ReservationStatus,ServiceLine,Costcenter,AccountNamewithID,EnagagementType,ForReplacementPosition,PrimarySkills,SecondarySkills,Domain,TechPanel,TechPanel2,ResourceExpectedDate,AssignmentStartDate,AssignmentEndDate,BillingDate,LocationType,LocationName,OtherLocation,OnsiteLocation,VisaType,ShiftInfo,TravelInfo,RequestReason,Remarks,RequestType,ReplacementEmpId,Justification,RequestStatus,ClientInterview,InfoByHiringManager,InfoByTCOTeam,CallCompleted,FullfilmentDate,ValidationInfo,RequesterName,RequesterEmailId,IsActive,HRRFCreatedBy,HRRFCreatedDate,HRRFSubmitedDate,ModifiedBy,ModifiedDate,Impact,Discipline,RoleGroup,CoreSkill,IntermediateSkill,AdvancedSkill,SpecificPlatform,Certifications,IsSpecialClient,IsIndustryDomainSkill,SpecialClient,IndustryDomainSkill")] HRRF hRRF)
+        public ActionResult Create([Microsoft.AspNetCore.Mvc.Bind] HRRF hRRF)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -194,19 +200,19 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public ActionResult SkillClusterView()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
                     List<HRRFSkillCluster> list = new List<HRRFSkillCluster>();
-                    list = db.Database.SqlQuery<HRRFSkillCluster>("USP_GetSkillClusterData").ToList();
+                    list = db.Set<HRRFSkillCluster>().FromSqlRaw("USP_GetSkillClusterData").ToList();
                     return View(list);
                 }
                 catch (Exception ex)
@@ -219,7 +225,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -307,7 +313,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 hrrfaud.IsSpecialClientNew = hrrfvaluesnew.IsSpecialClient;
                 hrrfaud.IsIndustryDomainSkillNew = hrrfvaluesnew.IsIndustryDomainSkill;
                 db.HRRFAudits.Add(hrrfaud);
-                //   db.Entry(hrrfaud).State = System.Data.Entity.EntityState.Modified;
+                //   db.Entry(hrrfaud).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                 db.SaveChanges();
 
             }
@@ -320,10 +326,10 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
 
         [HttpPost]
-        public ActionResult ViewHRRF(FormCollection form, [Bind(Include = "HRRFID,HRRFNumber,Purpose,AccountName,RequestReason,Utilization,CostCenter,ProjectName,ProjectCode,Practice,DemandType,ResourceType,Criticality,IsContracting,Grade,RoleRequired,ExpFrom,ExpTo,EnagagementType,Domain,JobDescription,TechPanel,SecondTechPanel,ResourceExpectedDate,AssignmentStartDate,AssignmentEndDate,BillingDate,LocationType,LocationName,OtherLocation,ClientInterview,HRRFSubmitedDate,ModifiedBy,ModifiedDate,Positions,HRRFCreatedBy,HRRFCreatedDate,TRParent,IsActive,Isparent,RequestType,ReplacementEmpId,OpportunityCode,OpportunityName,VisaType,RequisitionID,Impact,Discipline,RoleGroup,CoreSkill,IntermediateSkill,AdvancedSkill,SpecificPlatform,Certifications,IsSpecialClient,IsIndustryDomainSkill,SpecialClient,IndustryDomainSkill,JobDescription,OrganizationGroup")] HRRF hRRF, string submit)
+        public ActionResult ViewHRRF(IFormCollection form, [Microsoft.AspNetCore.Mvc.Bind] HRRF hRRF, string submit)
         {
             // 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                
  //Common.WriteErrorLog("HrrfID : " + hRRF.HRRFNumber + "HRRFNUMBER : " + hRRF.HRRFNumber + "Purpose : " + hRRF.Purpose + "AccountName : " + hRRF.AccountName
@@ -352,10 +358,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                         string ProjectCode = Request.Form["ProjectCode"];
                         string ProjectName = (from data in db.Projects.Where(x => x.ProjectCode.ToLower() == ProjectCode.ToLower()) select data.ProjectName).FirstOrDefault();
 
-                        //  db.Entry(lt).State = System.Data.Entity.EntityState.Modified;
+                        //  db.Entry(lt).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                         //db.SaveChanges();
 
-                        int EmpIdForCreatedBy = Convert.ToInt32(Session["EmployeeId"]);
+                        int EmpIdForCreatedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
                         //string ProjectName = Request.Form["ProjectName"];
                         //string ProjectCode = (from data in db.Projects.Where(x => x.ProjectName.ToLower() == ProjectName.ToLower()) select data.ProjectCode).FirstOrDefault();
@@ -396,7 +402,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     hRRF.Utilization = form["HRRF.Utilization"];
                                     hRRF.ProjectCode = ProjectCode;
                                     hRRF.RequisitionID = Request.Form["RequisitionID"];
-                                    hRRF.IsContracting = Convert.ToBoolean(Request.Form["IsContracting"]); //(Request.Form["IsContracting"].ToLower() == "yes") ? true : false;
+                                    hRRF.IsContracting = Convert.ToBoolean(Request.Form["IsContracting"]); //(Request.Form["IsContracting"].ToString().ToLower() == "yes") ? true : false;
                                     hRRF.ProjectName = ProjectName;
                                     hRRF.ResourceType = Request.Form["ResourceType"];
 
@@ -455,7 +461,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     //{
                                     //    hRRF.ReplacementEmpId = Convert.ToInt32(form["HRRF.ReplacementEmpId"]);
                                     //}
-                                    if (Request.Form["LocationName"].ToLower() == "other")
+                                    if (Request.Form["LocationName"].ToString().ToLower() == "other")
                                     {
                                         hRRF.LocationName = Request.Form["OtherLocation"];
                                     }
@@ -463,7 +469,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     {
                                         hRRF.LocationName = Request.Form["LocationName"];
                                     }
-                                    if (Request.Form["RoleRequired"].ToLower() == "other")
+                                    if (Request.Form["RoleRequired"].ToString().ToLower() == "other")
                                     {
                                         hRRF.RoleRequired = Request.Form["OtherRole"];
                                     }
@@ -481,7 +487,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     db.Entry(hRRF).State = EntityState.Modified;
 
 
-                                    if (Request.Form["LocationName"].ToLower() == "other")
+                                    if (Request.Form["LocationName"].ToString().ToLower() == "other")
                                     {
                                         var result = (from val in db.MasterLookUps
                                                       where val.LookupType.ToLower() == "onsitelocation"
@@ -538,9 +544,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     string sequenceSffix = "";
                                     long sequenceNmber = 0;
                                     string typeCde = "";
-                                    ObjectParameter Result1 = new ObjectParameter("Result1", typeof(string));
-                                    string datastoredproc = db.sp_NumberingSystemGenerateNumber(CompanyCode, branchCde, sequenceSffix, sequenceNmber, typeCde, Result1).ToString();
-                                    string NumberingSystem = Result1.Value.ToString();
+                                    int Result1;
+                                    string datastoredproc = db.sp_NumberingSystemGenerateNumber(CompanyCode, branchCde, sequenceSffix, sequenceNmber, typeCde, out Result1).ToString();
+                                    string NumberingSystem = Result1.ToString();
                                     HRRFNumber = NumberingSystem;
 
 
@@ -564,7 +570,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     hRRF.Utilization = form["HRRF.Utilization"];
                                     hRRF.ProjectCode = ProjectCode;
                                     hRRF.RequisitionID = Request.Form["RequisitionID"];
-                                    hRRF.IsContracting = Convert.ToBoolean(Request.Form["IsContracting"]); //(Request.Form["IsContracting"].ToLower() == "yes") ? true : false;
+                                    hRRF.IsContracting = Convert.ToBoolean(Request.Form["IsContracting"]); //(Request.Form["IsContracting"].ToString().ToLower() == "yes") ? true : false;
                                     hRRF.ResourceType = Request.Form["ResourceType"];
 
                                     // new code by team 26thsep2022
@@ -585,7 +591,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     //{
                                     //    hRRF.ReplacementEmpId = Convert.ToInt32(form["HRRF.ReplacementEmpId"]);
                                     //}
-                                    if (Request.Form["LocationName"].ToLower() == "other")
+                                    if (Request.Form["LocationName"].ToString().ToLower() == "other")
                                     {
                                         hRRF.LocationName = Request.Form["OtherLocation"];
                                     }
@@ -593,7 +599,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     {
                                         hRRF.LocationName = Request.Form["LocationName"];
                                     }
-                                    if (Request.Form["RoleRequired"].ToLower() == "other")
+                                    if (Request.Form["RoleRequired"].ToString().ToLower() == "other")
                                     {
                                         hRRF.RoleRequired = Request.Form["OtherRole"];
                                     }
@@ -657,7 +663,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     hRRF.ReasonRaisingTR = Request.Form["ReasonforRaising"];
                                     hRRF.CostCenter = Request.Form["CostCenter"];
                                     hRRF.PrimaryPractice = Request.Form["hdnPrimaryPractice"];
-                                    hRRF.JDNotMatching = Request.Form["JDNotMatching"] != null ? Request.Form["JDNotMatching"] : "No";
+                                    hRRF.JDNotMatching = !StringValues.IsNullOrEmpty(Request.Form["JDNotMatching"]) ? Request.Form["JDNotMatching"] : "No";
                                     hRRF.Impact = Request.Form["Impact"];
                                     hRRF.Criticality = Request.Form["Criticality"];
                                     string opp = form["HRRF.OpportunityCode"];
@@ -674,7 +680,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     }
                                     hRRF.ProjectCode = ProjectCode;
                                     hRRF.RequisitionID = Request.Form["RequisitionID"];
-                                    hRRF.IsContracting = Convert.ToBoolean(Request.Form["HRRF.IsContracting"]); //(Request.Form["IsContracting"].ToLower() == "yes") ? true : false;
+                                    hRRF.IsContracting = Convert.ToBoolean(Request.Form["HRRF.IsContracting"]); //(Request.Form["IsContracting"].ToString().ToLower() == "yes") ? true : false;
                                     hRRF.ResourceType = Request.Form["ResourceType"];
 
                                     // new code by team 26thsep2022
@@ -695,7 +701,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     //{
                                     //    hRRF.ReplacementEmpId = Convert.ToInt32(form["HRRF.ReplacementEmpId"]);
                                     //}
-                                    if (Request.Form["LocationName"].ToLower() == "other")
+                                    if (Request.Form["LocationName"].ToString().ToLower() == "other")
                                     {
                                         hRRF.LocationName = Request.Form["OtherLocation"];
                                     }
@@ -703,7 +709,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     {
                                         hRRF.LocationName = Request.Form["LocationName"];
                                     }
-                                    if (Request.Form["RoleRequired"].ToLower() == "other")
+                                    if (Request.Form["RoleRequired"].ToString().ToLower() == "other")
                                     {
                                         hRRF.RoleRequired = Request.Form["OtherRole"];
                                     }
@@ -752,7 +758,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     db.Entry(hRRF).State = EntityState.Modified;
 
 
-                                    if (Request.Form["LocationName"].ToLower() == "other")
+                                    if (Request.Form["LocationName"].ToString().ToLower() == "other")
                                     {
                                         var result = (from val in db.MasterLookUps
                                                       where val.LookupType.ToLower() == "onsitelocation"
@@ -823,9 +829,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     string sequenceSffix = "";
                                     long sequenceNmber = 0;
                                     string typeCde = "";
-                                    ObjectParameter Result1 = new ObjectParameter("Result1", typeof(string));
-                                    string datastoredproc = db.sp_NumberingSystemGenerateNumber(CompanyCode, branchCde, sequenceSffix, sequenceNmber, typeCde, Result1).ToString();
-                                    string NumberingSystem = Result1.Value.ToString();
+                                    int Result1;
+                                    string datastoredproc = db.sp_NumberingSystemGenerateNumber(CompanyCode, branchCde, sequenceSffix, sequenceNmber, typeCde, out Result1).ToString();
+                                    string NumberingSystem = Result1.ToString();
                                     HRRFNumber = NumberingSystem;
                                     //project info data
                                     hRRF.HRRFNumber = HRRFNumber;
@@ -834,7 +840,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     hRRF.ReasonRaisingTR = Request.Form["ReasonforRaising"];
                                     hRRF.CostCenter = Request.Form["CostCenter"];
                                     hRRF.PrimaryPractice = Request.Form["hdnPrimaryPractice"];
-                                    hRRF.JDNotMatching = Request.Form["JDNotMatching"] != null ? Request.Form["JDNotMatching"] : "No";
+                                    hRRF.JDNotMatching = !StringValues.IsNullOrEmpty(Request.Form["JDNotMatching"]) ? Request.Form["JDNotMatching"] : "No";
                                     hRRF.Impact = Request.Form["Impact"];
                                     hRRF.Criticality = Request.Form["Criticality"];
                                     hRRF.Utilization = form["HRRF.Utilization"];
@@ -849,7 +855,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         hRRF.InternalExpectedFulfilmentDate = Convert.ToDateTime(form["HRRF.InternalExpectedFulfilmentDate"]);
                                     }
                                     hRRF.ProjectName = ProjectName;
-                                    hRRF.IsContracting = Convert.ToBoolean(Request.Form["IsContracting"]); //(Request.Form["IsContracting"].ToLower() == "yes") ? true : false;
+                                    hRRF.IsContracting = Convert.ToBoolean(Request.Form["IsContracting"]); //(Request.Form["IsContracting"].ToString().ToLower() == "yes") ? true : false;
                                     hRRF.ResourceType = Request.Form["ResourceType"];
                                     hRRF.ProjectCode = ProjectCode;
                                     hRRF.RequisitionID = Request.Form["RequisitionID"];
@@ -872,7 +878,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     //{
                                     //    hRRF.ReplacementEmpId = Convert.ToInt32(form["HRRF.ReplacementEmpId"]);
                                     //}
-                                    if (Request.Form["LocationName"].ToLower() == "other")
+                                    if (Request.Form["LocationName"].ToString().ToLower() == "other")
                                     {
                                         hRRF.LocationName = Request.Form["OtherLocation"];
                                     }
@@ -880,7 +886,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     {
                                         hRRF.LocationName = Request.Form["LocationName"];
                                     }
-                                    if (Request.Form["RoleRequired"].ToLower() == "other")
+                                    if (Request.Form["RoleRequired"].ToString().ToLower() == "other")
                                     {
                                         hRRF.RoleRequired = Request.Form["OtherRole"];
                                     }
@@ -968,7 +974,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         {
                             hRRF.RequestStatus = TR_Terminate;
                             hRRF.ClientInterview = client;
-                            hRRF.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
+                            hRRF.ModifiedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                             hRRF.ModifiedDate = DateTime.Now;
                             hRRF.IsActive = false;
                             db.Entry(hRRF).State = EntityState.Modified;
@@ -1004,21 +1010,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                     return View(ViewName, validationModel);
 
                 }
-                catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+                catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
                 {
                     Exception raise = dbEx;
-                    foreach (var validationErrors in dbEx.EntityValidationErrors)
-                    {
-                        foreach (var validationError in validationErrors.ValidationErrors)
-                        {
-                            string message = string.Format("{0}:{1}",
-                                validationErrors.Entry.Entity.ToString(),
-                                validationError.ErrorMessage);
-                            // raise a new exception nesting
-                            // the current instance as InnerException
-                            raise = new InvalidOperationException(message, raise);
-                        }
-                    }
+                    // EF Core DbUpdateException does not have EntityValidationErrors to iterate
+                    // Log the exception directly
+                    string message = string.Format("{0}:{1}",
+                        dbEx.InnerException?.Message ?? dbEx.Message,
+                        dbEx.Message);
+                    // raise a new exception nesting
+                    // the current instance as InnerException
+                    raise = new InvalidOperationException(message, raise);
                     ErrorHandling expcls = new ErrorHandling();
                     expcls.Error(raise);
                     throw raise;
@@ -1033,14 +1035,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
 
         public ActionResult ViewHRRF(string HRRFNumber = "")
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -1237,7 +1239,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -1291,7 +1293,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 if (MasterLookUps != null)
                 {
-                    var jsonObj = new JavaScriptSerializer().Deserialize<MasterLookUpNew[]>(MasterLookUps);
+                    var jsonObj = JsonConvert.DeserializeObject<MasterLookUpNew[]>(MasterLookUps);
                     foreach (var obj in jsonObj)
                     {
                         MasterLookUpNew objnot = new Models.MasterLookUpNew();
@@ -1516,7 +1518,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public ActionResult HRRFCreation()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -1545,7 +1547,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -1553,7 +1555,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         [HttpPost]
         public ActionResult HRRFCreation(string submit)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -1573,9 +1575,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                     string RequestReason = Request.Form["RequestReason"];
                     string hdnRequestReason = Request.Form["hdnRequestReason"];
 
-                    int EmpIdForCreatedBy = Convert.ToInt32(Session["EmployeeId"]);
+                    int EmpIdForCreatedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
-                    if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+                    if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
                     {
                         string PrimarySkills = Request.Form["hiddenPrimarySkills"]; string SecondarySkills = Request.Form["hiddenSecondarySkills"];
 
@@ -1605,9 +1607,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 string sequenceSffix = "";
                                 long sequenceNmber = 0;
                                 string typeCde = "";
-                                ObjectParameter Result1 = new ObjectParameter("Result1", typeof(string));
-                                string datastoredproc = db.sp_NumberingSystemGenerateNumber(CompanyCode, branchCde, sequenceSffix, sequenceNmber, typeCde, Result1).ToString();
-                                string NumberingSystem = Result1.Value.ToString();
+                                int Result1;
+                                string datastoredproc = db.sp_NumberingSystemGenerateNumber(CompanyCode, branchCde, sequenceSffix, sequenceNmber, typeCde, out Result1).ToString();
+                                string NumberingSystem = Result1.ToString();
                                 HRRFNumber = NumberingSystem;
                                 //new code
                                 //For Testing Environment
@@ -1621,7 +1623,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     trParentNum = HRRFNumber;
                                     isParent = true;
 
-                                    if (Request.Form["OffshoreLocation"].ToLower() == "other")
+                                    if (Request.Form["OffshoreLocation"].ToString().ToLower() == "other")
                                     {
                                         var result = (from val in db.MasterLookUps
                                                       where val.LookupType.ToLower() == "onsitelocation"
@@ -1660,7 +1662,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     HRRF.Impact = Request.Form["Impact"];
                                     HRRF.Criticality = Request.Form["Criticality"];
                                     HRRF.Utilization = Request.Form["Utilization"];
-                                    HRRF.IsContracting = Convert.ToBoolean(Request.Form["IsContracting"]); //(Request.Form["IsContracting"].ToLower() == "true") ? true : false;
+                                    HRRF.IsContracting = Convert.ToBoolean(Request.Form["IsContracting"]); //(Request.Form["IsContracting"].ToString().ToLower() == "true") ? true : false;
                                     HRRF.ResourceType = Request.Form["ResourceType"];
                                     HRRF.RequestReason = Request.Form["RequestReason"];
                                     if (!string.IsNullOrWhiteSpace(Request.Form["ReplacementEmpId"]))
@@ -1687,7 +1689,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                                     HRRF.RoleRequired = Request.Form["Role"];
 
-                                    if (Request.Form["Role"].ToLower() == "other")
+                                    if (Request.Form["Role"].ToString().ToLower() == "other")
                                     {
                                         HRRF.RoleRequired = Request.Form["OtherRole"];
                                     }
@@ -1730,7 +1732,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     HRRF.LocationType = Request.Form["LocationType"];
                                     HRRF.LocationName = Request.Form["OffshoreLocation"];
 
-                                    if (Request.Form["OffshoreLocation"].ToLower() == "other")
+                                    if (Request.Form["OffshoreLocation"].ToString().ToLower() == "other")
                                     {
                                         HRRF.LocationName = Request.Form["OtherLocation"];
                                     }
@@ -1748,7 +1750,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     HRRF.HRRFSubmitedDate = DateTime.Now;
 
                                     HRRF.PrimaryPractice = Request.Form["hdnPrimaryPractice"];
-                                    HRRF.JDNotMatching = Request.Form["JDNotMatching"] != null ? Request.Form["JDNotMatching"] : "No";
+                                    HRRF.JDNotMatching = !StringValues.IsNullOrEmpty(Request.Form["JDNotMatching"]) ? Request.Form["JDNotMatching"] : "No";
                                     HRRF.Discipline = Request.Form["Discipline"];
                                     HRRF.RoleGroup = Request.Form["RoleGroup"];
                                     //HRRF.CoreSkill = Request.Form["CoreSkill"];
@@ -1826,9 +1828,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 string sequenceSffix = "";
                                 long sequenceNmber = 0;
                                 string typeCde = "";
-                                ObjectParameter Result1 = new ObjectParameter("Result1", typeof(string));
-                                string datastoredproc = db.sp_NumberingSystemGenerateNumber(CompanyCode, branchCde, sequenceSffix, sequenceNmber, typeCde, Result1).ToString();
-                                string NumberingSystem = Result1.Value.ToString();
+                                int Result1;
+                                string datastoredproc = db.sp_NumberingSystemGenerateNumber(CompanyCode, branchCde, sequenceSffix, sequenceNmber, typeCde, out Result1).ToString();
+                                string NumberingSystem = Result1.ToString();
                                 HRRFNumber = NumberingSystem;
                                 ////new code
                                 ////For Testing Environment
@@ -1840,7 +1842,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     trParentNum = HRRFNumber;
                                     isParent = true;
 
-                                    if (Request.Form["OffshoreLocation"].ToLower() == "other")
+                                    if (Request.Form["OffshoreLocation"].ToString().ToLower() == "other")
                                     {
                                         var result = (from val in db.MasterLookUps
                                                       where val.LookupType.ToLower() == "onsitelocation"
@@ -1879,11 +1881,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     HRRF.Impact = Request.Form["Impact"];
                                     HRRF.Criticality = Request.Form["Criticality"];
                                     HRRF.Utilization = Request.Form["Utilization"];
-                                    HRRF.IsContracting = Convert.ToBoolean(Request.Form["IsContracting"]); //(Request.Form["IsContracting"].ToLower() == "on") ? true : false;
+                                    HRRF.IsContracting = Convert.ToBoolean(Request.Form["IsContracting"]); //(Request.Form["IsContracting"].ToString().ToLower() == "on") ? true : false;
                                     HRRF.ResourceType = Request.Form["ResourceType"];
                                     HRRF.ProjectName = ProjectName;
                                     HRRF.PrimaryPractice = Request.Form["hdnPrimaryPractice"];
-                                    HRRF.JDNotMatching = Request.Form["JDNotMatching"] != null ? Request.Form["JDNotMatching"] : "No";
+                                    HRRF.JDNotMatching = !StringValues.IsNullOrEmpty(Request.Form["JDNotMatching"]) ? Request.Form["JDNotMatching"] : "No";
                                     HRRF.RequestReason = Request.Form["RequestReason"];
                                     if (!string.IsNullOrWhiteSpace(Request.Form["ReplacementEmpId"]))
                                     {
@@ -1905,7 +1907,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     // HRRF.DemandType = Request.Form["DemandType"];
                                     HRRF.Grade = Convert.ToInt32(Request.Form["Grade"]);
                                     HRRF.RoleRequired = Request.Form["Role"];
-                                    if (Request.Form["Role"].ToLower() == "other")
+                                    if (Request.Form["Role"].ToString().ToLower() == "other")
                                     {
                                         HRRF.RoleRequired = Request.Form["OtherRole"];
                                     }
@@ -1945,7 +1947,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     HRRF.BillingDate = string.IsNullOrEmpty(Request.Form["BillingDate"].ToString()) ? (DateTime?)null : DateTime.Parse(Request.Form["BillingDate"].ToString(), theCultureInfo);
                                     HRRF.LocationType = Request.Form["LocationType"];
                                     HRRF.LocationName = Request.Form["OffShoreLocation"];
-                                    if (Request.Form["OffshoreLocation"].ToLower() == "other")
+                                    if (Request.Form["OffshoreLocation"].ToString().ToLower() == "other")
                                     {
                                         HRRF.LocationName = Request.Form["OtherLocation"];
                                     }
@@ -2023,10 +2025,10 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
                 }
-                //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+                //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
                 //{
                 //    Exception raise = dbEx;
-                //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+                //    foreach (var validationErrors in dbEx)
                 //    {
                 //        foreach (var validationError in validationErrors.ValidationErrors)
                 //        {
@@ -2053,7 +2055,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -2089,7 +2091,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 HRRFPrimarySkill.ExpertiseLevel = Convert.ToString(PSkill.Split(':')[2]);
                                 // HRRFPrimarySkill.ExpertiseLevel = 1;
                                 HRRFPrimarySkill.IsMandatoy = isMandatory;
-                                HRRFPrimarySkill.ModifiedBy = Convert.ToString(Session["EmployeeId"]);
+                                HRRFPrimarySkill.ModifiedBy = Convert.ToString(HttpContext.Session.GetString("EmployeeId"));
                                 HRRFPrimarySkill.ModifiedDate = DateTime.Now;
                                 //db.Entry(HRRFPrimarySkills).State = EntityState.Modified;
                                 db.SaveChanges();
@@ -2102,7 +2104,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 HRRFPrimarySkill.ExpertiseLevel = Convert.ToString(PSkill.Split(':')[2]);
                                 //  HRRFPrimarySkill.ExpertiseLevel = 2;
                                 HRRFPrimarySkill.IsMandatoy = isMandatory;
-                                HRRFPrimarySkill.CreatedBy = Convert.ToString(Session["EmployeeId"]);
+                                HRRFPrimarySkill.CreatedBy = Convert.ToString(HttpContext.Session.GetString("EmployeeId"));
                                 HRRFPrimarySkill.CreatedDate = DateTime.Now;
                                 db.HRRFSkills_ExpertiseLevel.Add(HRRFPrimarySkill);
                                 db.SaveChanges();
@@ -2112,21 +2114,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
 
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;
@@ -2147,20 +2138,20 @@ namespace Trianz.Enterprise.Operations.Controllers
                     db.HRRFSkills_ExpertiseLevel.Remove(objSkill);
                     db.SaveChanges();
 
-                    return Json("success", JsonRequestBehavior.AllowGet);
+                    return Json("success");
                 }
 
 
                 else
                 {
-                    return Json("Fail", JsonRequestBehavior.AllowGet);
+                    return Json("Fail");
                 }
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
 
 
@@ -2180,12 +2171,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                         PrimSkillsList.Add(new SelectListItem { Text = item.Description, Value = item.LookupID.ToString() });
                     }
                 }
-                return Json(PrimSkillsList, JsonRequestBehavior.AllowGet);
+                return Json(PrimSkillsList);
             }
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
@@ -2213,7 +2204,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 HRRFPrimarySkill.IsPrimary = true;
                                 HRRFPrimarySkill.Skills = Convert.ToInt64(PSkill.Split(':')[0]);
                                 HRRFPrimarySkill.Rating = Convert.ToInt32(PSkill.Split(':')[1]);
-                                HRRFPrimarySkill.CreatedBy = Convert.ToInt32(Session["EmployeeId"]);
+                                HRRFPrimarySkill.CreatedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                                 HRRFPrimarySkill.CreatedDate = DateTime.Now;
                                 db.Entry(HRRFPrimarySkills).State = EntityState.Modified;
                                 db.SaveChanges();
@@ -2225,7 +2216,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 HRRFPrimarySkill.IsPrimary = true;
                                 HRRFPrimarySkill.Skills = Convert.ToInt64(PSkill.Split(':')[0]);
                                 HRRFPrimarySkill.Rating = Convert.ToInt32(PSkill.Split(':')[1]);
-                                HRRFPrimarySkill.CreatedBy = Convert.ToInt32(Session["EmployeeId"]);
+                                HRRFPrimarySkill.CreatedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                                 HRRFPrimarySkill.CreatedDate = DateTime.Now;
                                 db.HRRFSkills.Add(HRRFPrimarySkill);
                                 db.SaveChanges();
@@ -2247,7 +2238,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 HRRFSecondarySkills.IsPrimary = false;
                                 HRRFSecondarySkills.Skills = Convert.ToInt64(SSkill.Split(':')[0]);
                                 HRRFSecondarySkills.Rating = Convert.ToInt32(SSkill.Split(':')[1]);
-                                HRRFSecondarySkills.CreatedBy = Convert.ToInt32(Session["EmployeeId"]);
+                                HRRFSecondarySkills.CreatedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                                 HRRFSecondarySkills.CreatedDate = DateTime.Now;
                                 db.Entry(HRRFSecondarySkills).State = EntityState.Modified;
                                 // db.HRRFSkills.Add(HRRFSecondarySkills);
@@ -2260,7 +2251,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 HRRFSecondarySkill.IsPrimary = false;
                                 HRRFSecondarySkill.Skills = Convert.ToInt64(SSkill.Split(':')[0]);
                                 HRRFSecondarySkill.Rating = Convert.ToInt32(SSkill.Split(':')[1]);
-                                HRRFSecondarySkill.CreatedBy = Convert.ToInt32(Session["EmployeeId"]);
+                                HRRFSecondarySkill.CreatedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                                 HRRFSecondarySkill.CreatedDate = DateTime.Now;
                                 db.HRRFSkills.Add(HRRFSecondarySkill);
                                 db.SaveChanges();
@@ -2270,10 +2261,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 return View();
             }
-            //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            //catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             //{
             //    Exception raise = dbEx;
-            //    foreach (var validationErrors in dbEx.EntityValidationErrors)
+            //    foreach (var validationErrors in dbEx)
             //    {
             //        foreach (var validationError in validationErrors.ValidationErrors)
             //        {
@@ -2324,7 +2315,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             HRRFPrimarySkill.IsPrimary = true;
                             HRRFPrimarySkill.Skills = Convert.ToInt64(PSkill.Split(':')[0]);
                             HRRFPrimarySkill.Rating = Convert.ToInt32(PSkill.Split(':')[1]);
-                            HRRFPrimarySkill.CreatedBy = Convert.ToInt32(Session["EmployeeId"]);
+                            HRRFPrimarySkill.CreatedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                             HRRFPrimarySkill.CreatedDate = DateTime.Now;
                             db.HRRFSkills.Add(HRRFPrimarySkill);
                             db.SaveChanges();
@@ -2339,7 +2330,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             HRRFSecondarySkill.IsPrimary = false;
                             HRRFSecondarySkill.Skills = Convert.ToInt64(SSkill.Split(':')[0]);
                             HRRFSecondarySkill.Rating = Convert.ToInt32(SSkill.Split(':')[1]);
-                            HRRFSecondarySkill.CreatedBy = Convert.ToInt32(Session["EmployeeId"]);
+                            HRRFSecondarySkill.CreatedBy = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                             HRRFSecondarySkill.CreatedDate = DateTime.Now;
                             db.HRRFSkills.Add(HRRFSecondarySkill);
                             db.SaveChanges();
@@ -2349,21 +2340,10 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 return View();
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
                 Exception raise = dbEx;
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
-                    {
-                        string message = string.Format("{0}:{1}",
-                            validationErrors.Entry.Entity.ToString(),
-                            validationError.ErrorMessage);
-                        // raise a new exception nesting
-                        // the current instance as InnerException
-                        raise = new InvalidOperationException(message, raise);
-                    }
-                }
+                // EF Core DbUpdateException does not have EntityValidationErrors - skip validation error iteration
                 ErrorHandling expcls = new ErrorHandling();
                 expcls.Error(raise);
                 throw raise;
@@ -2403,7 +2383,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         //List<string> visalist = new List<string>() { "None", "B1", "H-1B", "L-1A", "L-1B" };
                         //ViewData["_VisaTypesList"] = visalist;
 
-                        return Json(Languages, JsonRequestBehavior.AllowGet);
+                        return Json(Languages);
                     }
                     else
                     {
@@ -2422,12 +2402,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                                          }).OrderBy(p => p.LookupName).ToList();
                         ViewData["_Locations"] = Languages;
 
-                        return Json(Languages, JsonRequestBehavior.AllowGet);
+                        return Json(Languages);
                     }
                 }
                 else
                 {
-                    return Json(string.Empty, JsonRequestBehavior.AllowGet);
+                    return Json(string.Empty);
                 }
 
             }
@@ -2435,7 +2415,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
             }
         }
@@ -2454,11 +2434,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     };
 
                     ViewData["_ExpFrom"] = ExpFromTo;
-                    return Json(ExpFromTo, JsonRequestBehavior.AllowGet);
+                    return Json(ExpFromTo);
                 }
                 else
                 {
-                    return Json(string.Empty, JsonRequestBehavior.AllowGet);
+                    return Json(string.Empty);
                 }
 
             }
@@ -2466,7 +2446,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
             }
         }
@@ -2492,11 +2472,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                                              LookupCode = roles.DesignationCode,
                                          }).OrderBy(p => p.LookupName).ToList();
                     ViewData["_Role"] = listRoleAssign;
-                    return Json(listRoleAssign, JsonRequestBehavior.AllowGet);
+                    return Json(listRoleAssign);
                 }
                 else
                 {
-                    return Json(string.Empty, JsonRequestBehavior.AllowGet);
+                    return Json(string.Empty);
                 }
 
             }
@@ -2505,7 +2485,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 Common.WriteExceptionErrorLog(ex);
 
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
             }
         }
@@ -2553,14 +2533,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                                            Rating = skills.Rating,
                                        };
 
-                return Json(GetPrimarySkills, JsonRequestBehavior.AllowGet);
+                return Json(GetPrimarySkills);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
 
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
             }
         }
@@ -2581,14 +2561,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                                           Rating = skills.Rating,
                                       };
 
-                return Json(GetSecondSkills, JsonRequestBehavior.AllowGet);
+                return Json(GetSecondSkills);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
 
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
             }
         }
@@ -2645,7 +2625,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         string HRRFTechPanel = objHRRF.TECHPANEL;
                         string HRRFTechPanel2 = objHRRF.SECONDTECHPANEL;
                         string loginEmpName = "";
-                        int loginEmpId = Convert.ToInt32(Session["EmployeeId"]);
+                        int loginEmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                         Employee objEmp2 = db.Employees.Find(loginEmpId);
                         if (objEmp2 != null)
                         {
@@ -2681,8 +2661,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                             tblNotification.NotificationType = HRRFNumber.Trim() + " " + ConfigurationManager.AppSettings["TrSubmitted_NOtification"].ToString();
                         }
                         tblNotification.NotificationDate = System.DateTime.Now;
-                        tblNotification.NotificationFrom = Convert.ToInt32(Session["EmployeeId"]);
-                        tblNotification.NotificationTo = Convert.ToInt32(Session["EmployeeId"]);
+                        tblNotification.NotificationFrom = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
+                        tblNotification.NotificationTo = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                         string deliverymanager = "";
                         
                         if (HRRFNumber.Trim() != "TR19704")
@@ -2769,7 +2749,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             Editlink = "Please click on link to view the details of Submitted Talent Request number #";
                         }
                         string LinktoOpen = Editlink + HRRFNumber + " : " + talentoURL;
-                        using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+                        using (StreamReader reader = new StreamReader(Path.Combine(Env.ContentRootPath, "Views/Shared/EmailTemplate.html")))
                         {
                             body = reader.ReadToEnd();
                         }
@@ -2842,7 +2822,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                string HRRFTechPanel = objHRRF.TECHPANEL;
         //                string HRRFTechPanel2 = objHRRF.SECONDTECHPANEL;
         //                string loginEmpName = "";
-        //                int loginEmpId = Convert.ToInt32(Session["EmployeeId"]);
+        //                int loginEmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
         //                Employee objEmp2 = db.Employees.Find(loginEmpId);
         //                if (objEmp2 != null)
         //                {
@@ -2880,8 +2860,8 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                    tblNotification.NotificationType = HRRFNumber.Trim() + " " + ConfigurationManager.AppSettings["TrSubmitted_NOtification"].ToString();
         //                }
         //                tblNotification.NotificationDate = System.DateTime.Now;
-        //                tblNotification.NotificationFrom = Convert.ToInt32(Session["EmployeeId"]);
-        //                tblNotification.NotificationTo = Convert.ToInt32(Session["EmployeeId"]);
+        //                tblNotification.NotificationFrom = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
+        //                tblNotification.NotificationTo = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
         //                string deliverymanager = "";
         //                if (HRRFNumber.Trim() != "TR19704")
         //                {
@@ -2966,7 +2946,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                    Editlink = "Please click on link to view the details of Submitted Talent Request number #";
         //                }
         //                string LinktoOpen = Editlink + HRRFNumber + " : " + talentoURL;
-        //                using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
+        //                using (StreamReader reader = new StreamReader(Path.Combine(Env.ContentRootPath, "Views/Shared/EmailTemplate.html")))
         //                {
         //                    body = reader.ReadToEnd();
         //                }
@@ -3077,7 +3057,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                int EmployeeId = Convert.ToInt32(Session["EmployeeId"]);
+                int EmployeeId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 var PMProject = from PMProjects in db.ProjectAssignments
                                 where PMProjects.EmployeeId == EmployeeId
                                 select new
@@ -3086,12 +3066,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     ProjectName = PMProjects.ProjectName,
                                 };
                 string ProjectName = PMProject.Select(x => x.ProjectName).FirstOrDefault();
-                return Json(ProjectName, JsonRequestBehavior.AllowGet);
+                return Json(ProjectName);
             }
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
         
@@ -3106,7 +3086,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                          JD = Designations.JobDescription,
                                      };
                 string esignation = GetDesignation.Select(x => x.JD).FirstOrDefault();
-                return Json(esignation, JsonRequestBehavior.AllowGet);
+                return Json(esignation);
             }
             catch (Exception ex)
             {
@@ -3306,18 +3286,18 @@ namespace Trianz.Enterprise.Operations.Controllers
                     //}
 
                     ViewData["_ResourceType"] = ResourceType.OrderBy(ord => ord).ToList();
-                    return Json(RequestReason, JsonRequestBehavior.AllowGet);
+                    return Json(RequestReason);
                 }
                 else
                 {
-                    return Json(string.Empty, JsonRequestBehavior.AllowGet);
+                    return Json(string.Empty);
                 }
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
             }
         }
@@ -3332,18 +3312,18 @@ namespace Trianz.Enterprise.Operations.Controllers
                     var otherloc = db.MasterLookUps.Where(OL => OL.LookupType.ToLower() == "onsitelocation" && OL.ParentCode == "1"
                     && OL.LookupName == OtherLocation).Any();
 
-                    return Json(otherloc, JsonRequestBehavior.AllowGet);
+                    return Json(otherloc);
                 }
                 else
                 {
-                    return Json(string.Empty, JsonRequestBehavior.AllowGet);
+                    return Json(string.Empty);
                 }
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
 
             }
@@ -3351,14 +3331,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public ActionResult GetAccount_SGA(string Cost_Center_Value, string Prac_tice, string Pur_pose)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
                     if (!string.IsNullOrEmpty(Cost_Center_Value))
                     {
-                        string Role = (string)Session["Role"];  // PM, OM
-                        int empID = (int)Session["EmployeeId"]; //101098 Manger ID;
+                        string Role = (string)HttpContext.Session.GetString("Role");  // PM, OM
+                        int empID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")); //101098 Manger ID;
 
                         if (Pur_pose.ToLower() != "project" && Pur_pose.ToLower() != "opportunity")
                         {
@@ -3372,7 +3352,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                    Account = proj.AccountName
                                                }).Distinct().OrderBy(p => p.Account).ToList();
                             ViewData["_AccountName"] = AccountName;
-                            return Json(AccountName, JsonRequestBehavior.AllowGet);
+                            return Json(AccountName);
                         }
                         else
                         {
@@ -3388,21 +3368,21 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                }).Distinct().OrderBy(p => p.Account).ToList();
 
                             ViewData["_AccountName"] = AccountName;
-                            return Json(AccountName, JsonRequestBehavior.AllowGet);
+                            return Json(AccountName);
 
                         }
                     }
 
                     else
                     {
-                        return Json(string.Empty, JsonRequestBehavior.AllowGet);
+                        return Json(string.Empty);
                     }
                 }
                 catch (Exception ex)
                 {
 
                     Common.WriteExceptionErrorLog(ex);
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
 
                 }
 
@@ -3410,7 +3390,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -3421,13 +3401,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 var certificationMasters = db.CertificationMasters.ToList().OrderBy(x => x.CertificationName);
                 ViewData["_certifications"] = certificationMasters;
-                return Json(certificationMasters, JsonRequestBehavior.AllowGet);
+                return Json(certificationMasters);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
             }
         }
@@ -3448,13 +3428,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                     ClusterDisc= _clusterDisc==null?string.Empty: _clusterDisc,
                     ClusterJD= _clusterJD==null?string.Empty: _clusterJD
                 };
-                return Json(data, JsonRequestBehavior.AllowGet);
+                return Json(data);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
 
             }
@@ -3471,13 +3451,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                                      }).Distinct().ToList().OrderBy(p => p.CSkill);
                 ViewData["_CSkill"] = _skillCode;
 
-                return Json(_skillCode, JsonRequestBehavior.AllowGet);
+                return Json(_skillCode);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
 
             }
@@ -3494,13 +3474,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                                   }).Distinct().ToList().OrderBy(p => p.SkillCluster);
                 ViewData["_skillCluster"] = _skillCluster;
 
-                return Json(_skillCluster, JsonRequestBehavior.AllowGet);
+                return Json(_skillCluster);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
 
             }
@@ -3512,13 +3492,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 
                 var standardSkillMasters = db.SKILLSCOREs.Where(x=> x.GRADE==grade.ToString() && x.ROLEGROUP==roleGroup&&x.PRACTICE== practice).ToList().OrderBy(x => x.SKILLS);
                 ViewData["_coreSkills"] = standardSkillMasters;
-                return Json(standardSkillMasters, JsonRequestBehavior.AllowGet);
+                return Json(standardSkillMasters);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
 
             }
@@ -3529,13 +3509,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 var standardSkillMasters = db.SKILLSADVs.Where(x => x.GRADE == grade.ToString() && x.ROLEGROUP == roleGroup&&x.PRACTICE==practice).ToList().OrderBy(x => x.SKILLS);
                 ViewData["_advancedSkills"] = standardSkillMasters;
-                return Json(standardSkillMasters, JsonRequestBehavior.AllowGet);
+                return Json(standardSkillMasters);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
             }
         }
@@ -3546,13 +3526,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 var standardSkillMasters = db.SKILLSINTRMs.Where(x => x.GRADE == grade.ToString() && x.ROLEGROUP == roleGroup&&x.PRACTICE== practice).ToList().OrderBy(x => x.SKILLS);
                 ViewData["_intermediateSkills"] = standardSkillMasters;
-                return Json(standardSkillMasters, JsonRequestBehavior.AllowGet);
+                return Json(standardSkillMasters);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
 
             }
@@ -3564,13 +3544,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 var specificFormMasters = db.SpecificPlatFormMasters.ToList().OrderBy(x=>x.SpecificPlatFormName);
                 ViewData["_specificPlatForm"] = specificFormMasters;
-                return Json(specificFormMasters, JsonRequestBehavior.AllowGet);
+                return Json(specificFormMasters);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
             }
         }
@@ -3580,7 +3560,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 var disciplineMasters = db.DisciplineMasters.Where(x => x.Practice == practice.Trim()).ToList();
                 ViewData["_Discipline"] = disciplineMasters;
-                return Json(disciplineMasters, JsonRequestBehavior.AllowGet);
+                return Json(disciplineMasters);
             }
             catch (Exception ex)
             {
@@ -3601,13 +3581,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                     RoleGroupNameCount = n.Count()
                 }).OrderBy(y => y.RoleGroupName).ToList();
                 ViewData["_roleGroup"] = list;
-                return Json(list, JsonRequestBehavior.AllowGet);
+                return Json(list);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
             }
         }
@@ -3627,28 +3607,28 @@ namespace Trianz.Enterprise.Operations.Controllers
                     {
                         var CostCenterfilter = CostCenter.Where(x => !x.costcenterlist.Contains("Delivery")).ToList();
                         ViewData["_Costcenter"] = CostCenterfilter;
-                        return Json(CostCenterfilter, JsonRequestBehavior.AllowGet);
+                        return Json(CostCenterfilter);
                     }
                     else
                     {
                         ViewData["_Costcenter"] = CostCenter;
-                        return Json(CostCenter, JsonRequestBehavior.AllowGet);
+                        return Json(CostCenter);
                     }
                 }
                 else
                 {
-                    return Json(string.Empty, JsonRequestBehavior.AllowGet);
+                    return Json(string.Empty);
                 }
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
+        [HttpPost]
         public JsonResult Autocomplete(string term)
         {
             try
@@ -3673,13 +3653,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 var result3 = result.Where(s => s.Key.ToLower().Contains
                               (term.ToLower())).Select(w => w).ToList();
-                return Json(result3, JsonRequestBehavior.AllowGet);
+                return Json(result3);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
             }
         
@@ -3688,7 +3668,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
 
-        [AcceptVerbs(HttpVerbs.Post)]
+        [HttpPost]
         public ActionResult GetOpportunityByNameorCode(string inputType, string Opportunity)
         {
             try
@@ -3712,20 +3692,20 @@ namespace Trianz.Enterprise.Operations.Controllers
                         filteredOpportunities =
                              GetOpportunities.Where(O => O.potential_no.Equals(Opportunity)).ToList();
                     }
-                    return Json(filteredOpportunities, JsonRequestBehavior.AllowGet);
+                    return Json(filteredOpportunities);
                 }
 
-                return Json("", JsonRequestBehavior.AllowGet);
+                return Json("");
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
+        [HttpPost]
         //public JsonResult GetOpportunityByNameorCode(string inputType, string opportunity, string flag)
         //{
         //    var result = new List<KeyValuePair<string, string>>();
@@ -3764,10 +3744,10 @@ namespace Trianz.Enterprise.Operations.Controllers
         //            }
         //        }
 
-        //        return Json(filteredResult, JsonRequestBehavior.AllowGet);
+        //        return Json(filteredResult);
         //    }
 
-        //    return Json("", JsonRequestBehavior.AllowGet);
+        //    return Json("");
         //}
 
         public ActionResult GetAllOpportunities()
@@ -3796,15 +3776,15 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
 
-            return Json(count, JsonRequestBehavior.AllowGet);
+            return Json(count);
         }
         public JsonResult GetProjectSFilterAccount(string Account, string Practice_value, string cost, string Pur_pose)
         {
             try
             {
-                JsonResult js = new JsonResult();
-                string Role = (string)Session["Role"];  // PM, OM
-                int empID = (int)Session["EmployeeId"]; //101098 Manger ID;
+                JsonResult js = new JsonResult(null);
+                string Role = (string)HttpContext.Session.GetString("Role");  // PM, OM
+                int empID = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")); //101098 Manger ID;
 
                 if (Pur_pose.ToLower() != "project" && Pur_pose.ToLower() != "opportunity")
                 {
@@ -3818,7 +3798,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                            ProjectName = projt.ProjectCode + "-" + projt.ProjectName
                                        }).Distinct().OrderBy(p => p.ProjectName).ToList();
                     ViewData["_Projects"] = projectname;
-                    js.Data = projectname;
+                    js.Value = projectname;
 
                 }
                 else
@@ -3839,10 +3819,9 @@ namespace Trianz.Enterprise.Operations.Controllers
                     if (Account != null && Account != string.Empty)
                         _AllProjectNames = _AllProjectNames.Where(p => p.AccountName.ToLower() == Account.ToLower()).ToList();
                     ViewData["_Projects"] = _AllProjectNames;
-                    js.Data = _AllProjectNames;
+                    js.Value = _AllProjectNames;
                 }
 
-                js.JsonRequestBehavior = JsonRequestBehavior.AllowGet;
                 return (js);
             }
 
@@ -3850,7 +3829,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
             
@@ -3859,7 +3838,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         public JsonResult GetTechPanelName(string Skill)
         {
             var techPanel = db.SKILLSCOREs.Where(x => x.SKILLS.ToLower() == Skill.ToLower()).FirstOrDefault();
-            return Json(techPanel, JsonRequestBehavior.AllowGet);
+            return Json(techPanel);
         }
         public ActionResult GetPractices(String Purpose)
         {
@@ -3884,19 +3863,19 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
                     ViewData["_Practice"] = Practice;
-                    return Json(Practice, JsonRequestBehavior.AllowGet);
+                    return Json(Practice);
 
                 }
                 else
                 {
-                    return Json(string.Empty, JsonRequestBehavior.AllowGet);
+                    return Json(string.Empty);
                 }
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 
@@ -3910,13 +3889,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         LookupName = data.Practice
                                     }).Distinct().ToList().OrderBy(p => p.LookupName);
 
-                    return Json(Practice, JsonRequestBehavior.AllowGet);
+                    return Json(Practice);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
         public JsonResult IsReplacemntExist(string replacementId, string trNo)
@@ -3960,17 +3939,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                 
                 if (data > 0)
                 {
-                    return Json(true, JsonRequestBehavior.AllowGet);
+                    return Json(true);
                 }
                 else
                 {
-                    return Json(false, JsonRequestBehavior.AllowGet);
+                    return Json(false);
                 }
             }
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
 
 
@@ -4006,17 +3985,17 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         //        if (data > 0)
         //        {
-        //            return Json(true, JsonRequestBehavior.AllowGet);
+        //            return Json(true);
         //        }
         //        else
         //        {
-        //            return Json(false, JsonRequestBehavior.AllowGet);
+        //            return Json(false);
         //        }
         //    }
         //    catch (Exception ex)
         //    {
         //        Common.WriteExceptionErrorLog(ex);
-        //        return Json("Error", JsonRequestBehavior.AllowGet);
+        //        return Json("Error");
         //    }
 
         //}
@@ -4025,20 +4004,20 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+                if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
                 {
-                    return Json("true", JsonRequestBehavior.AllowGet);
+                    return Json("true");
                 }
                 else
                 {
-                    return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                    return Json("Sessionexpired");
                 }
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
 
         }
@@ -4058,12 +4037,12 @@ namespace Trianz.Enterprise.Operations.Controllers
         //        }
         //        var obj = db.EXCHANGERATEs.FirstOrDefault();
         //        //var obj = db.EXCHANGERATEs.Where(a => a.RATEDATE.Value.Year == hs.Year).FirstOrDefault();  //From database year == my Billing date year
-        //        return Json(obj, JsonRequestBehavior.AllowGet);
+        //        return Json(obj);
         //    }
         //    catch (Exception ex)
         //    {
         //        Common.WriteExceptionErrorLog(ex);
-        //        return Json("Error", JsonRequestBehavior.AllowGet);
+        //        return Json("Error");
         //    }
         //}
 
@@ -4073,14 +4052,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             try
             {
                 var obj = db.EXCHANGERATEs.OrderByDescending(a => a.RATEDATE).First(); 
-                return Json(obj, JsonRequestBehavior.AllowGet);
+                return Json(obj);
 
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
             }
         }
 

@@ -2,18 +2,21 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
 using System.Text;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.General;
 using Trianz.Enterprise.Operations.Models;
 
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Session;
 namespace Trianz.Enterprise.Operations.Controllers
 {
 
@@ -78,7 +81,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 searchskill = "";
             }
 
-            emp = db.Database.SqlQuery<EmployeeInfoDetails>
+            emp = db.Set<EmployeeInfoDetails>().FromSqlRaw
           ("exec [GetEmployeeSkillsInfo_AccountName] @Skillsetlist,@BillingStatus,@AccountName", new SqlParameter("Skillsetlist", searchskill),
           new SqlParameter("BillingStatus", billingStatus), new SqlParameter("AccountName", accountName)).ToList<EmployeeInfoDetails>();
             List<EmployeeInfoDetails> lstcount = emp;
@@ -92,7 +95,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
             //var SkillsnotupdatedCount = db.EmployeeSkills_New.Where(s => s.SkillStatus == "Draft").Count();
             List<EmployeeInfoDetails> lstempskillnot = new List<EmployeeInfoDetails>();
-            lstempskillnot = db.Database.SqlQuery<EmployeeInfoDetails>
+            lstempskillnot = db.Set<EmployeeInfoDetails>().FromSqlRaw
           ("exec GetEmployeeSkillsNotbound").ToList<EmployeeInfoDetails>();
 
             //var SkillsSubmittedCount = db.EmployeeSkills_New.Where(s => s.SkillStatus == "Approved").Count();
@@ -101,7 +104,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             ViewBag.SkillsnotupdatedCount = lstempskillnot.Count;
 
             List<EmployeeInfoDetails> upadtedskillemp = new List<EmployeeInfoDetails>();
-            upadtedskillemp = db.Database.SqlQuery<EmployeeInfoDetails>
+            upadtedskillemp = db.Set<EmployeeInfoDetails>().FromSqlRaw
           ("exec GetEmployeeSkillsbound").ToList<EmployeeInfoDetails>();
 
             ViewBag.SkillsupdatedCount = upadtedskillemp.Count;
@@ -229,14 +232,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             //ViewData["searchskill"] = searchskill;
             if (EmpId != null)
             {
-                emp = db.Database.SqlQuery<EmployeeInfoDetails>
+                emp = db.Set<EmployeeInfoDetails>().FromSqlRaw
         ("exec [GetEmployeeSkillsInfo] @Skillsetlist,@BillingStatus", new SqlParameter("Skillsetlist", ""),
         new SqlParameter("BillingStatus", billingStatus)).ToList<EmployeeInfoDetails>();
                 emp = emp.Where(m => m.EmployeeId == EmpId).ToList();
             }
             else
             {
-                emp = db.Database.SqlQuery<EmployeeInfoDetails>
+                emp = db.Set<EmployeeInfoDetails>().FromSqlRaw
         ("exec [GetEmployeeSkillsInfo] @Skillsetlist,@BillingStatus", new SqlParameter("Skillsetlist", searchskill),
         new SqlParameter("BillingStatus", billingStatus)).ToList<EmployeeInfoDetails>();
             }
@@ -318,7 +321,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         public ActionResult GetEmployeeDetailsByID(string EmpID)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -339,20 +342,20 @@ namespace Trianz.Enterprise.Operations.Controllers
                     obj.ProjectAssignmentinfo = GetEmployeeAssignmentDetails(EmployeeId);
                     obj.EmployeeSkillInfo = GetEmployeeSkill(EmployeeId.ToString()).ToList();
                     obj.Traininginfo = GetEmployeeTrainingDetails().Where(emp => emp.EmployeeID == EmployeeId).ToList();
-                  return Json(obj, JsonRequestBehavior.AllowGet);
+                  return Json(obj);
                 }
                 catch (Exception ex)
                 {
 
                     Common.WriteExceptionErrorLog(ex);
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
 
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -375,7 +378,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             Int32 EmployeeId = Convert.ToInt32(EmpID);
             List<EmployeeSkills_NewDetails> empskilllst = new List<EmployeeSkills_NewDetails>();
             var employeeId = new SqlParameter("@EmployeeId", EmployeeId);
-            empskilllst = db.Database.SqlQuery<EmployeeSkills_NewDetails>("exec GetEmployeeSkills @EmployeeId", employeeId).ToList();
+            empskilllst = db.Set<EmployeeSkills_NewDetails>().FromSqlRaw("exec GetEmployeeSkills @EmployeeId", employeeId).ToList();
             empskilllst = empskilllst.Where(s => s.SkillStatus == "Approved").ToList();
             return empskilllst;
         }
@@ -392,7 +395,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             return objStudent;
         }
 
-        [AcceptVerbs(HttpVerbs.Post)]
+        [HttpPost]
         public JsonResult GetEmailst(string email)
         {
             try
@@ -414,13 +417,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 var result3 = result.Where(s => s.Key.ToLower().Contains
                               (email.ToLower())).Select(w => w).ToList();
-                return Json(result3, JsonRequestBehavior.AllowGet);
+                return Json(result3);
             }
             catch (Exception ex)
             {
 
                 Common.WriteExceptionErrorLog(ex);
-                return Json("Error", JsonRequestBehavior.AllowGet);
+                return Json("Error");
 
             }
         }
@@ -444,19 +447,19 @@ namespace Trianz.Enterprise.Operations.Controllers
                 billingStatus = ddlStatus;
             }
             List<EmployeeInfoDetails> emp = new List<EmployeeInfoDetails>();
-            emp = db.Database.SqlQuery<EmployeeInfoDetails>("exec [GetEmployeeSkillsInfo] @Skillsetlist,@BillingStatus", new SqlParameter("Skillsetlist", Searchskill),
+            emp = db.Set<EmployeeInfoDetails>().FromSqlRaw("exec [GetEmployeeSkillsInfo] @Skillsetlist,@BillingStatus", new SqlParameter("Skillsetlist", Searchskill),
                    new SqlParameter("BillingStatus", billingStatus)).ToList<EmployeeInfoDetails>();
             emp = emp.Where(e => e.EmployeeId == EmpId).ToList();
             if (emp != null)
             {
                 string MailBodyforAuditee = GetTableBodyForEmaployeeMail(message);
                 SendMailToEmployee(emailid, SmtpuserCommon, MailBodyforAuditee, EmpId, emp[0].EmployeeName, subject);
-                return Json(new { success = true }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = true });
                 // return RedirectToAction("Index", "EmployeeSearch");
             }
             else
             {
-                return Json(new { success = false }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false });
             }
 
         }
@@ -464,7 +467,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                int empId = Convert.ToInt32(Session["EmployeeId"]);
+                int empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 StringBuilder sb = new StringBuilder();
                 sb.Append(message);
                 sb.Append("<br/>");
@@ -596,7 +599,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         public ActionResult FileDownload(int EmpId)
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 byte[] fileData;
                 string fileName, x;
@@ -619,21 +622,21 @@ namespace Trianz.Enterprise.Operations.Controllers
         }
         public ActionResult ExportReport()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    return Json("success", JsonRequestBehavior.AllowGet);
+                    return Json("success");
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
             }
         }
 
@@ -641,7 +644,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                int? EmpId = Convert.ToInt32(Session["EmployeeId"]);
+                int? EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
                 string billingStatus;
                 if (ddlStatus == null || ddlStatus == "")
                 {
@@ -679,7 +682,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     Searchskill = "";
                 }
                 List<EmployeeInfoDetails> emp = new List<EmployeeInfoDetails>();
-                emp = db.Database.SqlQuery<EmployeeInfoDetails>
+                emp = db.Set<EmployeeInfoDetails>().FromSqlRaw
                       ("exec [GetEmployeeSkillsInfo_AccountName] @Skillsetlist,@BillingStatus,@AccountName", new SqlParameter("Skillsetlist", Searchskill),
                       new SqlParameter("BillingStatus", billingStatus), new SqlParameter("AccountName", accountName)).ToList<EmployeeInfoDetails>();
                 List<EmployeeInfoDetails> lstcount = emp;
@@ -711,18 +714,18 @@ namespace Trianz.Enterprise.Operations.Controllers
                 List<EmployeeInfoDetails> empinfodetails = new List<EmployeeInfoDetails>();
                 empinfodetails = obj.EmpSkillInfo;
                
-                lstemp = db.Database.SqlQuery<EmployeeInfoDetails>
+                lstemp = db.Set<EmployeeInfoDetails>().FromSqlRaw
                ("exec GetEmployeeSkillsbound") .ToList<EmployeeInfoDetails>();
                 
                 List<EmployeeInfoDetails> lstempskillnot = new List<EmployeeInfoDetails>();
-                lstempskillnot = db.Database.SqlQuery<EmployeeInfoDetails>
+                lstempskillnot = db.Set<EmployeeInfoDetails>().FromSqlRaw
                ("exec GetEmployeeSkillsNotbound").ToList<EmployeeInfoDetails>();
 
                 int LastRow;
                 #region Export to Excel
                 using (ExcelPackage package = new ExcelPackage())
-                {
-                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Skills Updated List");
+            {
+                        ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Skills Updated List");
                     ExcelWorksheet worksheetone = package.Workbook.Worksheets.Add("Skills Not Updated List");
                     ExcelWorksheet worksheettwo = package.Workbook.Worksheets.Add("Employee Details List");
 
@@ -959,14 +962,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     Byte[] fileBytes = package.GetAsByteArray();
                     Response.Clear();
-                    Response.Buffer = true;
-                    Response.AddHeader("content-disposition", "attachment;filename=" + "EmployeeSearch" + "-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
+                    
+                    Response.Headers.Add("content-disposition", "attachment;filename=" + "EmployeeSearch" + "-Report" + DateTime.Now.ToString("_dd-MMM-yyyy_hh-mm-ss") + ".xlsx");
 
-                    Response.Charset = "";
+                    
                     Response.ContentType = "application/vnd.ms-excel";
                     StringWriter sw = new StringWriter();
-                    Response.BinaryWrite(fileBytes);
-                    Response.End();
+                    Response.Body.Write(fileBytes);
+                    
                 }
 
                 #endregion
@@ -976,7 +979,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             catch (Exception ex)
             {
                 Common.WriteExceptionErrorLog(ex);
-                //return Json("Error", JsonRequestBehavior.AllowGet);
+                //return Json("Error");
                 return RedirectToAction("Error", "Error");
             }
         }

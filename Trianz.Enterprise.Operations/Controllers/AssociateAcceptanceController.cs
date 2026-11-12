@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.Models;
 
 namespace TZOperations.Controllers
@@ -17,12 +17,12 @@ namespace TZOperations.Controllers
             ValidationModel model = new ValidationModel();
             //if (hrrfID == null)
             //{
-            //    return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
+            //    return BadRequest();
             //}
            // HRRF hrrf = db.HRRF.Find(hrrfID);
             //if (hrrf == null)
             //{
-            //    return HttpNotFound();
+            //    return NotFound();
             //}
             //return view
             return View();

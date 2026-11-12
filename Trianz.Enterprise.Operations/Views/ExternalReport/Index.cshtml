@@ -71,7 +71,7 @@ new SelectListItem { Text ="Yet to Join",Value="Yet to Join"},
         @*@{
                 List<string> lstEmpIDs = System.Configuration.ConfigurationManager.AppSettings["CreateTR-RL"].Split(',').ToList();
 
-                bool IsValid = lstEmpIDs.Where(e => Session["EmployeeId"].ToString().Contains(e)).Any();
+                bool IsValid = lstEmpIDs.Where(e => Context.Session.GetString("EmployeeId").ToString().Contains(e)).Any();
                 if (IsValid)
                 {
                   @:<button id="btnCreate" type="button" onclick="location.href='@Url.Action("HRRFCreation", "CreateHRRF")'" class="btn btn-primary pull-left" style="margin-right: 10px;">Create TR</button>
@@ -220,7 +220,7 @@ new SelectListItem { Text ="Yet to Join",Value="Yet to Join"},
 <br /><hr />
 <div class="col-md-12 nopadding text-left">
     <div id="gridExternalHire">
-        @Html.Partial("_PartialExternalHireView")
+        @(await Html.PartialAsync("_PartialExternalHireView"))
     </div>
 </div>
 <div class="clear-both"></div>

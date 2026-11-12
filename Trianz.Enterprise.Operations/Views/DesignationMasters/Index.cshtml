@@ -81,7 +81,7 @@
 
 <div class="request_header">
 <div class="container row" style="margin-top: 5px">
-    @if ((Session["Role"] != null && Session["Role"].ToString().ToUpper() != "OM") || Session["EmployeeId"].ToString() == "103488")
+    @if ((Context.Session.GetString("Role") != null && Context.Session.GetString("Role").ToString().ToUpper() != "OM") || Context.Session.GetString("EmployeeId").ToString() == "103488")
     {
         <div class="pull-left">
             <button id="btnCreate" type="button" onclick="location.href='@Url.Action("Create", "DesignationMasters")'" class="btn btn-primary pull-left">Create Designation</button>
@@ -97,7 +97,7 @@
                 <span class="glyphicon glyphicon-search"></span>
             </button>
         </div>
-            if (Session["Role"] != null && Session["Role"].ToString().ToUpper() == "OM")
+            if (Context.Session.GetString("Role") != null && Context.Session.GetString("Role").ToString().ToUpper() == "OM")
             {
                 <div class="col-md-3 pull-right" style="margin-left: 6px;margin: 15px 0px 0px 0px;">
                     @*<style margin-left:25px;>*@
@@ -134,7 +134,7 @@
         grid.Column("", format: (item) => @Html.ActionLink("Details", "Details", "DesignationMasters", new { id = @item.DesignationID }, null))
         //grid.Column("", format: (item) => @Html.ActionLink("Delete", "Delete", "DesignationMasters", new { id = @item.DesignationID }, null))
                                     @*grid.Column("", format: @<text>
-                                                @if (Session["Role"] != null && Session["Role"].ToString().ToUpper() == "OM")
+                                                @if (Context.Session.GetString("Role") != null && Context.Session.GetString("Role").ToString().ToUpper() == "OM")
                                                          {
 
                                                          }

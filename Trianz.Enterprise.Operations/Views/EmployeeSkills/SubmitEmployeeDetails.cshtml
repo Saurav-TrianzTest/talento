@@ -33,7 +33,7 @@
     <li><a data-toggle="tab" href="#tabMyCertificates"><b>My Certificates</b></a></li>
     <li><a data-toggle="tab" href="#tabMyTrainings"><b>My Trainings</b></a></li>
     @*
-        <li class="pull-right"><button type="button" class="btn btn-primary" onclick="location.href='@Url.Action(" updatemyskills", "employees" , new { id=Session["EmployeeId"].ToString()})'">Update My Skills</button></li>*@
+        <li class="pull-right"><button type="button" class="btn btn-primary" onclick="location.href='@Url.Action(" updatemyskills", "employees" , new { id=Context.Session.GetString("EmployeeId").ToString()})'">Update My Skills</button></li>*@
 </ul>
 
 <div class="tab-content">
@@ -135,7 +135,7 @@
                     </table>
                 </div>
                 <div id="divgridskills">
-                    @*@Html.Partial("_AddNewSkills")*@
+                    @*@await Html.PartialAsync("_AddNewSkills")*@
                 </div>
                 <hr style="margin: 7px 0;" />
                 <div class="row">
@@ -214,7 +214,7 @@
         @*Design is a work in progress.<br /> Check back soon..*@
         @*No data to display*@
         <div id="divGridContent1" class="table table-responsive" style="margin-bottom: 0px;">
-            @*@Html.Partial("_MyTrainings", Model)*@
+            @*@await Html.PartialAsync("_MyTrainings", Model)*@
         </div>
     </div>
 </div>

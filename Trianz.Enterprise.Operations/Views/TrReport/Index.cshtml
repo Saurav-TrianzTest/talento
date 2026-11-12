@@ -149,7 +149,7 @@
 </div>
 <div class="col-md-6 col-sm-12 pull-right text-right nopadding-right">
     <div class="col-md-3 col-sm-12 nopadding-right pull-right">
-        @if ((Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM" || Session["Role"].ToString() == "DH"))
+        @if ((Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "PM" || Context.Session.GetString("Role").ToString() == "DH"))
         {
             <button type="button" id="btnExport" name="btnExport" href="#" onclick="location.href='@Url.Action("GetExcel", "TrReport")'" title="exporttoexcel" class="btn btn-default btn-sm btn-excel">
                 <i class="glyphicon glyphicon-export"></i>
@@ -158,7 +158,7 @@
         }
     </div>
     <div class="col-md-3 col-sm-12 nopadding-right pull-right">
-        @if ((Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM" || Session["Role"].ToString() == "DH"))
+        @if ((Context.Session.GetString("Role").ToString() == "OM" || Context.Session.GetString("Role").ToString() == "PM" || Context.Session.GetString("Role").ToString() == "DH"))
         {
             <button type="button" id="btnExport" name="btnExport" href="#" onclick="location.href='@Url.Action("GetExternal", "TrReport")'" title="exporttoexcel" class="btn btn-default btn-sm btn-excel">
                 <i class="glyphicon glyphicon-export"></i>

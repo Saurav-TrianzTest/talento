@@ -81,7 +81,7 @@
                         </div>
                     </div>
                     <div class="col-md-3 form-group">
-                        @Html.Label("Designation Code", htmlAttributes: new { @class = "control-label" })<br />
+                        @Html.Label("Designation Code", null, htmlAttributes: new { @class = "control-label" })<br />
                         <div>
                             @Html.EditorFor(model => model.DesignationCode, new { htmlAttributes = new { @class = "form-control" } })
                             @Html.ValidationMessageFor(model => model.DesignationCode, "", new { @class = "text-danger" })
@@ -89,7 +89,7 @@
                     </div>
 
                     <div class="col-md-3 form-group">
-                        @Html.Label("Designation Name", htmlAttributes: new { @class = "control-label", @Style = "margin-left:20px" })<br />
+                        @Html.Label("Designation Name", null, htmlAttributes: new { @class = "control-label", @Style = "margin-left:20px" })<br />
                         <div>
                             @Html.EditorFor(model => model.DesignationName, new { htmlAttributes = new { @class = "form-control" } })
                             @Html.ValidationMessageFor(model => model.DesignationName, "", new { @class = "text-danger" })
@@ -101,7 +101,7 @@
                 </div>
                 <div class="row">
                     <div class="col-md-3 form-group" style="margin: 0px 8px;">
-                        @Html.Label("Job Description", htmlAttributes: new { @class = "control-label" })<br />
+                        @Html.Label("Job Description", null, htmlAttributes: new { @class = "control-label" })<br />
                         <div>
                             @Html.TextAreaFor(model => model.JobDescription, new { @class = "form-control  full-width", @rows = "8", style = "width: 883px;" })
                             @Html.ValidationMessageFor(model => model.ModifiedDate, "", new { @class = "text-danger" })
@@ -122,9 +122,10 @@
 }
 
 @section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
+    <script src="~/Scripts/jquery.validate.js"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js"></script>
 
-    @if (Session["Role"] != null && Session["Role"].ToString().ToUpper() == "OM")
+    @if (Context.Session.GetString("Role") != null && Context.Session.GetString("Role").ToString().ToUpper() == "OM")
     {
         <script>
             $(document).ready(function () {

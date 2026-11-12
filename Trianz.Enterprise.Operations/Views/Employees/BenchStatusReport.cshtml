@@ -130,7 +130,7 @@
 
                 </div>
                 <input type="hidden" id="hdnMessage" value="@ViewBag.Message" />
-                @using (Html.BeginForm("InsertCostPerHourData", "Employees", null, FormMethod.Post, new { id = "uploadform", enctype = "multipart/form-data" }))
+                @using (Html.BeginForm("InsertCostPerHourData", "Employees", null, FormMethod.Post, null, new { id = "uploadform", enctype = "multipart/form-data" }))
 
                 {
                     <div class="info2">
@@ -349,7 +349,7 @@
 
     </div>
     <div id="ProjectResource">
-        @Html.Partial("_BenchResourceCostReport")
+        @(await Html.PartialAsync("_BenchResourceCostReport"))
 
     </div>
 

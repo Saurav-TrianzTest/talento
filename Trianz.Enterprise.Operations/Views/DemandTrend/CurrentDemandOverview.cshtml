@@ -1,7 +1,6 @@
 ﻿@model IEnumerable<Trianz.Enterprise.Operations.Models.DemandData>
 
-@using JQChart.Web.Mvc
-
+@* JQChart is not available in ASP.NET Core - chart rendering commented out
 @(Html.JQChart()
                 .Chart(Model)
                 .ID("jqChart")
@@ -32,4 +31,4 @@
                 }
                 )
                 .Render()
-)
+) *@

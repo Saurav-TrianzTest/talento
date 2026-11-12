@@ -76,17 +76,17 @@
                                  (
                                      proposedResourcesGrid.Column(format:
                                             @<text>
-                                                @if (Session["Role"].ToString() != "" && (Session["Role"].ToString() == "DH" ||
-                                                               Session["Role"].ToString() == "PM" && ViewBag.EmployeeID == (int)Session["EmployeeId"]))
+                                                @if (Context.Session.GetString("Role").ToString() != "" && (Context.Session.GetString("Role").ToString() == "DH" ||
+                                                               Context.Session.GetString("Role").ToString() == "PM" && ViewBag.EmployeeID == Convert.ToInt32(Context.Session.GetString("EmployeeId"))))
                                                          {
-                                                    //if (Convert.ToBoolean(Session["IsPractice"]) == true)
+                                                    //if (Convert.ToBoolean(Context.Session.GetString("IsPractice")) == true)
                                                     //{
                                                     <input type="radio" class="check" name="chkAssociateId" id="chkAssociateId" value="@item.EmployeeID" />
                                                     //}
                                                 }
-                                                         else if (Session["Role"].ToString() != "" && Session["Role"].ToString() == "OM") // || (Session["Role"].ToString() == "PM" && ViewBag.EmployeeID == (int)Session["EmployeeId"])
+                                                         else if (Context.Session.GetString("Role").ToString() != "" && Context.Session.GetString("Role").ToString() == "OM") // || (Context.Session.GetString("Role").ToString() == "PM" && ViewBag.EmployeeID == Convert.ToInt32(Context.Session.GetString("EmployeeId")))
                                                 {
-                                                             if (Convert.ToBoolean(Session["IsPractice"]) == true)
+                                                             if (Convert.ToBoolean(Context.Session.GetString("IsPractice")) == true)
                                                              {
                                                         <input type="radio" class="case" name="chkAssociateId" id="chkAssociateId" value="@item.EmployeeID" />
                                                              }
@@ -129,16 +129,16 @@
     z-index: 100;
     left: -13px;
     margin-top: 63px;">
-                @if (Session["Role"].ToString() != "" && Session["Role"].ToString() == "DH")
+                @if (Context.Session.GetString("Role").ToString() != "" && Context.Session.GetString("Role").ToString() == "DH")
                 {
-                    //if (Convert.ToBoolean(Session["IsPractice"]) == true)
+                    //if (Convert.ToBoolean(Context.Session.GetString("IsPractice")) == true)
                     //{
                     <button type="button" class="btn btn-primary" onclick="acceptProposeAssociate()">Approve</button>
                     @*<button type="submit" onclick="acceptProposeAssociate()" class="btn btn-primary" >Approve</button>*@
                     <button type="button" class="btn btn-primary" onclick="rejectProposeAssociate()">Reject</button>
                     //}
                 }
-                else if (Session["Role"].ToString() != "" && ViewBag.EmployeeID == (int)Session["EmployeeId"])
+                else if (Context.Session.GetString("Role").ToString() != "" && ViewBag.EmployeeID == Convert.ToInt32(Context.Session.GetString("EmployeeId")))
                 {
                     <button type="button" class="btn btn-primary" onclick="acceptProposeAssociate()" @*"approveResourceByPM()"*@>Approve</button>
                     <button type="button" class="btn btn-primary" onclick="rejectProposeAssociate()" @*"rejectResourceByPM()"*@>Reject</button>

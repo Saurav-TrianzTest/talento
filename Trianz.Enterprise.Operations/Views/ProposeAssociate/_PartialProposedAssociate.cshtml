@@ -55,7 +55,7 @@
                                     (
                                     recommendedResourcesGrid.Column(format:
                                                 @<text>
-                                                    @if (Convert.ToBoolean(Session["IsPractice"]) == true)
+                                                    @if (Convert.ToBoolean(Context.Session.GetString("IsPractice")) == true)
                                                                  {
                                                                      if (item.Pstatus == string.Empty || item.Pstatus == null
                                            || item.Pstatus == "Rejected")
@@ -125,7 +125,7 @@
 
         <div style="text-align: left;padding-left:20%;">
             @*@Html.ActionLink("ProposeAssociate", "ProposeAssociate", new { ProposedId = @item.ProposedID })*@
-            @if (Convert.ToBoolean(Session["IsPractice"]) == true)
+            @if (Convert.ToBoolean(Context.Session.GetString("IsPractice")) == true)
             {
                 <button type="submit" class="btn btn-primary" onclick="recommendAssociates()" style="    margin-top: -665px;
     margin-left: -207px;">Propose</button>

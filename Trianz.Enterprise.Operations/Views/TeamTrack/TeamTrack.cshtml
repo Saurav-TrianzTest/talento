@@ -73,6 +73,6 @@
 @if (Model != null)
 
     {
-   @Html.Partial("_GetTrackTablebyPractice")
+   @(await Html.PartialAsync("_GetTrackTablebyPractice"))
     }
 </div>

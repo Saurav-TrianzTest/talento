@@ -10,21 +10,36 @@
 namespace Trianz.Enterprise.Operations.Models
 {
     using System;
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
-    using System.Data.Entity.Core.Objects;
+    using System.Collections.Generic;
+    using System.Data;
     using System.Linq;
+    using Microsoft.Data.SqlClient;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Infrastructure;
     
     public partial class TrianzOperationsEntities : DbContext
     {
         public TrianzOperationsEntities()
-            : base("name=TrianzOperationsEntities")
         {
         }
     
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        public TrianzOperationsEntities(DbContextOptions<TrianzOperationsEntities> options)
+            : base(options)
         {
-            throw new UnintentionalCodeFirstException();
+        }
+    
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Model configuration migrated from EF6 EDMX
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                var connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["TrianzOperationsEntities"].ConnectionString;
+                optionsBuilder.UseSqlServer(connectionString);
+            }
         }
     
         public virtual DbSet<AddtionalWHMPunchInOUT> AddtionalWHMPunchInOUTs { get; set; }
@@ -120,242 +135,123 @@ namespace Trianz.Enterprise.Operations.Models
         public virtual DbSet<EmailAudit> EmailAudits { get; set; }
         public virtual DbSet<EMPLOYEERATE> EMPLOYEERATEs { get; set; }
         public virtual DbSet<HRRF> HRRFs { get; set; }
+        public virtual DbSet<HRRFStatusHistory> HRRFStatusHistories { get; set; }
         public virtual DbSet<ClusterLeadTeam> ClusterLeadTeams { get; set; }
         public virtual DbSet<HRRFRemark> HRRFRemarks { get; set; }
-        public virtual DbSet<HRRFStatusHistory> HRRFStatusHistories { get; set; }
         public virtual DbSet<ProfilesInformation> ProfilesInformations { get; set; }
     
-        public virtual ObjectResult<sp_GetHRRFReportByEmpIdPractice_1_Result> sp_GetHRRFReportByEmpIdPractice_1(string practice, string request, string account, Nullable<int> empID)
+        public virtual List<sp_GetHRRFReportByEmpIdPractice_1_Result> sp_GetHRRFReportByEmpIdPractice_1(string practice, string request, string account, Nullable<int> empID)
         {
-            var practiceParameter = practice != null ?
-                new ObjectParameter("Practice", practice) :
-                new ObjectParameter("Practice", typeof(string));
-    
-            var requestParameter = request != null ?
-                new ObjectParameter("Request", request) :
-                new ObjectParameter("Request", typeof(string));
-    
-            var accountParameter = account != null ?
-                new ObjectParameter("Account", account) :
-                new ObjectParameter("Account", typeof(string));
-    
-            var empIDParameter = empID.HasValue ?
-                new ObjectParameter("EmpID", empID) :
-                new ObjectParameter("EmpID", typeof(int));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_GetHRRFReportByEmpIdPractice_1_Result>("sp_GetHRRFReportByEmpIdPractice_1", practiceParameter, requestParameter, accountParameter, empIDParameter);
+            return this.Set<sp_GetHRRFReportByEmpIdPractice_1_Result>().FromSqlRaw("EXEC sp_GetHRRFReportByEmpIdPractice_1 @Practice, @Request, @Account, @EmpID",
+                new SqlParameter("@Practice", practice ?? (object)DBNull.Value),
+                new SqlParameter("@Request", request ?? (object)DBNull.Value),
+                new SqlParameter("@Account", account ?? (object)DBNull.Value),
+                new SqlParameter("@EmpID", empID ?? (object)DBNull.Value)).ToList();
         }
     
-        public virtual ObjectResult<sp_GetTrainingData_Result> sp_GetTrainingData(string programName, string location, string practice, string attendanceStatus, string source, string category, string mode, Nullable<System.DateTime> startDate, Nullable<System.DateTime> endDate)
+        public virtual List<sp_GetTrainingData_Result> sp_GetTrainingData(string programName, string location, string practice, string attendanceStatus, string source, string category, string mode, Nullable<System.DateTime> startDate, Nullable<System.DateTime> endDate)
         {
-            var programNameParameter = programName != null ?
-                new ObjectParameter("ProgramName", programName) :
-                new ObjectParameter("ProgramName", typeof(string));
-    
-            var locationParameter = location != null ?
-                new ObjectParameter("Location", location) :
-                new ObjectParameter("Location", typeof(string));
-    
-            var practiceParameter = practice != null ?
-                new ObjectParameter("Practice", practice) :
-                new ObjectParameter("Practice", typeof(string));
-    
-            var attendanceStatusParameter = attendanceStatus != null ?
-                new ObjectParameter("AttendanceStatus", attendanceStatus) :
-                new ObjectParameter("AttendanceStatus", typeof(string));
-    
-            var sourceParameter = source != null ?
-                new ObjectParameter("Source", source) :
-                new ObjectParameter("Source", typeof(string));
-    
-            var categoryParameter = category != null ?
-                new ObjectParameter("Category", category) :
-                new ObjectParameter("Category", typeof(string));
-    
-            var modeParameter = mode != null ?
-                new ObjectParameter("Mode", mode) :
-                new ObjectParameter("Mode", typeof(string));
-    
-            var startDateParameter = startDate.HasValue ?
-                new ObjectParameter("StartDate", startDate) :
-                new ObjectParameter("StartDate", typeof(System.DateTime));
-    
-            var endDateParameter = endDate.HasValue ?
-                new ObjectParameter("EndDate", endDate) :
-                new ObjectParameter("EndDate", typeof(System.DateTime));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_GetTrainingData_Result>("sp_GetTrainingData", programNameParameter, locationParameter, practiceParameter, attendanceStatusParameter, sourceParameter, categoryParameter, modeParameter, startDateParameter, endDateParameter);
+            return this.Set<sp_GetTrainingData_Result>().FromSqlRaw("EXEC sp_GetTrainingData @ProgramName, @Location, @Practice, @AttendanceStatus, @Source, @Category, @Mode, @StartDate, @EndDate",
+                new SqlParameter("@ProgramName", programName ?? (object)DBNull.Value),
+                new SqlParameter("@Location", location ?? (object)DBNull.Value),
+                new SqlParameter("@Practice", practice ?? (object)DBNull.Value),
+                new SqlParameter("@AttendanceStatus", attendanceStatus ?? (object)DBNull.Value),
+                new SqlParameter("@Source", source ?? (object)DBNull.Value),
+                new SqlParameter("@Category", category ?? (object)DBNull.Value),
+                new SqlParameter("@Mode", mode ?? (object)DBNull.Value),
+                new SqlParameter("@StartDate", startDate ?? (object)DBNull.Value),
+                new SqlParameter("@EndDate", endDate ?? (object)DBNull.Value)).ToList();
         }
     
         public virtual int sp_GetHRRFReportByEmpIdPractice(string practice, string request, string account, Nullable<int> empID)
         {
-            var practiceParameter = practice != null ?
-                new ObjectParameter("Practice", practice) :
-                new ObjectParameter("Practice", typeof(string));
-    
-            var requestParameter = request != null ?
-                new ObjectParameter("Request", request) :
-                new ObjectParameter("Request", typeof(string));
-    
-            var accountParameter = account != null ?
-                new ObjectParameter("Account", account) :
-                new ObjectParameter("Account", typeof(string));
-    
-            var empIDParameter = empID.HasValue ?
-                new ObjectParameter("EmpID", empID) :
-                new ObjectParameter("EmpID", typeof(int));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_GetHRRFReportByEmpIdPractice", practiceParameter, requestParameter, accountParameter, empIDParameter);
+            return this.Database.ExecuteSqlRaw("EXEC sp_GetHRRFReportByEmpIdPractice @Practice, @Request, @Account, @EmpID",
+                new SqlParameter("@Practice", practice ?? (object)DBNull.Value),
+                new SqlParameter("@Request", request ?? (object)DBNull.Value),
+                new SqlParameter("@Account", account ?? (object)DBNull.Value),
+                new SqlParameter("@EmpID", empID ?? (object)DBNull.Value));
         }
     
-        public virtual ObjectResult<sp_GetHRRFListByEmpIdPractice_Result> sp_GetHRRFListByEmpIdPractice(string practice, string request, string account, Nullable<int> empID)
+        public virtual List<sp_GetHRRFListByEmpIdPractice_Result> sp_GetHRRFListByEmpIdPractice(string practice, string request, string account, Nullable<int> empID)
         {
-            var practiceParameter = practice != null ?
-                new ObjectParameter("Practice", practice) :
-                new ObjectParameter("Practice", typeof(string));
-    
-            var requestParameter = request != null ?
-                new ObjectParameter("Request", request) :
-                new ObjectParameter("Request", typeof(string));
-    
-            var accountParameter = account != null ?
-                new ObjectParameter("Account", account) :
-                new ObjectParameter("Account", typeof(string));
-    
-            var empIDParameter = empID.HasValue ?
-                new ObjectParameter("EmpID", empID) :
-                new ObjectParameter("EmpID", typeof(int));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_GetHRRFListByEmpIdPractice_Result>("sp_GetHRRFListByEmpIdPractice", practiceParameter, requestParameter, accountParameter, empIDParameter);
+            return this.Set<sp_GetHRRFListByEmpIdPractice_Result>().FromSqlRaw("EXEC sp_GetHRRFListByEmpIdPractice @Practice, @Request, @Account, @EmpID",
+                new SqlParameter("@Practice", practice ?? (object)DBNull.Value),
+                new SqlParameter("@Request", request ?? (object)DBNull.Value),
+                new SqlParameter("@Account", account ?? (object)DBNull.Value),
+                new SqlParameter("@EmpID", empID ?? (object)DBNull.Value)).ToList();
         }
     
-        public virtual ObjectResult<sp_GetHRRFListByEmpIdPracticeForBillingloss_Result> sp_GetHRRFListByEmpIdPracticeForBillingloss(string request, string criticality, Nullable<System.DateTime> fromDate, Nullable<System.DateTime> toDate)
+        public virtual List<sp_GetHRRFListByEmpIdPracticeForBillingloss_Result> sp_GetHRRFListByEmpIdPracticeForBillingloss(string request, string criticality, Nullable<System.DateTime> fromDate, Nullable<System.DateTime> toDate)
         {
-            var requestParameter = request != null ?
-                new ObjectParameter("Request", request) :
-                new ObjectParameter("Request", typeof(string));
-    
-            var criticalityParameter = criticality != null ?
-                new ObjectParameter("Criticality", criticality) :
-                new ObjectParameter("Criticality", typeof(string));
-    
-            var fromDateParameter = fromDate.HasValue ?
-                new ObjectParameter("FromDate", fromDate) :
-                new ObjectParameter("FromDate", typeof(System.DateTime));
-    
-            var toDateParameter = toDate.HasValue ?
-                new ObjectParameter("ToDate", toDate) :
-                new ObjectParameter("ToDate", typeof(System.DateTime));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_GetHRRFListByEmpIdPracticeForBillingloss_Result>("sp_GetHRRFListByEmpIdPracticeForBillingloss", requestParameter, criticalityParameter, fromDateParameter, toDateParameter);
+            return this.Set<sp_GetHRRFListByEmpIdPracticeForBillingloss_Result>().FromSqlRaw("EXEC sp_GetHRRFListByEmpIdPracticeForBillingloss @Request, @Criticality, @FromDate, @ToDate",
+                new SqlParameter("@Request", request ?? (object)DBNull.Value),
+                new SqlParameter("@Criticality", criticality ?? (object)DBNull.Value),
+                new SqlParameter("@FromDate", fromDate ?? (object)DBNull.Value),
+                new SqlParameter("@ToDate", toDate ?? (object)DBNull.Value)).ToList();
         }
     
-        public virtual ObjectResult<sp_GetBillingLossList_Result> sp_GetBillingLossList(string criticality, Nullable<System.DateTime> fromDate, Nullable<System.DateTime> toDate)
+        public virtual List<sp_GetBillingLossList_Result> sp_GetBillingLossList(string criticality, Nullable<System.DateTime> fromDate, Nullable<System.DateTime> toDate)
         {
-            var criticalityParameter = criticality != null ?
-                new ObjectParameter("Criticality", criticality) :
-                new ObjectParameter("Criticality", typeof(string));
-    
-            var fromDateParameter = fromDate.HasValue ?
-                new ObjectParameter("FromDate", fromDate) :
-                new ObjectParameter("FromDate", typeof(System.DateTime));
-    
-            var toDateParameter = toDate.HasValue ?
-                new ObjectParameter("ToDate", toDate) :
-                new ObjectParameter("ToDate", typeof(System.DateTime));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_GetBillingLossList_Result>("sp_GetBillingLossList", criticalityParameter, fromDateParameter, toDateParameter);
+            return this.Set<sp_GetBillingLossList_Result>().FromSqlRaw("EXEC sp_GetBillingLossList @Criticality, @FromDate, @ToDate",
+                new SqlParameter("@Criticality", criticality ?? (object)DBNull.Value),
+                new SqlParameter("@FromDate", fromDate ?? (object)DBNull.Value),
+                new SqlParameter("@ToDate", toDate ?? (object)DBNull.Value)).ToList();
         }
     
-        public virtual ObjectResult<sp_GetBillingsLossList_Result> sp_GetBillingsLossList(string criticality, Nullable<System.DateTime> fromDate, Nullable<System.DateTime> toDate, string requestStatus)
+        public virtual List<sp_GetBillingsLossList_Result> sp_GetBillingsLossList(string criticality, Nullable<System.DateTime> fromDate, Nullable<System.DateTime> toDate, string requestStatus)
         {
-            var criticalityParameter = criticality != null ?
-                new ObjectParameter("Criticality", criticality) :
-                new ObjectParameter("Criticality", typeof(string));
-    
-            var fromDateParameter = fromDate.HasValue ?
-                new ObjectParameter("FromDate", fromDate) :
-                new ObjectParameter("FromDate", typeof(System.DateTime));
-    
-            var toDateParameter = toDate.HasValue ?
-                new ObjectParameter("ToDate", toDate) :
-                new ObjectParameter("ToDate", typeof(System.DateTime));
-    
-            var requestStatusParameter = requestStatus != null ?
-                new ObjectParameter("RequestStatus", requestStatus) :
-                new ObjectParameter("RequestStatus", typeof(string));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_GetBillingsLossList_Result>("sp_GetBillingsLossList", criticalityParameter, fromDateParameter, toDateParameter, requestStatusParameter);
+            return this.Set<sp_GetBillingsLossList_Result>().FromSqlRaw("EXEC sp_GetBillingsLossList @Criticality, @FromDate, @ToDate, @RequestStatus",
+                new SqlParameter("@Criticality", criticality ?? (object)DBNull.Value),
+                new SqlParameter("@FromDate", fromDate ?? (object)DBNull.Value),
+                new SqlParameter("@ToDate", toDate ?? (object)DBNull.Value),
+                new SqlParameter("@RequestStatus", requestStatus ?? (object)DBNull.Value)).ToList();
         }
     
-        public virtual ObjectResult<sp_GetProjectAllocations_Result> sp_GetProjectAllocations(string projectCode, string startDate)
+        public virtual List<sp_GetProjectAllocations_Result> sp_GetProjectAllocations(string projectCode, string startDate)
         {
-            var projectCodeParameter = projectCode != null ?
-                new ObjectParameter("ProjectCode", projectCode) :
-                new ObjectParameter("ProjectCode", typeof(string));
-    
-            var startDateParameter = startDate != null ?
-                new ObjectParameter("StartDate", startDate) :
-                new ObjectParameter("StartDate", typeof(string));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_GetProjectAllocations_Result>("sp_GetProjectAllocations", projectCodeParameter, startDateParameter);
+            return this.Set<sp_GetProjectAllocations_Result>().FromSqlRaw("EXEC sp_GetProjectAllocations @ProjectCode, @StartDate",
+                new SqlParameter("@ProjectCode", projectCode ?? (object)DBNull.Value),
+                new SqlParameter("@StartDate", startDate ?? (object)DBNull.Value)).ToList();
         }
     
-        public virtual ObjectResult<sp_GetProjectAllocationsSum_Result> sp_GetProjectAllocationsSum(string projectCode, string startDate)
+        public virtual List<sp_GetProjectAllocationsSum_Result> sp_GetProjectAllocationsSum(string projectCode, string startDate)
         {
-            var projectCodeParameter = projectCode != null ?
-                new ObjectParameter("ProjectCode", projectCode) :
-                new ObjectParameter("ProjectCode", typeof(string));
-    
-            var startDateParameter = startDate != null ?
-                new ObjectParameter("StartDate", startDate) :
-                new ObjectParameter("StartDate", typeof(string));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_GetProjectAllocationsSum_Result>("sp_GetProjectAllocationsSum", projectCodeParameter, startDateParameter);
+            return this.Set<sp_GetProjectAllocationsSum_Result>().FromSqlRaw("EXEC sp_GetProjectAllocationsSum @ProjectCode, @StartDate",
+                new SqlParameter("@ProjectCode", projectCode ?? (object)DBNull.Value),
+                new SqlParameter("@StartDate", startDate ?? (object)DBNull.Value)).ToList();
         }
     
         public virtual int GetITSResourceDashBoardDetailsSummary(Nullable<int> employeeId)
         {
-            var employeeIdParameter = employeeId.HasValue ?
-                new ObjectParameter("employeeId", employeeId) :
-                new ObjectParameter("employeeId", typeof(int));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("GetITSResourceDashBoardDetailsSummary", employeeIdParameter);
+            return this.Database.ExecuteSqlRaw("EXEC GetITSResourceDashBoardDetailsSummary @employeeId",
+                new SqlParameter("@employeeId", employeeId ?? (object)DBNull.Value));
         }
     
-        public virtual int sp_NumberingSystemGenerateNumber(string companyCode, string branchCode, string sequenceSuffix, Nullable<long> sequenceNumber, string typeCode, ObjectParameter result1)
+        public virtual int sp_NumberingSystemGenerateNumber(string companyCode, string branchCode, string sequenceSuffix, Nullable<long> sequenceNumber, string typeCode, out int result1)
         {
-            var companyCodeParameter = companyCode != null ?
-                new ObjectParameter("CompanyCode", companyCode) :
-                new ObjectParameter("CompanyCode", typeof(string));
-    
-            var branchCodeParameter = branchCode != null ?
-                new ObjectParameter("BranchCode", branchCode) :
-                new ObjectParameter("BranchCode", typeof(string));
-    
-            var sequenceSuffixParameter = sequenceSuffix != null ?
-                new ObjectParameter("SequenceSuffix", sequenceSuffix) :
-                new ObjectParameter("SequenceSuffix", typeof(string));
-    
-            var sequenceNumberParameter = sequenceNumber.HasValue ?
-                new ObjectParameter("SequenceNumber", sequenceNumber) :
-                new ObjectParameter("SequenceNumber", typeof(long));
-    
-            var typeCodeParameter = typeCode != null ?
-                new ObjectParameter("TypeCode", typeCode) :
-                new ObjectParameter("TypeCode", typeof(string));
-    
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_NumberingSystemGenerateNumber", companyCodeParameter, branchCodeParameter, sequenceSuffixParameter, sequenceNumberParameter, typeCodeParameter, result1);
+            var result1Param = new SqlParameter("@result1", System.Data.SqlDbType.Int);
+            result1Param.Direction = System.Data.ParameterDirection.Output;
+            
+            this.Database.ExecuteSqlRaw("EXEC sp_NumberingSystemGenerateNumber @CompanyCode, @BranchCode, @SequenceSuffix, @SequenceNumber, @TypeCode, @result1 OUTPUT",
+                new SqlParameter("@CompanyCode", companyCode ?? (object)DBNull.Value),
+                new SqlParameter("@BranchCode", branchCode ?? (object)DBNull.Value),
+                new SqlParameter("@SequenceSuffix", sequenceSuffix ?? (object)DBNull.Value),
+                new SqlParameter("@SequenceNumber", sequenceNumber ?? (object)DBNull.Value),
+                new SqlParameter("@TypeCode", typeCode ?? (object)DBNull.Value),
+                result1Param);
+            
+            result1 = (int)result1Param.Value;
+            return result1;
         }
     
-        public virtual ObjectResult<GetClusterTeamMember_Result> GetClusterTeamMember()
+        public virtual List<GetClusterTeamMember_Result> GetClusterTeamMember()
         {
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetClusterTeamMember_Result>("GetClusterTeamMember");
+            return this.Set<GetClusterTeamMember_Result>().FromSqlRaw("EXEC GetClusterTeamMember").ToList();
         }
     
-        public virtual ObjectResult<GetEmployeeLocation_Result> GetEmployeeLocation()
+        public virtual List<GetEmployeeLocation_Result> GetEmployeeLocation()
         {
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<GetEmployeeLocation_Result>("GetEmployeeLocation");
+            return this.Set<GetEmployeeLocation_Result>().FromSqlRaw("EXEC GetEmployeeLocation").ToList();
         }
     }
 }

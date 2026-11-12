@@ -1,21 +1,23 @@
 ﻿using OfficeOpenXml;
 using OfficeOpenXml;
 using System;
+using System.Web.Helpers;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Web.Helpers;
 using System.Configuration;
-using System.Web.Mvc;
-using System.Web.UI;
-using System.Web.UI.WebControls;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Trianz.Enterprise.Operations.General;
 using Trianz.Enterprise.Operations.Models;
 using Trianz.Enterprise.Operations.ViewModel;
 using OfficeOpenXml.Style;
 
+using Microsoft.AspNetCore.Http;
 namespace Trianz.Enterprise.Operations.Controllers
 {
     public class ResourceDashBoardController : Controller
@@ -24,7 +26,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public ActionResult Index()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
                 return View();
@@ -33,13 +35,13 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult ResourceInformation()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try {
                     //Below single statement is added by Sarath, for security reason to access RoleMaster page.
@@ -49,7 +51,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     using (TrianzOperationsEntities dc = new TrianzOperationsEntities())
                     {
-                        allHRRFS = dc.HRRFs.ToList();
+                        allHRRFS = db.HRRFs.ToList();
                     }
 
                     TempData["abc"] = allHRRFS;
@@ -101,7 +103,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -110,9 +112,8 @@ namespace Trianz.Enterprise.Operations.Controllers
         public void ExporttoExcel()
         {         
             List<HRRF> allHRRFS = new List<HRRF>();
-            using (TrianzOperationsEntities dc = new TrianzOperationsEntities())
             {
-                allHRRFS = dc.HRRFs.ToList();
+                allHRRFS = db.HRRFs.ToList();
             }
             WebGrid grid = new WebGrid(source: allHRRFS, canPage: false, canSort: false);
             string gridData = grid.GetHtml(
@@ -125,11 +126,11 @@ namespace Trianz.Enterprise.Operations.Controllers
 
             )
             ).ToString();
-            Response.ClearContent();
-            Response.AddHeader("content-disposition", "attachment; filename=HRRFInfo.xls");
+            Response.Clear();
+            Response.Headers.Add("content-disposition", "attachment; filename=HRRFInfo.xls");
             Response.ContentType = "application/excel";
-            Response.Write(gridData);
-            Response.End();
+            Response.WriteAsync(gridData);
+            
 
         }
 
@@ -137,11 +138,11 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         public ActionResult ITSResourceDashboard()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    int empId = Convert.ToInt32(Session["EmployeeId"]);
+                    int empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
             int? DeliveryManagerId = 0;
             DeliveryManagerId = (from P in db.Projects
                                  where P.DELIVERY_MANAGER_ID == empId && P.IsActive == true
@@ -170,7 +171,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-              //  return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+              //  return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
@@ -178,7 +179,7 @@ namespace Trianz.Enterprise.Operations.Controllers
       
         public ActionResult GetDashBoardDetails()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 var emp = new ValidationModel();
                 emp.ITSDashboard = GenerateITSReport();
@@ -264,16 +265,16 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         private List<ITDashBoardDetailsSummary> GenerateITSReportSummary()
         {
-            int empId = Convert.ToInt32(Session["EmployeeId"]);
+            int empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
 
             List<ITDashBoardDetailsSummary> lstITSReportSummary = new List<ITDashBoardDetailsSummary>();
-            lstITSReportSummary = db.Database.SqlQuery<ITDashBoardDetailsSummary>
+            lstITSReportSummary = db.Set<ITDashBoardDetailsSummary>().FromSqlRaw
               ("exec GetITSResourceDashBoardDetailsSummary @EmployeeId", new SqlParameter("EmployeeId", empId)).ToList<ITDashBoardDetailsSummary>();
 
             return lstITSReportSummary;
@@ -281,10 +282,10 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         private List<ITSResourceDashboard> GenerateITSReport()
         {
-            int empId = Convert.ToInt32(Session["EmployeeId"]);
+            int empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
             List<ITSResourceDashboard> lstEmployeeSkillsReport = new List<ITSResourceDashboard>();
 
-            lstEmployeeSkillsReport = db.Database.SqlQuery<ITSResourceDashboard>
+            lstEmployeeSkillsReport = db.Set<ITSResourceDashboard>().FromSqlRaw
                ("exec GetITSResourceDashBoardDetails @EmployeeId", new SqlParameter("EmployeeId", empId)).ToList<ITSResourceDashboard>();
 
             return lstEmployeeSkillsReport;
@@ -292,49 +293,49 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         private List<ITDashBoardDetailsSummary> GeneratePreviousWeeksReport()
         {
-            int empId = Convert.ToInt32(Session["EmployeeId"]);
+            int empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
             List<ITDashBoardDetailsSummary> lstPreviousITSReportSummary = new List<ITDashBoardDetailsSummary>();
-            lstPreviousITSReportSummary = db.Database.SqlQuery<ITDashBoardDetailsSummary>
+            lstPreviousITSReportSummary = db.Set<ITDashBoardDetailsSummary>().FromSqlRaw
                ("exec PreviouWeekDetailsSummary @EmployeeId", new SqlParameter("EmployeeId", empId)).ToList<ITDashBoardDetailsSummary>();
             return lstPreviousITSReportSummary;
         }
 
         private List<ITDashBoardDetailsSummary> GenerateCurrentWeeksReport()
         {
-            int empId = Convert.ToInt32(Session["EmployeeId"]);
+            int empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
             List<ITDashBoardDetailsSummary> lstpresentITSReportSummary = new List<ITDashBoardDetailsSummary>();
-            lstpresentITSReportSummary = db.Database.SqlQuery<ITDashBoardDetailsSummary>
+            lstpresentITSReportSummary = db.Set<ITDashBoardDetailsSummary>().FromSqlRaw
                ("exec CurrentWeekDetailsSummary @EmployeeId", new SqlParameter("EmployeeId", empId)).ToList<ITDashBoardDetailsSummary>();
             return lstpresentITSReportSummary;
         }
 
         private List<ITDashBoardDetailsSummary> GenerateNextWeeksReport()
         {
-            int empId = Convert.ToInt32(Session["EmployeeId"]);
+            int empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeId"));
             List<ITDashBoardDetailsSummary> lstnextITSReportSummary = new List<ITDashBoardDetailsSummary>();
-            lstnextITSReportSummary = db.Database.SqlQuery<ITDashBoardDetailsSummary>
+            lstnextITSReportSummary = db.Set<ITDashBoardDetailsSummary>().FromSqlRaw
                ("exec NextWeekDetailsSummary @EmployeeId", new SqlParameter("EmployeeId", empId)).ToList<ITDashBoardDetailsSummary>();
             return lstnextITSReportSummary;
         }
 
         public ActionResult ExportReport()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
 
 
-                return Json("success", JsonRequestBehavior.AllowGet);
+                return Json("success");
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }      
         public ActionResult GetITSReportSummaryforPieChart()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -351,25 +352,25 @@ namespace Trianz.Enterprise.Operations.Controllers
                          .ToList();
 
                     lstchartdata.RemoveAt(lstchartdata.Count - 1);                   
-                    return Json(lstchartdata, JsonRequestBehavior.AllowGet);
+                    return Json(lstchartdata);
                 }
                 catch (Exception ex)
                 {
                     Common.WriteExceptionErrorLog(ex);
-                    return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                    return Json("Sessionexpired");
                 }
 
 
             }
             else
             {
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
             }
         }
         [HttpPost]
         public JsonResult GetITSReportSummaryforBarChart()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -384,21 +385,21 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 OnsiteGroupbyTotal = n.Sum(y => y.Onsite)                             
                             }).ToList();          
                     groupchart.RemoveAt(groupchart.Count - 1);
-                    return Json(groupchart, JsonRequestBehavior.AllowGet);
+                    return Json(groupchart);
                 }
                 catch (Exception ex)
                 {
-                    return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                    return Json("Sessionexpired");
                 }
             }
             else
             {
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
             }
         }
         public ActionResult GenerateEmployeeSkillReport()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
@@ -406,7 +407,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     List<ITDashBoardDetailsSummary> lstReport = GenerateITSReportSummary();
 
                     using (ExcelPackage package = new ExcelPackage())
-                    {
+            {
                         ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("ITS Resource Information");
                         ExcelWorksheet worksheetone = package.Workbook.Worksheets.Add("ITS Resource Report Summary");
                         worksheet.TabColor = System.Drawing.Color.Green;
@@ -415,7 +416,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         List<string> lstOpsStatus = System.Configuration.ConfigurationManager.AppSettings["OpsStatus"].Split(',').ToList();
 
-                        bool IsValid = lstOpsStatus.Where(e => Session["EmployeeId"].ToString().Contains(e)).Any();
+                        bool IsValid = lstOpsStatus.Where(e => HttpContext.Session.GetString("EmployeeId").ToString().Contains(e)).Any();
                         //int nocloumn = 46;
                         //if (IsValid)
                         //    nocloumn = 47;
@@ -429,7 +430,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         int numcloumn = 5;
 
                         using (var range = worksheetone.Cells[1, 1, 1, numcloumn])
-                        {
+{
                             range.Style.Font.Bold = true;
                             range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -458,7 +459,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         int ExcelRow = 2;
 
                         List<ClusterLead> lstclusterLeads = new List<ClusterLead>();
-                        lstclusterLeads = db.Database.SqlQuery<ClusterLead>("exec GetClusterTeamMember").ToList();
+                        lstclusterLeads = db.Set<ClusterLead>().FromSqlRaw("exec GetClusterTeamMember").ToList();
 
                         for (int rowIndex = 0, row = 2; rowIndex < lstReport.Count; rowIndex++, row++) // row indicates number of rows
                         {
@@ -499,7 +500,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 //worksheetone.SelectedRange[ExcelRow, 4].Style.Font.Color.SetColor(System.Drawing.Color.Black);
                                 //worksheetone.SelectedRange[ExcelRow, 5].Style.Font.Color.SetColor(System.Drawing.Color.Black);
                                 using (var range = worksheetone.Cells[ExcelRow, 1, ExcelRow, 5])
-                                {
+{
                                     range.Style.Font.Bold = true;
                                     range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
                                     range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -533,8 +534,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (lstReport[rowIndex].OrgGroup == "Grand Total" && lstReport[rowIndex].OrgSubGroup == "Grand Total")
                             {
                                 worksheetone.Cells[ExcelRow, 1].Value = "";
-                                using (var range = worksheetone.Cells[ExcelRow, 1, ExcelRow, 5])
-                                {
+                    using (var range = worksheet.Cells[1, 1, 1, 1])
+{
                                     range.Style.Font.Bold = true;
                                     range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Right;
                                     range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
@@ -555,8 +556,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                         }
 
                         using (var range = worksheet.Cells[1, 1, 1, nocloumn])
-                        {
-                            range.Style.Font.Bold = true;
+{
+                        range.Style.Font.Bold = true;
                             range.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                             range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#5B9BD5"));
@@ -860,8 +861,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                             if (row % 2 == 1)
                             {
                                 using (var range = worksheet.Cells[row, 1, row, nocloumn])
-                                {
-                                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+{
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                                     range.Style.Fill.BackgroundColor.SetColor(System.Drawing.ColorTranslator.FromHtml("#DDEBF7"));
 
                                     range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -878,13 +879,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                         }
                         Byte[] fileBytes = package.GetAsByteArray();
                         Response.Clear();
-                        Response.Buffer = true;
-                        Response.AddHeader("content-disposition", "attachment;filename=ITS Resource Dashboard " + DateTime.Now.ToString("dd MMM yyyy") + ".xlsx");
-                        Response.Charset = "";
+                        
+                        Response.Headers.Add("content-disposition", "attachment;filename=ITS Resource Dashboard " + DateTime.Now.ToString("dd MMM yyyy") + ".xlsx");
+                        
                         Response.ContentType = "application/vnd.ms-excel";
                         StringWriter sw = new StringWriter();
-                        Response.BinaryWrite(fileBytes);
-                        Response.End();
+                        Response.Body.Write(fileBytes);
+                        
                     }
 
                     return new EmptyResult();
@@ -901,55 +902,54 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult FulfilmentDashBoard()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 return View();
             }
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult FulfilmentDashBoardPieChart()
         {
-             if (Convert.ToInt32(Session["EmployeeId"]) > 0)              
+             if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)              
                 {
                 try
                 {
                     List<FullfilmentDashBoard> pieChartData = new List<FullfilmentDashBoard>();
-            pieChartData = db.Database.SqlQuery<FullfilmentDashBoard>("exec GetFulfilmentDashBoardPieChart").ToList();
-            return Json(pieChartData, JsonRequestBehavior.AllowGet);
+            pieChartData = db.Set<FullfilmentDashBoard>().FromSqlRaw("exec GetFulfilmentDashBoardPieChart").ToList();
+            return Json(pieChartData);
                 }
                 catch (Exception ex)
                 {
 
                     Common.WriteExceptionErrorLog(ex);
-                    return Json("Error", JsonRequestBehavior.AllowGet);
+                    return Json("Error");
                 }
             }
             else
             {
                 //ermsg = "Session expired";
-                return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                return Json("Sessionexpired");
                 //return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult ResourceDashboardChat()
             {
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 try
                 {
-                    using (TrianzOperationsEntities dc = new TrianzOperationsEntities())
                 {
 
 
@@ -979,14 +979,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }
         public ActionResult FulfillmentReview()
         {
 
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 return View();
             }
@@ -994,14 +994,14 @@ namespace Trianz.Enterprise.Operations.Controllers
             else
             {
                 //ermsg = "Session expired";
-                //return Json("Sessionexpired", JsonRequestBehavior.AllowGet);
+                //return Json("Sessionexpired");
                 return RedirectToAction("SessionExpire", "Signout");
             }
         }        
         public void DownLoadReport()
         {
             //List<FulfillmentReview> fulfillment = new List<FulfillmentReview>();
-            //var lst = db.Database.SqlQuery<List<object>>("exec GetFulfilledReview").ToList();
+            //var lst = db.Set<List<object>>().FromSqlRaw("exec GetFulfilledReview").ToList();
 
             // string con = "data source=172.16.0.144;initial catalog=TZ_CorporateOperations_prod;user id=tz_appprod_user;password=Passw0rd1234;";
             //string con = "data source = 172.16.0.220; initial catalog = TZ_CorporateOperations_Staging2; user id = sa; password = P#$$w0rd;";
@@ -1028,12 +1028,11 @@ namespace Trianz.Enterprise.Operations.Controllers
             //byte[] fileContents = Encoding.UTF8.GetBytes(xml);
 
             string attachment = "attachment; filename=FulfillmentReview" + DateTime.Now.ToString("dd/MM/yyyy") + ".xls";
-            Response.ClearContent();
-            Response.AddHeader("content-disposition", attachment);
+            Response.Clear();
+            Response.Headers.Add("content-disposition", attachment);
             Response.ContentType = "application/vnd.ms-excel";
 
             System.IO.StringWriter stringWrite = new System.IO.StringWriter();
-            System.Web.UI.HtmlTextWriter htmlWrite = new HtmlTextWriter(stringWrite);
 
 
             string tab = "";
@@ -1041,10 +1040,10 @@ namespace Trianz.Enterprise.Operations.Controllers
             dt = ds.Tables[0];
             foreach (DataColumn dc in dt.Columns)
             {
-                Response.Write(tab + dc.ColumnName);
+                Response.WriteAsync(tab + dc.ColumnName);
                 tab = "\t";
             }
-            Response.Write("\n");
+            Response.WriteAsync("\n");
             int i;
             foreach (DataRow dr in dt.Rows)
             {
@@ -1055,21 +1054,21 @@ namespace Trianz.Enterprise.Operations.Controllers
                     {
 
                     }
-                    Response.Write(tab + dr[i].ToString());
+                    Response.WriteAsync(tab + dr[i].ToString());
                     tab = "\t";
                 }
-                Response.Write("\n");
+                Response.WriteAsync("\n");
             }
 
 
-            Response.End();
+            
 
             //return File(fileContents, "application/vnd.ms-excel", fName);
 
         }       
         public ActionResult EmbeddingUrl()
         {
-            if (Convert.ToInt32(Session["EmployeeId"]) > 0)
+            if (Convert.ToInt32(HttpContext.Session.GetString("EmployeeId")) > 0)
             {
                 return View();
             }

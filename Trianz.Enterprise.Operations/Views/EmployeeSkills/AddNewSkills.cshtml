@@ -347,10 +347,10 @@ selectionFieldName: "SelectedRow");
            selectionFieldName: "SelectedRow");
         }
         <div>
-            @Html.Partial("MyProfile")
+            @(await Html.PartialAsync("MyProfile"))
         </div>
         @*<div>
-                     @Html.Partial("SubmitEmployeeDetails", ViewData["employeeSkills"])
+                     @(await Html.PartialAsync("SubmitEmployeeDetails", ViewData["employeeSkills"]))
             </div>*@
     </div>
     <div id="tabMySkills" class="tab-pane fade" style="margin: 15px 0 0;">
@@ -959,7 +959,7 @@ Assignmentgrid.Column("ProjectName", "Project Name", format:@<text>@item.Project
         @*Design is a work in progress.<br /> Check back soon..*@
         @*No data to display*@
         <div id="divGridContent1" class="table table-responsive" style="margin-bottom: 0px;">
-            @*@Html.Partial("_MyTrainings", Model)*@
+            @*@await Html.PartialAsync("_MyTrainings", Model)*@
         </div>
     </div>
     <div id="tabEmpProfile" class="tab-pane fade" style="margin: 15px 0 0;">
