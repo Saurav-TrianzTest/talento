@@ -18,9 +18,9 @@ namespace Trianz.Enterprise.Operations.Controllers
     {
         TrianzOperationsEntities db = new TrianzOperationsEntities();
 
-        string AllReleasedates = System.Configuration.ConfigurationManager.AppSettings["All_Releasedates"].ToString();
-        string BeforeReleasedates = System.Configuration.ConfigurationManager.AppSettings["Before_Releasedates"].ToString();
-        string AfterRelasedates = System.Configuration.ConfigurationManager.AppSettings["After_Relasedates"].ToString();
+        string AllReleasedates = Environment.GetEnvironmentVariable("All_Releasedates") ?? "";
+        string BeforeReleasedates = Environment.GetEnvironmentVariable("Before_Releasedates") ?? "";
+        string AfterRelasedates = Environment.GetEnvironmentVariable("After_Relasedates") ?? "";
 
         // GET: EmployeeAssignment
         public ActionResult Index()

@@ -1216,7 +1216,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             tblNotification.NotificationMessage = body;
 
 
-            string IsEmailSent = System.Configuration.ConfigurationManager.AppSettings["IsEmailSent"].ToString();
+            string IsEmailSent = Environment.GetEnvironmentVariable("IsEmailSent") ?? "";
             bool IsEmail = Convert.ToBoolean(IsEmailSent);
             if (IsEmail == true)
             {
@@ -2249,7 +2249,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         worksheet.DefaultRowHeight = 18f;
                         worksheet.Row(1).Height = 20f;
 
-                        List<string> lstOpsStatus = System.Configuration.ConfigurationManager.AppSettings["OpsStatus"].Split(',').ToList();
+                        List<string> lstOpsStatus = Environment.GetEnvironmentVariable("OpsStatus") ?? "".Split(',').ToList();
 
                         bool IsValid = lstOpsStatus.Where(e => Session["EmployeeId"].ToString().Contains(e)).Any();
 

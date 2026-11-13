@@ -27,7 +27,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         [HttpPost]
         public ActionResult Index(string userName, string password)
         {
-            if (userName == "admin" && password == "Test@1234") //T@lent0@123
+            if (userName == Environment.GetEnvironmentVariable("ADMIN_USERNAME") ?? "admin" && password == Environment.GetEnvironmentVariable("ADMIN_PASSWORD"))
             {
                 TempData["IsRoleMasterPageAccess"] = true;
                 return RedirectToAction("index", "rolemaster");

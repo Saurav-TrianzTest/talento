@@ -24,16 +24,16 @@ namespace Trianz.Enterprise.Operations.Controllers
         private TrianzOperationsEntities db = new TrianzOperationsEntities();
         ServiceAgent AgentService = new ServiceAgent();
         // Get constant values from web.config
-        string TR_Terminate = System.Configuration.ConfigurationManager.AppSettings["TR_Terminate"].ToString();
-        string TR_Submit = System.Configuration.ConfigurationManager.AppSettings["TR_Submit"].ToString();
-        string TR_Submitted = System.Configuration.ConfigurationManager.AppSettings["TR_Submitted"].ToString();
-        string TR_Save = System.Configuration.ConfigurationManager.AppSettings["TR_Save"].ToString();
-        string TR_Draft = System.Configuration.ConfigurationManager.AppSettings["TR_Draft"].ToString();
-        string TR_TerminateCheck = System.Configuration.ConfigurationManager.AppSettings["TR_TerminateCheck"].ToString();
-        string TR_CompanyCode = System.Configuration.ConfigurationManager.AppSettings["TR_CompanyCode"].ToString();
-        string TR_Internal = System.Configuration.ConfigurationManager.AppSettings["TR_Internal"].ToString();
-        string TR_Clear = System.Configuration.ConfigurationManager.AppSettings["TR_Clear"].ToString();
-        string IsEmailSent = System.Configuration.ConfigurationManager.AppSettings["IsEmailSent"].ToString();
+        string TR_Terminate = Environment.GetEnvironmentVariable("TR_Terminate") ?? "";
+        string TR_Submit = Environment.GetEnvironmentVariable("TR_Submit") ?? "";
+        string TR_Submitted = Environment.GetEnvironmentVariable("TR_Submitted") ?? "";
+        string TR_Save = Environment.GetEnvironmentVariable("TR_Save") ?? "";
+        string TR_Draft = Environment.GetEnvironmentVariable("TR_Draft") ?? "";
+        string TR_TerminateCheck = Environment.GetEnvironmentVariable("TR_TerminateCheck") ?? "";
+        string TR_CompanyCode = Environment.GetEnvironmentVariable("TR_CompanyCode") ?? "";
+        string TR_Internal = Environment.GetEnvironmentVariable("TR_Internal") ?? "";
+        string TR_Clear = Environment.GetEnvironmentVariable("TR_Clear") ?? "";
+        string IsEmailSent = Environment.GetEnvironmentVariable("IsEmailSent") ?? "";
 
         // GET: CreateHRRF
         public ActionResult Index()
@@ -2619,7 +2619,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         {
             try
             {
-                string[] strITOPS = ConfigurationManager.AppSettings["ITS-OPS"].Split(',');               
+                string[] strITOPS = Environment.GetEnvironmentVariable("ITS-OPS") ?? "".Split(',');               
                 var objHRRF = db.HRRFs.Where(p => p.HRRFNumber == HRRFNumber).FirstOrDefault();
                 // var oms = (db.RoleMasters.Where(s => (s.Practice == objHRRF.Practice && s.Role == "OM" && s.ApplicationCode == "TALENTREQ") || strITOPS.Contains(s.EmployeeId.ToString().Trim())).ToList());
                 if (objHRRF != null)
@@ -2674,11 +2674,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                         Notification tblNotification = new Notification();
                         if (SubjectName == "Edited")
                         {
-                            tblNotification.NotificationType = HRRFNumber.Trim() + " " + ConfigurationManager.AppSettings["TrEdited_NOtification"].ToString();
+                            tblNotification.NotificationType = HRRFNumber.Trim() + " " + Environment.GetEnvironmentVariable("TrEdited_NOtification") ?? "";
                         }
                         else
                         {
-                            tblNotification.NotificationType = HRRFNumber.Trim() + " " + ConfigurationManager.AppSettings["TrSubmitted_NOtification"].ToString();
+                            tblNotification.NotificationType = HRRFNumber.Trim() + " " + Environment.GetEnvironmentVariable("TrSubmitted_NOtification") ?? "";
                         }
                         tblNotification.NotificationDate = System.DateTime.Now;
                         tblNotification.NotificationFrom = Convert.ToInt32(Session["EmployeeId"]);
@@ -2717,7 +2717,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         }
                         else
                         {
-                            deliverymanager = ConfigurationManager.AppSettings["TRRestricted"].ToString();
+                            deliverymanager = Environment.GetEnvironmentVariable("TRRestricted") ?? "";
                         }
                         List<string> deliverymanagerlst = deliverymanager.Split(',').ToList();
                         
@@ -2728,15 +2728,15 @@ namespace Trianz.Enterprise.Operations.Controllers
                         StringBuilder sbBody = new StringBuilder();
                         if (tblNotification.NotificationType == HRRFNumber.Trim() + " Edited")
                         {
-                            sbBody.Append(ConfigurationManager.AppSettings["TrEdited"].ToString());
+                            sbBody.Append(Environment.GetEnvironmentVariable("TrEdited") ?? "");
                             sbBody.Append(" <b>" + loginEmpName + "</b> (EmpID: <b>" + loginEmpId + "</b>).");
                         }
                         else
                         {
-                            sbBody.Append(ConfigurationManager.AppSettings["TrSubmitted"].ToString());
+                            sbBody.Append(Environment.GetEnvironmentVariable("TrSubmitted") ?? "");
                             sbBody.Append(" <b>" + HRRFCreatedBy + "</b> (EmpID: <b>" + objEmp.EmployeeId + " </b>).");
                         }
-                        sbBody.Append(ConfigurationManager.AppSettings["TRNUMber"].ToString() + "<b>" + HRRFNumber.Trim() + ".</b><br/>");
+                        sbBody.Append(Environment.GetEnvironmentVariable("TRNUMber") ?? "" + "<b>" + HRRFNumber.Trim() + ".</b><br/>");
                         
                         //sbBody.Append(" <b> Job Description: </b>" + HRRFJobdescription + "<br/><br/>");
                         sbBody.Append(" <b> Job Description: </b>" + ClusterJD + "<br/><br/>");
@@ -2746,17 +2746,17 @@ namespace Trianz.Enterprise.Operations.Controllers
                         
                         if (tblNotification.NotificationType == HRRFNumber.Trim() + " Edited")
                         {
-                            sbBody.Append("<b>" + ConfigurationManager.AppSettings["EditedFields"] + "</b>" + "<br/>" + ch + "<br/>");
+                            sbBody.Append("<b>" + Environment.GetEnvironmentVariable("EditedFields") ?? "" + "</b>" + "<br/>" + ch + "<br/>");
                         }
-                        //var Body = ConfigurationManager.AppSettings["TrSubmitted"].ToString() + ConfigurationManager.AppSettings["TRNUMber"].ToString() + HRRFNumber.Trim();
+                        //var Body = Environment.GetEnvironmentVariable("TrSubmitted") ?? ConfigurationManager.AppSettings["TrSubmitted"].ToString() + Environment.GetEnvironmentVariable("TRNUMber") ?? ConfigurationManager.AppSettings["TRNUMber"].ToString() + HRRFNumber.Trim();
                         
                         tblNotification.IsActive = true;
                         tblNotification.AssetID = Convert.ToString(HRRFNumber.Trim());
-                        tblNotification.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTR"].ToString();
+                        tblNotification.ApplicationCode = Environment.GetEnvironmentVariable("AppCodeTR") ?? "";
                         tblNotification.IsFromGroupID = true;
                         tblNotification.FromGroupID = "donotreply_Talento@trianz.com";
                         
-                        string talentoURL = ConfigurationManager.AppSettings["Talento"];
+                        string talentoURL = Environment.GetEnvironmentVariable("Talento") ?? "";
                         string body = string.Empty;
                         
                         string Editlink = "";
@@ -2803,7 +2803,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //{
         //    try
         //    {
-        //        string[] strITOPS = ConfigurationManager.AppSettings["ITS-OPS"].Split(',');
+        //        string[] strITOPS = Environment.GetEnvironmentVariable("ITS-OPS") ?? ConfigurationManager.AppSettings["ITS-OPS"].Split(',');
 
         //        var objHRRF = db.HRRFs.Where(p => p.HRRFNumber == HRRFNumber).FirstOrDefault();
         //       //  var oms = (db.RoleMasters.Where(s => (s.Practice == objHRRF.Practice && s.Role == "OM" && s.ApplicationCode == "TALENTREQ") || strITOPS.Contains(s.EmployeeId.ToString().Trim())).ToList());
@@ -2873,11 +2873,11 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                Notification tblNotification = new Notification();
         //                if (SubjectName == "Edited")
         //                {
-        //                    tblNotification.NotificationType = HRRFNumber.Trim() + " " + ConfigurationManager.AppSettings["TrEdited_NOtification"].ToString();
+        //                    tblNotification.NotificationType = HRRFNumber.Trim() + " " + Environment.GetEnvironmentVariable("TrEdited_NOtification") ?? ConfigurationManager.AppSettings["TrEdited_NOtification"].ToString();
         //                }
         //                else
         //                {
-        //                    tblNotification.NotificationType = HRRFNumber.Trim() + " " + ConfigurationManager.AppSettings["TrSubmitted_NOtification"].ToString();
+        //                    tblNotification.NotificationType = HRRFNumber.Trim() + " " + Environment.GetEnvironmentVariable("TrSubmitted_NOtification") ?? ConfigurationManager.AppSettings["TrSubmitted_NOtification"].ToString();
         //                }
         //                tblNotification.NotificationDate = System.DateTime.Now;
         //                tblNotification.NotificationFrom = Convert.ToInt32(Session["EmployeeId"]);
@@ -2913,7 +2913,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                }
         //               else 
         //                {
-        //                    deliverymanager = ConfigurationManager.AppSettings["TRRestricted"].ToString();
+        //                    deliverymanager = Environment.GetEnvironmentVariable("TRRestricted") ?? ConfigurationManager.AppSettings["TRRestricted"].ToString();
         //                }
 
         //                tblNotification.CC = deliverymanager;
@@ -2922,15 +2922,15 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                StringBuilder sbBody = new StringBuilder();
         //                if (tblNotification.NotificationType == HRRFNumber.Trim() + " Edited")
         //                {
-        //                    sbBody.Append(ConfigurationManager.AppSettings["TrEdited"].ToString());
+        //                    sbBody.Append(Environment.GetEnvironmentVariable("TrEdited") ?? ConfigurationManager.AppSettings["TrEdited"].ToString());
         //                    sbBody.Append(" <b>" + loginEmpName + "</b> (EmpID: <b>" + loginEmpId + "</b>).");
         //                }
         //                else
         //                {
-        //                    sbBody.Append(ConfigurationManager.AppSettings["TrSubmitted"].ToString());
+        //                    sbBody.Append(Environment.GetEnvironmentVariable("TrSubmitted") ?? ConfigurationManager.AppSettings["TrSubmitted"].ToString());
         //                    sbBody.Append(" <b>" + HRRFCreatedBy + "</b> (EmpID: <b>" + objEmp.EmployeeId + " </b>).");
         //                }
-        //                sbBody.Append(ConfigurationManager.AppSettings["TRNUMber"].ToString() + "<b>" + HRRFNumber.Trim() + ".</b><br/>");
+        //                sbBody.Append(Environment.GetEnvironmentVariable("TRNUMber") ?? ConfigurationManager.AppSettings["TRNUMber"].ToString() + "<b>" + HRRFNumber.Trim() + ".</b><br/>");
 
         //                //sbBody.Append(" <b> Job Description: </b>" + HRRFJobdescription + "<br/><br/>");
         //                sbBody.Append(" <b> Job Description: </b>" + ClusterJD + "<br/><br/>");
@@ -2943,17 +2943,17 @@ namespace Trianz.Enterprise.Operations.Controllers
 
         //                if (tblNotification.NotificationType == HRRFNumber.Trim() + " Edited")
         //                {
-        //                    sbBody.Append("<b>" + ConfigurationManager.AppSettings["EditedFields"] + "</b>" + "<br/>" + ch + "<br/>");
+        //                    sbBody.Append("<b>" + Environment.GetEnvironmentVariable("EditedFields") ?? ConfigurationManager.AppSettings["EditedFields"] + "</b>" + "<br/>" + ch + "<br/>");
         //                }
-        //                //var Body = ConfigurationManager.AppSettings["TrSubmitted"].ToString() + ConfigurationManager.AppSettings["TRNUMber"].ToString() + HRRFNumber.Trim();
+        //                //var Body = Environment.GetEnvironmentVariable("TrSubmitted") ?? ConfigurationManager.AppSettings["TrSubmitted"].ToString() + Environment.GetEnvironmentVariable("TRNUMber") ?? ConfigurationManager.AppSettings["TRNUMber"].ToString() + HRRFNumber.Trim();
 
         //                tblNotification.IsActive = true;
         //                tblNotification.AssetID = Convert.ToString(HRRFNumber.Trim());
-        //                tblNotification.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTR"].ToString();
+        //                tblNotification.ApplicationCode = Environment.GetEnvironmentVariable("AppCodeTR") ?? ConfigurationManager.AppSettings["AppCodeTR"].ToString();
         //                tblNotification.IsFromGroupID = true;
         //                tblNotification.FromGroupID = "donotreply_Talento@trianz.com";
 
-        //                string talentoURL = ConfigurationManager.AppSettings["Talento"];
+        //                string talentoURL = Environment.GetEnvironmentVariable("Talento") ?? ConfigurationManager.AppSettings["Talento"];
         //                string body = string.Empty;
 
         //                string Editlink = "";

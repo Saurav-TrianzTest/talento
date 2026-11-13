@@ -58,9 +58,9 @@ input, select, textarea
   margin-bottom: 50px;
 }
 
-.metro.grid .placeholder {
+/* .metro.grid .placeholder {
   border: 1px solid green;
-}
+} */
 .wizard a {
 background: #efefef;
 display: inline-block;

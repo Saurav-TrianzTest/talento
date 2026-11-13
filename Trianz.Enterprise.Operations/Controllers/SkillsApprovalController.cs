@@ -42,7 +42,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             Employee emp = db.Employees.Where(e => e.EmployeeId == EmployeeID).FirstOrDefault();
             if (emp != null)
             {
-                string NotYetApprove = "Submitted";//ConfigurationManager.AppSettings["Not Yet Approved"].ToString();
+                string NotYetApprove = "Submitted";//Environment.GetEnvironmentVariable("Not Yet Approved") ?? "";
                 string SkillApprove = "Approved";
 
                 //List<EmployeeSkills_NewDetails> empSkils = (from data in db.EmployeeSkills_New
@@ -142,7 +142,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                   }).FirstOrDefault();
                 Loginuser = Convert.ToInt32(EmployeeID.EmployeeId);
 
-                string status = IsApprove == true ? ConfigurationManager.AppSettings["Approved"].ToString() : ConfigurationManager.AppSettings["Rejected"].ToString();
+                string status = IsApprove == true ? Environment.GetEnvironmentVariable("Approved") ?? "" : Environment.GetEnvironmentVariable("Rejected") ?? "";
                 foreach (int id in SkillIds)
                 {
                     int emskillid = Convert.ToInt32(id);
@@ -204,7 +204,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                 Employee emp = db.Employees.Where(e => e.EmployeeId == EmployeeId).FirstOrDefault();
                 Notification tblNotification = new Notification();
-                tblNotification.NotificationType = ConfigurationManager.AppSettings["SkillApprovalResponse_NotificationType"].ToString() + status;
+                tblNotification.NotificationType = Environment.GetEnvironmentVariable("SkillApprovalResponse_NotificationType") ?? "" + status;
                 tblNotification.NotificationDate = System.DateTime.Now;
                 tblNotification.NotificationFrom = emp.SupervisorId;
                 tblNotification.NotificationTo = emp.EmployeeId;
@@ -212,12 +212,12 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     status = status + ". Remarks: " + Remarks;
                 }
-                var Body = ConfigurationManager.AppSettings["SkillApprovalResponse_NotificationMsg"].ToString() + status;
+                var Body = Environment.GetEnvironmentVariable("SkillApprovalResponse_NotificationMsg") ?? "" + status;
                 tblNotification.IsActive = true;
-                tblNotification.AssetID = ConfigurationManager.AppSettings["Skill_AppCode"];
-                tblNotification.ApplicationCode = ConfigurationManager.AppSettings["Skill_AppCode"].ToString();
+                tblNotification.AssetID = Environment.GetEnvironmentVariable("Skill_AppCode") ?? "";
+                tblNotification.ApplicationCode = Environment.GetEnvironmentVariable("Skill_AppCode") ?? "";
 
-                string talentoURL = ConfigurationManager.AppSettings["Talento"];
+                string talentoURL = Environment.GetEnvironmentVariable("Talento") ?? "";
                 string LinktoOpen = "Please Click on link to View the status of skills " + talentoURL;
                 string body = string.Empty;
 
@@ -233,7 +233,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 tblNotification.NotificationMessage = body;
 
 
-                string IsEmailSent = System.Configuration.ConfigurationManager.AppSettings["IsEmailSent"].ToString();
+                string IsEmailSent = Environment.GetEnvironmentVariable("IsEmailSent") ?? "";
                 bool IsEmail = Convert.ToBoolean(IsEmailSent);
                 if (IsEmail == true)
                 {
@@ -273,7 +273,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                              }).FirstOrDefault();
         //            Loginuser = Convert.ToInt32(EmployeeID.EmployeeId);
 
-        //            string status = IsApprove == true ? ConfigurationManager.AppSettings["Approved"].ToString() : ConfigurationManager.AppSettings["Rejected"].ToString();
+        //            string status = IsApprove == true ? Environment.GetEnvironmentVariable("Approved") ?? ConfigurationManager.AppSettings["Approved"].ToString() : Environment.GetEnvironmentVariable("Rejected") ?? ConfigurationManager.AppSettings["Rejected"].ToString();
         //            foreach (int id in SkillIds)
         //            {
         //                int emskillid = Convert.ToInt32(id);
@@ -302,7 +302,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //            }
         //            Employee emp = db.Employees.Where(e => e.EmployeeId == EmployeeId).FirstOrDefault();
         //            Notification tblNotification = new Notification();
-        //            tblNotification.NotificationType = ConfigurationManager.AppSettings["SkillApprovalResponse_NotificationType"].ToString() + status;
+        //            tblNotification.NotificationType = Environment.GetEnvironmentVariable("SkillApprovalResponse_NotificationType") ?? ConfigurationManager.AppSettings["SkillApprovalResponse_NotificationType"].ToString() + status;
         //            tblNotification.NotificationDate = System.DateTime.Now;
         //            tblNotification.NotificationFrom = emp.SupervisorId;
         //            tblNotification.NotificationTo = emp.EmployeeId;
@@ -310,12 +310,12 @@ namespace Trianz.Enterprise.Operations.Controllers
         //            {
         //                status = status + ". Remarks: " + Remarks;
         //            }
-        //            var Body = ConfigurationManager.AppSettings["SkillApprovalResponse_NotificationMsg"].ToString() + status;
+        //            var Body = Environment.GetEnvironmentVariable("SkillApprovalResponse_NotificationMsg") ?? ConfigurationManager.AppSettings["SkillApprovalResponse_NotificationMsg"].ToString() + status;
         //            tblNotification.IsActive = true;
-        //            tblNotification.AssetID = ConfigurationManager.AppSettings["Skill_AppCode"];
-        //            tblNotification.ApplicationCode = ConfigurationManager.AppSettings["Skill_AppCode"].ToString();
+        //            tblNotification.AssetID = Environment.GetEnvironmentVariable("Skill_AppCode") ?? ConfigurationManager.AppSettings["Skill_AppCode"];
+        //            tblNotification.ApplicationCode = Environment.GetEnvironmentVariable("Skill_AppCode") ?? ConfigurationManager.AppSettings["Skill_AppCode"].ToString();
 
-        //            string talentoURL = ConfigurationManager.AppSettings["Talento"];
+        //            string talentoURL = Environment.GetEnvironmentVariable("Talento") ?? ConfigurationManager.AppSettings["Talento"];
         //            string LinktoOpen = "Please Click on link to View the status of skills " + talentoURL;
         //            string body = string.Empty;
 
@@ -331,7 +331,7 @@ namespace Trianz.Enterprise.Operations.Controllers
         //            tblNotification.NotificationMessage = body;
 
 
-        //            string IsEmailSent = System.Configuration.ConfigurationManager.AppSettings["IsEmailSent"].ToString();
+        //            string IsEmailSent = Environment.GetEnvironmentVariable("IsEmailSent") ?? System.Configuration.ConfigurationManager.AppSettings["IsEmailSent"].ToString();
         //            bool IsEmail = Convert.ToBoolean(IsEmailSent);
         //            if (IsEmail == true)
         //            {

@@ -339,9 +339,9 @@
   color: #ffffff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
-.bootstrap-datetimepicker-widget table td span.old {
+/* .bootstrap-datetimepicker-widget table td span.old {
   color: #777777;
-}
+} */
 .bootstrap-datetimepicker-widget table td span.disabled,
 .bootstrap-datetimepicker-widget table td span.disabled:hover {
   background: none;

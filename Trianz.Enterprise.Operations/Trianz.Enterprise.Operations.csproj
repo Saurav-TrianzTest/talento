@@ -219,6 +219,7 @@
     <Compile Include="Controllers\EmployeeSearchController.cs" />
     <Compile Include="Controllers\EmployeeSkillsController.cs" />
     <Compile Include="Controllers\ErrorController.cs" />
+    <Compile Include="Controllers\HealthController.cs" />
     <Compile Include="Controllers\ErrorDetailsController.cs" />
     <Compile Include="Controllers\ExternalReportController.cs" />
     <Compile Include="Controllers\FinanceReportsController.cs" />
@@ -605,6 +606,8 @@
     </Compile>
     <Compile Include="Models\TRCommentinfo.cs" />
     <Compile Include="Models\TRHistory.cs" />
+    <Compile Include="Models\TrianzOperations.Context.cs" />
+    <Compile Include="Models\TrianzOperationsEntities.ConnectionString.cs" />
     <Compile Include="Models\TrianzOperationsEntities.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

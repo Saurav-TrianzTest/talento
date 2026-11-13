@@ -21,16 +21,16 @@ namespace Trianz.Enterprise.Operations
 	public class Startup
 	{
 		// The Client ID is used by the application to uniquely identify itself to Azure AD.
-		string clientId = System.Configuration.ConfigurationManager.AppSettings["ClientId"];
+		string clientId = Environment.GetEnvironmentVariable("ClientId") ?? "";
 
 		// RedirectUri is the URL where the user will be redirected to after they sign in.
-		string redirectUri = System.Configuration.ConfigurationManager.AppSettings["RedirectUri"];
+		string redirectUri = Environment.GetEnvironmentVariable("RedirectUri") ?? "";
 
 		// Tenant is the tenant ID (e.g. contoso.onmicrosoft.com, or 'common' for multi-tenant)
-		static string tenant = System.Configuration.ConfigurationManager.AppSettings["Tenant"];
+		static string tenant = Environment.GetEnvironmentVariable("Tenant") ?? "";
 
 		// Authority is the URL for authority, composed by Microsoft identity platform endpoint and the tenant name (e.g. https://login.microsoftonline.com/contoso.onmicrosoft.com/v2.0)
-		string authority = String.Format(System.Globalization.CultureInfo.InvariantCulture, System.Configuration.ConfigurationManager.AppSettings["Authority"], tenant);
+		string authority = String.Format(System.Globalization.CultureInfo.InvariantCulture, Environment.GetEnvironmentVariable("Authority") ?? "", tenant);
 
 		/// <summary>
 		/// Configure OWIN to use OpenIdConnect 

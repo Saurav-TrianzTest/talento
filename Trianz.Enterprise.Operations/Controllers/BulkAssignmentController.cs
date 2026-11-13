@@ -392,7 +392,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         {
                             #region HRRF Creation
 
-                            string TR_CompanyCode = System.Configuration.ConfigurationManager.AppSettings["TR_CompanyCode"].ToString();
+                            string TR_CompanyCode = Environment.GetEnvironmentVariable("TR_CompanyCode") ?? "";
 
                             ServiceAgent AgentService = new ServiceAgent();
                             string NumberingSystem = AgentService.NumberingSystem(TR_CompanyCode, "", "");
@@ -639,7 +639,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                             #region Below Code to assign Default bench codes to associate based on practice and 
                             DataSet retVal = new DataSet();
-                            string ConnectionString = ConfigurationManager.ConnectionStrings["ADOConnectionString"].ConnectionString;
+                            string ConnectionString = System.Environment.GetEnvironmentVariable("ADO_CONNECTION_STRING") ?? ConfigurationManager.ConnectionStrings["ADOConnectionString"].ConnectionString;
                             //EntityConnection entityConn = (EntityConnection)db.Database.Connection;
                             SqlConnection sqlConn = new SqlConnection(ConnectionString);
                             try

@@ -146,7 +146,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             DeliveryManagerId = (from P in db.Projects
                                  where P.DELIVERY_MANAGER_ID == empId && P.IsActive == true
                                  select P.DELIVERY_MANAGER_ID).FirstOrDefault();
-            List<string> dashBoardViewers = System.Configuration.ConfigurationManager.AppSettings["ITSDashboardViewers"].Split(',').ToList();
+            List<string> dashBoardViewers = Environment.GetEnvironmentVariable("ITSDashboardViewers") ?? "".Split(',').ToList();
 
             //bool IsValid1 = lstAccessRoles.Where(e => empId.Contains(e)).Any();
             bool flag = dashBoardViewers.Contains(empId.ToString());
@@ -413,7 +413,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         worksheet.DefaultRowHeight = 18f;
                         worksheet.Row(1).Height = 20f;
 
-                        List<string> lstOpsStatus = System.Configuration.ConfigurationManager.AppSettings["OpsStatus"].Split(',').ToList();
+                        List<string> lstOpsStatus = Environment.GetEnvironmentVariable("OpsStatus") ?? "".Split(',').ToList();
 
                         bool IsValid = lstOpsStatus.Where(e => Session["EmployeeId"].ToString().Contains(e)).Any();
                         //int nocloumn = 46;
@@ -1003,9 +1003,8 @@ namespace Trianz.Enterprise.Operations.Controllers
             //List<FulfillmentReview> fulfillment = new List<FulfillmentReview>();
             //var lst = db.Database.SqlQuery<List<object>>("exec GetFulfilledReview").ToList();
 
-            // string con = "data source=172.16.0.144;initial catalog=TZ_CorporateOperations_prod;user id=tz_appprod_user;password=Passw0rd1234;";
-            //string con = "data source = 172.16.0.220; initial catalog = TZ_CorporateOperations_Staging2; user id = sa; password = P#$$w0rd;";
-            string con = ConfigurationManager.ConnectionStrings["ADOConnectionString"].ConnectionString;
+            // Connection string is read from ADO_CONNECTION_STRING environment variable
+            string con = System.Environment.GetEnvironmentVariable("ADO_CONNECTION_STRING") ?? ConfigurationManager.ConnectionStrings["ADOConnectionString"].ConnectionString;
             SqlDataAdapter adp = new SqlDataAdapter("GetFulfilledReview", con);
             DataSet ds = new DataSet();
             adp.Fill(ds);

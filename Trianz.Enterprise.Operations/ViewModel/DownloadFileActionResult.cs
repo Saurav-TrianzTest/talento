@@ -26,7 +26,7 @@ namespace Trianz.Enterprise.Operations.ViewModel
         public override void ExecuteResult(ControllerContext context)
         {
             //Create a response stream to create and write the Excel file
-            HttpContext curContext = HttpContext.Current;
+            HttpContextBase curContext = context.HttpContext;
             curContext.Response.Clear();
             curContext.Response.AddHeader("content-disposition", "attachment;filename=" + fileName);
             curContext.Response.Charset = "";

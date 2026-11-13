@@ -17,7 +17,7 @@ namespace Trianz.Enterprise.Operations.Controllers
     public class ExternalReportController : Controller
     {
         TrianzOperationsEntities db = new TrianzOperationsEntities();
-        string emp_Assignment = System.Configuration.ConfigurationManager.AppSettings["AssignmentStatus"].ToString();
+        string emp_Assignment = Environment.GetEnvironmentVariable("AssignmentStatus") ?? "";
         // GET: ExternalReport        
         public ActionResult Index(string SearchTR, string SearchExternalTR, string ddlPractise = "", string ddlHRRFRequestStatus = "", string ddlExternalPractise = "", string ddlExternalRequestStatus = "")
         {
@@ -399,16 +399,16 @@ namespace Trianz.Enterprise.Operations.Controllers
                         HRRF objHRRF = db.HRRFs.Find(HrrfId);
                         if (objHRRF != null)
                         {
-                            if (objHRRF.LocationName.ToUpper() == System.Configuration.ConfigurationManager.AppSettings["OnSiteCountryName"])
+                            if (objHRRF.LocationName.ToUpper() == Environment.GetEnvironmentVariable("OnSiteCountryName") ?? "")
                             {
-                                string onsiteEmpIds = (System.Configuration.ConfigurationManager.AppSettings["OnsiteEmployeeId"]);
+                                string onsiteEmpIds = (Environment.GetEnvironmentVariable("OnsiteEmployeeId") ?? "");
                                 List<string> lstEmpIds = new List<string>();
                                 lstEmpIds = onsiteEmpIds.Split(',').ToList();
                                 foreach (string empId in lstEmpIds)
                                 {
                                     lstRLActiveEmp.Add(empId);
                                 }
-                                //lstRLActiveEmp.Add((System.Configuration.ConfigurationManager.AppSettings["OnsiteEmployeeId"])); // Parvez Pasha EmpID
+                                //lstRLActiveEmp.Add((Environment.GetEnvironmentVariable("OnsiteEmployeeId") ?? System.Configuration.ConfigurationManager.AppSettings["OnsiteEmployeeId"])); // Parvez Pasha EmpID
                             }
                         }
                     }
@@ -1286,7 +1286,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         strStatusChangedBy = objEmp.FirstName.Trim() + (!string.IsNullOrWhiteSpace(objEmp.MiddleName) ? " " + objEmp.MiddleName + " " : " ") + objEmp.LastName.Trim();
                                         List<string> lstRecipients = new List<string>();
 
-                                        ConfigurationManager.AppSettings["ITS-OPS"].Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
+                                        Environment.GetEnvironmentVariable("ITS-OPS") ?? "".Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
                                                                                                                                                         //db.RoleMasters.Where(r => r.Role == "RL").Select(r => r.EmployeeId.ToString()).ToList<string>().ForEach(RLs => lstRecipients.Add(RLs)); // mail to all RLs
                                         lstRecipients.Add(Session["EmployeeId"].ToString());
 
@@ -1306,11 +1306,11 @@ namespace Trianz.Enterprise.Operations.Controllers
                                             if (externalhire.RequestStatus.ToLower() == "fulfilled")
                                             {
 
-                                                ConfigurationManager.AppSettings["Assurance"].Split(',').ToList<string>().ForEach(Assurance => lstRecipients.Add(Assurance));
+                                                Environment.GetEnvironmentVariable("Assurance") ?? "".Split(',').ToList<string>().ForEach(Assurance => lstRecipients.Add(Assurance));
                                             }
                                         }
 
-                                        string strNotificationMessage = ConfigurationManager.AppSettings["ChangeStatusByRL"].Replace("#TRXXXX", externalhire.HRRFNumber) + "'" + externalhire.RequestStatus + "' by " + strStatusChangedBy + ".";
+                                        string strNotificationMessage = Environment.GetEnvironmentVariable("ChangeStatusByRL") ?? "".Replace("#TRXXXX", externalhire.HRRFNumber) + "'" + externalhire.RequestStatus + "' by " + strStatusChangedBy + ".";
                                         string loginEmp_Name = "";
                                         int loginEmp_Id = Convert.ToInt32(Session["EmployeeId"]);
                                         Employee obj_Emp = db.Employees.Find(loginEmp_Id);
@@ -1318,7 +1318,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         {
                                             loginEmp_Name = obj_Emp.FirstName + " " + (!string.IsNullOrWhiteSpace(obj_Emp.MiddleName) ? obj_Emp.MiddleName + " " : "") + obj_Emp.LastName;
                                         }
-                                        string strNotification_Subject = ConfigurationManager.AppSettings["TrProposedExternalRes_NOtification"] + loginEmp_Name;
+                                        string strNotification_Subject = Environment.GetEnvironmentVariable("TrProposedExternalRes_NOtification") ?? "" + loginEmp_Name;
 
                                         foreach (string recipient in lstRecipients.Distinct())
                                         {
@@ -2106,7 +2106,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             strStatusChangedBy = objEmp.FirstName.Trim() + (!string.IsNullOrWhiteSpace(objEmp.MiddleName) ? " " + objEmp.MiddleName + " " : " ") + objEmp.LastName.Trim();
                             List<string> lstRecipients = new List<string>();
 
-                            ConfigurationManager.AppSettings["ITS-OPS"].Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
+                            Environment.GetEnvironmentVariable("ITS-OPS") ?? "".Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
 
                             lstRecipients.Add(Session["EmployeeId"].ToString());
                             
@@ -2134,10 +2134,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 lstRecipients.Add(objHRRF.HRRFCreatedBy.ToString()); // mail to TR Created By
                                 if (externalhireUpdate.RequestStatus.ToLower() == "fulfilled")
                                 {
-                                    ConfigurationManager.AppSettings["Assurance"].Split(',').ToList<string>().ForEach(Assurance => lstRecipients.Add(Assurance));
+                                    Environment.GetEnvironmentVariable("Assurance") ?? "".Split(',').ToList<string>().ForEach(Assurance => lstRecipients.Add(Assurance));
                                 }
                             }
-                                string strNotificationMessage = ConfigurationManager.AppSettings["ChangeStatusByRL"].Replace("#TRXXXX", externalhireUpdate.HRRFNumber) + "'" + externalhireUpdate.RequestStatus + "' by " + strStatusChangedBy + ".";
+                                string strNotificationMessage = Environment.GetEnvironmentVariable("ChangeStatusByRL") ?? "".Replace("#TRXXXX", externalhireUpdate.HRRFNumber) + "'" + externalhireUpdate.RequestStatus + "' by " + strStatusChangedBy + ".";
                             string loginEmp_Name = "";
                             int loginEmp_Id = Convert.ToInt32(Session["EmployeeId"]);
                             Employee obj_Emp = db.Employees.Find(loginEmp_Id);
@@ -2145,7 +2145,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             {
                                 loginEmp_Name = obj_Emp.FirstName + " " + (!string.IsNullOrWhiteSpace(obj_Emp.MiddleName) ? obj_Emp.MiddleName + " " : "") + obj_Emp.LastName;
                             }
-                            string strNotification_Subject = ConfigurationManager.AppSettings["TrProposedExternalRes_NOtification"] + loginEmp_Name;
+                            string strNotification_Subject = Environment.GetEnvironmentVariable("TrProposedExternalRes_NOtification") ?? "" + loginEmp_Name;
 
                             foreach (string recipient in lstRecipients.Distinct())
                             {
@@ -2294,7 +2294,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 //                strStatusChangedBy = objEmp.FirstName.Trim() + (!string.IsNullOrWhiteSpace(objEmp.MiddleName) ? " " + objEmp.MiddleName + " " : " ") + objEmp.LastName.Trim();
 //                List<string> lstRecipients = new List<string>();
 
-//                ConfigurationManager.AppSettings["ITS-OPS"].Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
+//                Environment.GetEnvironmentVariable("ITS-OPS") ?? ConfigurationManager.AppSettings["ITS-OPS"].Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
 //                //db.RoleMasters.Where(r => r.Role == "RL").Select(r => r.EmployeeId.ToString()).ToList<string>().ForEach(RLs => lstRecipients.Add(RLs)); // mail to all RLs
 
 //                List<string> lstRLEmp = db.RoleMasters.Where(r => r.Role == "RL").Select(r => r.EmployeeId.ToString()).ToList();
@@ -2307,11 +2307,11 @@ namespace Trianz.Enterprise.Operations.Controllers
 //                    lstRecipients.Add(objHRRF.HRRFCreatedBy.ToString()); // mail to TR Created By
 //                }
 
-//                string strNotificationMessage = ConfigurationManager.AppSettings["ChangeStatusByRL"].Replace("#TRXXXX", externalhire.HRRFNumber) + "'" + externalhire.RequestStatus + "' by " + strStatusChangedBy + ".";
+//                string strNotificationMessage = Environment.GetEnvironmentVariable("ChangeStatusByRL") ?? ConfigurationManager.AppSettings["ChangeStatusByRL"].Replace("#TRXXXX", externalhire.HRRFNumber) + "'" + externalhire.RequestStatus + "' by " + strStatusChangedBy + ".";
 
 //                foreach (string recipient in lstRecipients.Distinct())
 //                {
-//                    InsertNotification(Convert.ToString(Session["EmployeeId"]), recipient, strNotificationMessage, ConfigurationManager.AppSettings["TrProposedExternalRes_NOtification"], externalhire.HRRFNumber, string.Empty);
+//                    InsertNotification(Convert.ToString(Session["EmployeeId"]), recipient, strNotificationMessage, Environment.GetEnvironmentVariable("TrProposedExternalRes_NOtification") ?? ConfigurationManager.AppSettings["TrProposedExternalRes_NOtification"], externalhire.HRRFNumber, string.Empty);
 //                }
 //            }
 //        }
@@ -2444,7 +2444,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 //                strStatusChangedBy = objEmp.FirstName.Trim() + (!string.IsNullOrWhiteSpace(objEmp.MiddleName) ? " " + objEmp.MiddleName + " " : " ") + objEmp.LastName.Trim();
 //                List<string> lstRecipients = new List<string>();
 
-//                ConfigurationManager.AppSettings["ITS-OPS"].Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
+//                Environment.GetEnvironmentVariable("ITS-OPS") ?? ConfigurationManager.AppSettings["ITS-OPS"].Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
 //                //db.RoleMasters.Where(r => r.Role == "RL").Select(r => r.EmployeeId.ToString()).ToList<string>().ForEach(RLs => lstRecipients.Add(RLs)); // mail to all RLs
 //                List<string> lstRLEmp = db.RoleMasters.Where(r => r.Role == "RL").Select(r => r.EmployeeId.ToString()).ToList();
 //                List<string> lstRLActiveEmp = db.Employees.Where(e => lstRLEmp.Contains(e.EmployeeId.ToString()) && e.IsActive == true && e.LocationType == strLocationType).Select(emp => emp.EmployeeId.ToString()).ToList();
@@ -2456,11 +2456,11 @@ namespace Trianz.Enterprise.Operations.Controllers
 //                    lstRecipients.Add(objHRRF.HRRFCreatedBy.ToString()); // mail to TR Created By
 //                }
 
-//                string strNotificationMessage = ConfigurationManager.AppSettings["ChangeStatusByRL"].Replace("#TRXXXX", externalhireUpdate.HRRFNumber) + "'" + externalhireUpdate.RequestStatus + "' by " + strStatusChangedBy + ".";
+//                string strNotificationMessage = Environment.GetEnvironmentVariable("ChangeStatusByRL") ?? ConfigurationManager.AppSettings["ChangeStatusByRL"].Replace("#TRXXXX", externalhireUpdate.HRRFNumber) + "'" + externalhireUpdate.RequestStatus + "' by " + strStatusChangedBy + ".";
 
 //                foreach (string recipient in lstRecipients.Distinct())
 //                {
-//                    InsertNotification(Convert.ToString(Session["EmployeeId"]), recipient, strNotificationMessage, ConfigurationManager.AppSettings["TrProposedExternalRes_NOtification"], externalhireUpdate.HRRFNumber, string.Empty);
+//                    InsertNotification(Convert.ToString(Session["EmployeeId"]), recipient, strNotificationMessage, Environment.GetEnvironmentVariable("TrProposedExternalRes_NOtification") ?? ConfigurationManager.AppSettings["TrProposedExternalRes_NOtification"], externalhireUpdate.HRRFNumber, string.Empty);
 //                }
 //            }
 //        }
@@ -2495,15 +2495,15 @@ private void InsertNotification(string From, string To, string NotificationMsg, 
             tblNotification.NotificationDate = System.DateTime.Now;
             tblNotification.NotificationFrom = Convert.ToInt32(From);
             tblNotification.NotificationTo = Convert.ToInt32(To);
-            var Body = NotificationMsg + "<br/> <b> Job Description: </b>" + hrrfResultQualify.JobDescription + "<br/><br/>" + MailingContent(HrrfNumber); // + ConfigurationManager.AppSettings["TRNUMber"].ToString() + HrrfNumber + Remarks;
-            var Body1 = NotificationMsg + "<br/> <b> First Level Tech Panel: </b>" + hrrfResultQualify.TECHPANEL + "<br/><br/>" + "<br/> <b> Second Level Tech Panel: </b>" + hrrfResultQualify.SECONDTECHPANEL + "<br/><br/>" + MailingContent(HrrfNumber); // + ConfigurationManager.AppSettings["TRNUMber"].ToString() + HrrfNumber + Remarks;
+            var Body = NotificationMsg + "<br/> <b> Job Description: </b>" + hrrfResultQualify.JobDescription + "<br/><br/>" + MailingContent(HrrfNumber); // + Environment.GetEnvironmentVariable("TRNUMber") ?? "" + HrrfNumber + Remarks;
+            var Body1 = NotificationMsg + "<br/> <b> First Level Tech Panel: </b>" + hrrfResultQualify.TECHPANEL + "<br/><br/>" + "<br/> <b> Second Level Tech Panel: </b>" + hrrfResultQualify.SECONDTECHPANEL + "<br/><br/>" + MailingContent(HrrfNumber); // + Environment.GetEnvironmentVariable("TRNUMber") ?? "" + HrrfNumber + Remarks;
             tblNotification.IsActive = true;
             tblNotification.AssetID = HrrfNumber;
-            tblNotification.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTR"].ToString();
+            tblNotification.ApplicationCode = Environment.GetEnvironmentVariable("AppCodeTR") ?? "";
             tblNotification.IsFromGroupID = true;
             tblNotification.FromGroupID = "donotreply@trianz.com";
 
-            string talentoURL = ConfigurationManager.AppSettings["Talento"];
+            string talentoURL = Environment.GetEnvironmentVariable("Talento") ?? "";
             string body = string.Empty;
             string LinktoOpen = "Please Click on link to View the details of Submitted Talent Request number #" + HrrfNumber + " : " + talentoURL;
             using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
@@ -2518,7 +2518,7 @@ private void InsertNotification(string From, string To, string NotificationMsg, 
 
             tblNotification.NotificationMessage = body;
 
-            string IsEmailSent = System.Configuration.ConfigurationManager.AppSettings["IsEmailSent"].ToString();
+            string IsEmailSent = Environment.GetEnvironmentVariable("IsEmailSent") ?? "";
             bool IsEmail = Convert.ToBoolean(IsEmailSent);
             if (IsEmail == true)
             {

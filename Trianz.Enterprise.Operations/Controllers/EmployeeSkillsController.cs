@@ -238,7 +238,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var SkillsList = new List<SelectListItem>();
                 if (MasterLookUps != null)
                 {
-                    string Primaryskills = ConfigurationManager.AppSettings["PrimarySkills"].ToString();
+                    string Primaryskills = Environment.GetEnvironmentVariable("PrimarySkills") ?? "";
                     foreach (MasterLookUp item in MasterLookUps.OrderBy(p => p.LookupName).Where(x => x.LookupType == Primaryskills && x.ParentCode == CategorySeqId))
                     {
                         SkillsList.Add(new SelectListItem { Text = item.Description, Value = item.LookupID.ToString() });
@@ -262,7 +262,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var SecSkillsList = new List<SelectListItem>();
                 if (MasterLookUps != null)
                 {
-                    string Secondaryskills = ConfigurationManager.AppSettings["SecondarySkills"].ToString();
+                    string Secondaryskills = Environment.GetEnvironmentVariable("SecondarySkills") ?? "";
                     foreach (MasterLookUp item in MasterLookUps.Where(x => x.LookupType == Secondaryskills && x.ParentCode == CategorySeqId))
                     {
                         SecSkillsList.Add(new SelectListItem { Text = item.Description, Value = item.LookupID.ToString() });
@@ -293,13 +293,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                     var SkillCategory = new List<SelectListItem>();
                     if (MasterLookUps != null)
                     {
-                        string SkillCategry = ConfigurationManager.AppSettings["SkillCategory"].ToString();
+                        string SkillCategry = Environment.GetEnvironmentVariable("SkillCategory") ?? "";
                         foreach (MasterLookUp item in MasterLookUps.Where(x => x.LookupType == SkillCategry))
                         {
                             SkillCategory.Add(new SelectListItem() { Text = item.Description, Value = item.SeqNumber.ToString() });
                         }
                     }
-                    string exp = ConfigurationManager.AppSettings["ExpFrom"].ToString();
+                    string exp = Environment.GetEnvironmentVariable("ExpFrom") ?? "";
                     var ExpFrom = from expFrom in MasterLookUps.Where(x => x.LookupType == exp)
                                   select new
                                   {
@@ -475,7 +475,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     EmpPrimarySkills.MasterLookUp = MLookup;
                                     EmpPrimarySkills.Rating = Convert.ToInt32(PSkill.Split(':')[1]);
                                     EmpPrimarySkills.SkillDescription = MLookup.Description;
-                                    EmpPrimarySkills.Status = ConfigurationManager.AppSettings["Not Yet Approved"].ToString();
+                                    EmpPrimarySkills.Status = Environment.GetEnvironmentVariable("Not Yet Approved") ?? "";
                                     db.EmployeeSkills.Add(EmpPrimarySkills);
                                     CanNotify = true;
                                 }
@@ -498,7 +498,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     EmpSecondarySkills.Rating = Convert.ToInt32(SSkill.Split(':')[1]);
                                     EmpSecondarySkills.MasterLookUp = MsLookup;
                                     EmpSecondarySkills.SkillDescription = MsLookup.Description;
-                                    EmpSecondarySkills.Status = ConfigurationManager.AppSettings["Not Yet Approved"].ToString();
+                                    EmpSecondarySkills.Status = Environment.GetEnvironmentVariable("Not Yet Approved") ?? "";
                                     db.EmployeeSkills.Add(EmpSecondarySkills);
                                     CanNotify = true;
                                 }
@@ -507,16 +507,16 @@ namespace Trianz.Enterprise.Operations.Controllers
                             {
                                 //Notification 
                                 Notification tblNotification = new Notification();
-                                tblNotification.NotificationType = ConfigurationManager.AppSettings["SkillApprovalRequest_NotificationType"].ToString();
+                                tblNotification.NotificationType = Environment.GetEnvironmentVariable("SkillApprovalRequest_NotificationType") ?? "";
                                 tblNotification.NotificationDate = System.DateTime.Now;
                                 tblNotification.NotificationFrom = employee.EmployeeId;
                                 tblNotification.NotificationTo = employee.SupervisorId;
-                                var Body = ConfigurationManager.AppSettings["SkillApprovalRequest_Notification"].ToString() + employee.FirstName + " " + employee.LastName;
+                                var Body = Environment.GetEnvironmentVariable("SkillApprovalRequest_Notification") ?? "" + employee.FirstName + " " + employee.LastName;
                                 tblNotification.IsActive = true;
-                                tblNotification.AssetID = ConfigurationManager.AppSettings["Skill_AppCode"];
-                                tblNotification.ApplicationCode = ConfigurationManager.AppSettings["Skill_AppCode"].ToString();
+                                tblNotification.AssetID = Environment.GetEnvironmentVariable("Skill_AppCode") ?? "";
+                                tblNotification.ApplicationCode = Environment.GetEnvironmentVariable("Skill_AppCode") ?? "";
 
-                                string talentoURL = ConfigurationManager.AppSettings["Talento"];
+                                string talentoURL = Environment.GetEnvironmentVariable("Talento") ?? "";
                                 string LinktoOpen = "Please Click on link to View the skills submitted for Approval " + talentoURL;
                                 string body = string.Empty;
                                 using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
@@ -529,7 +529,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 body = body.Replace("{LinktoOpen}", LinktoOpen);
 
                                 tblNotification.NotificationMessage = body;
-                                string IsEmailSent = System.Configuration.ConfigurationManager.AppSettings["IsEmailSent"].ToString();
+                                string IsEmailSent = Environment.GetEnvironmentVariable("IsEmailSent") ?? "";
                                 bool IsEmail = Convert.ToBoolean(IsEmailSent);
                                 if (IsEmail == true)
                                 {

@@ -42,7 +42,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //if you know how to do this, please tap it on the comments below
                 //Response.Write("Unauthorized. Reload the page to try again... click <a href='http://www.google.com'>here</a> to go out from here");
 
-                Response.Write("Unauthorized. Click <a href='/'>here</a> to re-login... <br/>click <a href='http://www.google.com'>here</a> to go out from here");
+                Response.Write("Unauthorized. Click <a href='/'>here</a> to re-login... <br/>click <a href='" + (Environment.GetEnvironmentVariable("SignoutRedirectUrl") ?? "") + "'>here</a> to go out from here");
                 Response.End();
 
 

@@ -10,7 +10,7 @@ namespace Trianz.Enterprise.Operations.ViewModel
     
     public class ResourceDashboardViewModel
     {
-        public static List<ProjectAssignments> ProjectAssignments;
+        public List<ProjectAssignments> ProjectAssignments;
        
   
 

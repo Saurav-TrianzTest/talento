@@ -20,7 +20,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             TempData["IsRoleMasterPageAccess"] = null;
 
             List<ProposeAssociate> listpropose = new List<ProposeAssociate>();
-            List<string> liststatus = new List<string>() {ConfigurationManager.AppSettings["App"].ToString(), ConfigurationManager.AppSettings["Rej"].ToString(), ConfigurationManager.AppSettings["Pro"].ToString() };
+            List<string> liststatus = new List<string>() {Environment.GetEnvironmentVariable("App") ?? "", Environment.GetEnvironmentVariable("Rej") ?? "", Environment.GetEnvironmentVariable("Pro") ?? "" };
             ViewBag.CurrentSort = sortOrder;
             //ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "HRRF Number desc" : "";
             ViewData["Status"] = liststatus;

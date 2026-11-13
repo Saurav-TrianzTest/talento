@@ -13,7 +13,7 @@ namespace Trianz.Enterprise.Operations.Filters
         public override void OnActionExecuting(ActionExecutingContext filterContext)
 
         {
-            HttpContext ctx = HttpContext.Current;
+            HttpContextBase ctx = filterContext.HttpContext;
             Controller controller = filterContext.Controller as Controller;
             
             if (controller != null)
@@ -27,7 +27,7 @@ namespace Trianz.Enterprise.Operations.Filters
                 {
                     string sessionCookie = ctx.Request.Headers["Cookie"];
                     //if ((null != sessionCookie) && (sessionCookie.IndexOf("ASP.NET_SessionId") >= 0))
-                    if (HttpContext.Current.Session["Role"] == null)
+                    if (filterContext.HttpContext.Session["Role"] == null)
                     {
                         //string redirectOnSuccess = filterContext.HttpContext.Request.Url.PathAndQuery;
                         //string redirectUrl = string.Format("?ReturnUrl={0}", redirectOnSuccess);

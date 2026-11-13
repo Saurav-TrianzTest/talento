@@ -1,0 +1,22 @@
+version: '3.4'
+
+services:
+  trianz-enterprise-operations:
+    image: trianz-enterprise-operations:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DB_CONNECTION_STRING=${DB_CONNECTION_STRING:?set DB_CONNECTION_STRING}
+      - ADO_CONNECTION_STRING=${ADO_CONNECTION_STRING:?set ADO_CONNECTION_STRING}
+      - REDIS_CONNECTION_STRING=${REDIS_CONNECTION_STRING:?set REDIS_CONNECTION_STRING}
+    volumes:
+      - logs_data:/app/logs
+      - config_data:/app/config
+
+volumes:
+  logs_data:
+  config_data:

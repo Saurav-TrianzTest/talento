@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trianz-enterprise-operations
+  namespace: trianz-enterprise-operations
+  labels:
+    app: trianz-enterprise-operations
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: trianz-enterprise-operations
+  template:
+    metadata:
+      labels:
+        app: trianz-enterprise-operations
+    spec:
+      nodeSelector:
+        kubernetes.io/os: windows
+      containers:
+        - name: trianz-enterprise-operations
+          image: "{{IMAGE_URI}}"
+          ports:
+            - containerPort: 80
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: DB_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: trianz-enterprise-operations-secrets
+                  key: DB_CONNECTION_STRING
+            - name: ADO_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: trianz-enterprise-operations-secrets
+                  key: ADO_CONNECTION_STRING
+            - name: REDIS_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: trianz-enterprise-operations-secrets
+                  key: REDIS_CONNECTION_STRING
+            - name: ITS-OPS
+              value: "{{ITS-OPS}}"
+            - name: Assurance
+              value: "{{Assurance}}"
+            - name: ClusterMaster
+              value: "{{ClusterMaster}}"
+            - name: businessGroupId
+              value: "{{businessGroupId}}"
+            - name: ManagerId
+              value: "{{ManagerId}}"
+            - name: PHId
+              value: "{{PHId}}"
+            - name: CreateTR-RL
+              value: "{{CreateTR-RL}}"
+            - name: Mail-RL
+              value: "{{Mail-RL}}"
+            - name: OnlyTRVisibleEmployee
+              value: "{{OnlyTRVisibleEmployee}}"
+            - name: ClusterLeadview
+              value: "{{ClusterLeadview}}"
+            - name: clustermanager
+              value: "{{clustermanager}}"
+            - name: Percentage
+              value: "{{Percentage}}"
+            - name: IsEmailSent
+              value: "{{IsEmailSent}}"
+            - name: OnSiteCountryName
+              value: "{{OnSiteCountryName}}"
+            - name: OnsiteEmployeeId
+              value: "{{OnsiteEmployeeId}}"
+            - name: ITSDashboardViewers
+              value: "{{ITSDashboardViewers}}"
+            - name: DHAndRLRoleUsers
+              value: "{{DHAndRLRoleUsers}}"
+            - name: HostNo
+              value: "{{HostNo}}"
+            - name: EmailFrom
+              value: "{{EmailFrom}}"
+            - name: TRRestricted
+              value: "{{TRRestricted}}"
+            - name: ActiveAssignmentDownload
+              value: "{{ActiveAssignmentDownload}}"
+            - name: RiseTeam
+              value: "{{RiseTeam}}"
+            - name: OpsStatus
+              value: "{{OpsStatus}}"
+            - name: DefaultRole
+              value: "{{DefaultRole}}"
+            - name: RoleManagement
+              value: "{{RoleManagement}}"
+            - name: PortNo
+              value: "{{PortNo}}"
+            - name: Talento
+              value: "{{Talento}}"
+            - name: EmployeeURL
+              value: "{{EmployeeURL}}"
+            - name: NumberingCliURL
+              value: "{{NumberingCliURL}}"
+            - name: HRRFCliUrl
+              value: "{{HRRFCliUrl}}"
+            - name: HRRFNumberingCliUrl
+              value: "{{HRRFNumberingCliUrl}}"
+            - name: NotificationCliUrl
+              value: "{{NotificationCliUrl}}"
+            - name: GetOpportunityByNameorCode
+              value: "{{GetOpportunityByNameorCode}}"
+            - name: GetLookupService
+              value: "{{GetLookupService}}"
+            - name: GetEmployeeService
+              value: "{{GetEmployeeService}}"
+            - name: web.config.ClientId
+              value: "{{ClientId}}"
+            - name: web.config.Tenant
+              value: "{{Tenant}}"
+            - name: web.config.Authority
+              value: "{{Authority}}"
+            - name: web.config.redirectUri
+              value: "{{redirectUri}}"
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1000m"
+              memory: "2Gi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 10

@@ -54,8 +54,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                     {
                         Employee employee = (from data in Db.Employees.Where(x => x.EmployeeId == EmployeeId) select data).FirstOrDefault();
                         var RoleResults = Db.RoleMasters.ToList().Where(role => role.EmployeeId == employee.EmployeeId && role.ApplicationCode == "TALENTREQ").FirstOrDefault();
-                        string RoleValues = ConfigurationManager.AppSettings["RoleManagement"];
-                        string DefaultRole = ConfigurationManager.AppSettings["DefaultRole"];
+                        string RoleValues = Environment.GetEnvironmentVariable("RoleManagement") ?? "";
+                        string DefaultRole = Environment.GetEnvironmentVariable("DefaultRole") ?? "";
                         List<string> lst = new List<string>();
                         lst = RoleValues.Split(',').ToList();
                         if (RoleResults != null)
@@ -173,7 +173,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             }
             catch (Exception ex)
             {
-                Response.Redirect(ConfigurationManager.AppSettings["Talento"]);
+                Response.Redirect(Environment.GetEnvironmentVariable("Talento") ?? "");
             }
 
         }

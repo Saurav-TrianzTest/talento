@@ -37,16 +37,16 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     
                                     select DemandCount).Count();
             var InternalDemands = (from InternalDemand in db.HRRFs.AsEnumerable()
-                                    where InternalDemand.RequestStatus == ConfigurationManager.AppSettings["Internal"]
+                                    where InternalDemand.RequestStatus == Environment.GetEnvironmentVariable("Internal") ?? ""
                                    select InternalDemand).Count();
             var ExternalContractDemands = (from ExternalContract in db.HRRFs.AsEnumerable()
-                                    where ExternalContract.RequestStatus == ConfigurationManager.AppSettings["ExternalCon"]
+                                    where ExternalContract.RequestStatus == Environment.GetEnvironmentVariable("ExternalCon") ?? ""
                                            select ExternalContract).Count();
             var ExternalContracttoHireDemands = (from ExternalContracttoHire in db.HRRFs.AsEnumerable()
-                                    where ExternalContracttoHire.RequestStatus == ConfigurationManager.AppSettings["ExternalConHire"]
+                                    where ExternalContracttoHire.RequestStatus == Environment.GetEnvironmentVariable("ExternalConHire") ?? ""
                                                  select ExternalContracttoHire).Count();
             var ExternalRecruitDemands = (from ExternalRecruit in db.HRRFs.AsEnumerable()
-                                          where ExternalRecruit.RequestStatus == ConfigurationManager.AppSettings["ExternalRecruit"]
+                                          where ExternalRecruit.RequestStatus == Environment.GetEnvironmentVariable("ExternalRecruit") ?? ""
                                           select ExternalRecruit).Count();
             var todaydate = DateTime.Now.Year;
 
@@ -81,10 +81,10 @@ namespace Trianz.Enterprise.Operations.Controllers
                                               
 
                                               // month=Convert.ToDateTime(d.Key.months).ToString("MMM"),
-                                              FullFilledCount = d.Where(c => c.RequestStatus == ConfigurationManager.AppSettings["Fulfilled"]).Count(),
-                                              QualifiedCount = d.Where(c => c.RequestStatus == ConfigurationManager.AppSettings["Qualified"]).Count(),
-                                              SubmittedCount = d.Where(c => c.RequestStatus == ConfigurationManager.AppSettings["Submitted"]).Count(),
-                                              DraftCount = d.Where(c => c.RequestStatus == ConfigurationManager.AppSettings["Draft"]).Count(),
+                                              FullFilledCount = d.Where(c => c.RequestStatus == Environment.GetEnvironmentVariable("Fulfilled") ?? "").Count(),
+                                              QualifiedCount = d.Where(c => c.RequestStatus == Environment.GetEnvironmentVariable("Qualified") ?? "").Count(),
+                                              SubmittedCount = d.Where(c => c.RequestStatus == Environment.GetEnvironmentVariable("Submitted") ?? "").Count(),
+                                              DraftCount = d.Where(c => c.RequestStatus == Environment.GetEnvironmentVariable("Draft") ?? "").Count(),
                                           };
 
             List<DemandData.monthdemandtest> listmonth = new List<DemandData.monthdemandtest>();

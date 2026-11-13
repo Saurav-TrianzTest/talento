@@ -16,8 +16,16 @@ namespace Trianz.Enterprise.Operations.Models
     public partial class TrianzOperationsEntities : DbContext
     {
         public TrianzOperationsEntities()
-            : base("name=TrianzOperationsEntities")
+            : base(GetConnectionStringFromEnv())
         {
+        }
+
+        private static string GetConnectionStringFromEnv()
+        {
+            string envConn = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+            if (!string.IsNullOrEmpty(envConn))
+                return envConn;
+            return "name=TrianzOperationsEntities";
         }
     
         protected override void OnModelCreating(DbModelBuilder modelBuilder)

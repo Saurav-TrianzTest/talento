@@ -151,7 +151,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             }
             if (searchskill!="")
             {
-                var Percentagevalue = ConfigurationManager.AppSettings["Percentage"].ToString();
+                var Percentagevalue = Environment.GetEnvironmentVariable("Percentage") ?? "";
                 obj.EmpSkillInfo = obj.EmpSkillInfo.Where(m => (int)m.Percentage >= Convert.ToInt32(Percentagevalue)).ToList();
                 obj.EmpSkillInfo = obj.EmpSkillInfo.OrderBy(m => String.IsNullOrEmpty(m.BillingStatus)).ThenBy(m => m.BillingStatus).ThenByDescending(m => m.Percentage).ToList();
             }
@@ -302,7 +302,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     int count = skillcount2.Intersect(skillcount1).Count();
                     m.Percentage = ((decimal)count / skillcount1.Count()) * 100;
                 });
-                var Percentagevalue = ConfigurationManager.AppSettings["Percentage"].ToString();
+                var Percentagevalue = Environment.GetEnvironmentVariable("Percentage") ?? "";
                 obj.EmpSkillInfo = obj.EmpSkillInfo.Where(m => (int)m.Percentage >= Convert.ToInt32(Percentagevalue)).ToList();
                 
                 // obj.EmpSkillInfo = obj.EmpSkillInfo.OrderBy(m => m.BillingStatus).ThenByDescending(m => m.Percentage).ToList();
@@ -433,7 +433,7 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 Searchskill = "";
             }
-            string SmtpuserCommon = ConfigurationManager.AppSettings["EmailFrom"];
+            string SmtpuserCommon = Environment.GetEnvironmentVariable("EmailFrom") ?? "";
             string billingStatus;
             if (ddlStatus == null || ddlStatus == "" || ddlStatus == "Select Status")
             {
@@ -483,10 +483,10 @@ namespace Trianz.Enterprise.Operations.Controllers
             {
                 #region "Mail"
 
-                string portNo = ConfigurationManager.AppSettings["PortNo"];
-                string host = ConfigurationManager.AppSettings["HostNo"];
-                string Smtpuser = ConfigurationManager.AppSettings["awssmtpUser"];
-                string Smtppassword = ConfigurationManager.AppSettings["awssmtpPass"];
+                string portNo = Environment.GetEnvironmentVariable("PortNo") ?? "";
+                string host = Environment.GetEnvironmentVariable("HostNo") ?? "";
+                string Smtpuser = Environment.GetEnvironmentVariable("awssmtpUser") ?? "";
+                string Smtppassword = Environment.GetEnvironmentVariable("awssmtpPass") ?? "";
 
 
                 MailMessage mm = new MailMessage();

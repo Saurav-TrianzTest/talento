@@ -27,7 +27,7 @@ namespace Trianz.Enterprise.Operations
         public void Error(Exception ex)
         {
             Trianz.Enterprise.Operations.Models.Error_Info elc = new Trianz.Enterprise.Operations.Models.Error_Info();
-            elc.Application = ConfigurationManager.AppSettings["ÄpplicationName"];
+            elc.Application = Environment.GetEnvironmentVariable("ÄpplicationName") ?? "";
             elc.Host = Dns.GetHostName();
             elc.Type = "Error";
             elc.Source = ex.Source != null ? ex.Source.ToString() : "";

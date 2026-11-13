@@ -13,8 +13,8 @@ namespace Trianz.Enterprise.Operations.Models
     
         public class ChartData
         {
-            public static List<HRRF> allHRRFS;
-            public static List<Employee> Employees;
+            public List<HRRF> allHRRFS;
+            public List<Employee> Employees;
             public int EmployeeID { get; set; }
             public string FirstName { get; set; }
             public string MiddleName { get; set; }

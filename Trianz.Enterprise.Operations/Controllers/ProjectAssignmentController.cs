@@ -1681,7 +1681,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
                 //   int empID = (int)Session["EmployeeId"];
-                string authorizedUser = ConfigurationManager.AppSettings["businessGroupId"];
+                string authorizedUser = Environment.GetEnvironmentVariable("businessGroupId") ?? "";
                 bool isAuthorised = false;
                 if (authorizedUser != null && authorizedUser != "")
                 {

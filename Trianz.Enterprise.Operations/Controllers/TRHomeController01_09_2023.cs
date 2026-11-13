@@ -21,8 +21,8 @@ namespace Trianz.Enterprise.Operations.Controllers
     public class TRHomeController : Controller
     {
         TrianzOperationsEntities db = new TrianzOperationsEntities();
-        string clusterlead = System.Configuration.ConfigurationManager.AppSettings["ClusterLeadview"].ToString();
-        string strclustermgr = System.Configuration.ConfigurationManager.AppSettings["clustermanager"].ToString();
+        string clusterlead = Environment.GetEnvironmentVariable("ClusterLeadview") ?? "";
+        string strclustermgr = Environment.GetEnvironmentVariable("clustermanager") ?? "";
         // [SkipAuthorizationFilter]
         public ActionResult Index()
         {
@@ -75,7 +75,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         select p.Designation).FirstOrDefault();
                     //db.Employees.Where(p => p.SupervisorId == EmployeeId).Count();
 
-                    List<string> ClusterMaster = System.Configuration.ConfigurationManager.AppSettings["ClusterMaster"].Split(',').ToList();
+                    List<string> ClusterMaster = Environment.GetEnvironmentVariable("ClusterMaster") ?? "".Split(',').ToList();
                     bool IsUserExist = ClusterMaster.Contains(EmployeeId.ToString());
                     ViewBag.ClusterMaster = IsUserExist;
                     if (isSupervisor != null)
@@ -84,7 +84,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     }
                     if (EmployeeId > 0)
                     {
-                        string RoleValues = ConfigurationManager.AppSettings["RoleManagement"];
+                        string RoleValues = Environment.GetEnvironmentVariable("RoleManagement") ?? "";
                         List<string> lstRoles = new List<string>();
                         lstRoles = RoleValues.Split(',').ToList();
                         Employee objEmployee = db.Employees.Where(e => e.UserName.Equals(UserName) && e.IsActive == true).FirstOrDefault();
@@ -105,7 +105,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         }                  
                         if ((Session["Role"].ToString() == "OM" || Session["Role"].ToString() == "PM" || Session["Role"].ToString() == "DH" || Session["Role"].ToString() == "SM" || Session["Role"].ToString() == "RL" || Session["Role"].ToString() == "LDAdmin" || Session["Role"].ToString() == "CompetencyAdmin" || Session["Role"].ToString() == "Finance"))
                         {
-                            string trVisibleValues = ConfigurationManager.AppSettings["OnlyTRVisibleEmployee"];
+                            string trVisibleValues = Environment.GetEnvironmentVariable("OnlyTRVisibleEmployee") ?? "";
                             List<string> lstTRVisibleEmps = new List<string>();
                             lstTRVisibleEmps = trVisibleValues.Split(',').ToList();
                             if (Session["Role"].ToString() == "OM" || Convert.ToInt32(Session["Grade"]) >= 4 || Session["Role"].ToString() == "RL" || Session["Role"].ToString() == "DH")
@@ -118,7 +118,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 lstTRRequests.Add(new SelectListItem { Text = "Cancelled TRs", Value = "Cancelled" });
                                 ViewData["_TRRequests"] = lstTRRequests;
                             }
-                            // else if(EmployeeId.ToString() == ConfigurationManager.AppSettings["OnlyTRVisibleEmployee"].ToString())
+                            // else if(EmployeeId.ToString() == Environment.GetEnvironmentVariable("OnlyTRVisibleEmployee") ?? ConfigurationManager.AppSettings["OnlyTRVisibleEmployee"].ToString())
                             else if (lstTRVisibleEmps.Contains(EmployeeId.ToString()))
                             {
                                 List<SelectListItem> lstTRRequests = new List<SelectListItem>();
@@ -211,7 +211,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                             Session["ClusterLeadId"] = "0";
                             //Session["LeadId"] = clusterlead;
                         }
-                        List<string> ClusterManager = System.Configuration.ConfigurationManager.AppSettings["clustermanager"].Split(',').ToList();
+                        List<string> ClusterManager = Environment.GetEnvironmentVariable("clustermanager") ?? "".Split(',').ToList();
                         bool Ismanagerexist = ClusterManager.Contains(EmployeeId.ToString());
                         if (Ismanagerexist)
                         {

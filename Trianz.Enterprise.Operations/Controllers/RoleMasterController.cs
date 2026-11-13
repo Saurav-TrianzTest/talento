@@ -153,7 +153,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 {
                     TempData.Keep("IsRoleMasterPageAccess");
 
-                    string pathValue = ConfigurationManager.AppSettings["RoleManagement"];
+                    string pathValue = Environment.GetEnvironmentVariable("RoleManagement") ?? "";
                     List<string> lst = new List<string>();
                     lst = pathValue.Split(',').ToList();
                     ViewData["Role"] = lst;
@@ -237,7 +237,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     {
                         return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
                     }
-                    string pathValue = ConfigurationManager.AppSettings["RoleManagement"];
+                    string pathValue = Environment.GetEnvironmentVariable("RoleManagement") ?? "";
                     List<string> lst = new List<string>();
                     lst = pathValue.Split(',').ToList();
                     ViewData["_Role"] = lst;

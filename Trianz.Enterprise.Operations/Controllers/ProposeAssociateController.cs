@@ -17,42 +17,42 @@ namespace Trianz.Enterprise.Operations.Controllers
     {
         TrianzOperationsEntities db = new TrianzOperationsEntities();
         // Get all Constant
-        string role_OM = System.Configuration.ConfigurationManager.AppSettings["Role_OM"].ToString();
-        string role_PM = System.Configuration.ConfigurationManager.AppSettings["Role_PM"].ToString();
-        //string role_PH = System.Configuration.ConfigurationManager.AppSettings["Role_PH"].ToString();
-        string role_DH = System.Configuration.ConfigurationManager.AppSettings["Role_DH"].ToString();
-        string role_SM = System.Configuration.ConfigurationManager.AppSettings["Role_SM"].ToString();
-        string role_DM = System.Configuration.ConfigurationManager.AppSettings["Role_DM"].ToString();
-        string role_LDAdmin = System.Configuration.ConfigurationManager.AppSettings["Role_LDAdmin"].ToString();
-        string role_Finance = System.Configuration.ConfigurationManager.AppSettings["Role_Finance"].ToString();
-        string role_CompetencyAdmin = System.Configuration.ConfigurationManager.AppSettings["Role_CompetencyAdmin"].ToString();
-        string role_RL = System.Configuration.ConfigurationManager.AppSettings["Role_RL"].ToString();
+        string role_OM = Environment.GetEnvironmentVariable("Role_OM") ?? "";
+        string role_PM = Environment.GetEnvironmentVariable("Role_PM") ?? "";
+        //string role_PH = Environment.GetEnvironmentVariable("Role_PH") ?? System.Configuration.ConfigurationManager.AppSettings["Role_PH"].ToString();
+        string role_DH = Environment.GetEnvironmentVariable("Role_DH") ?? "";
+        string role_SM = Environment.GetEnvironmentVariable("Role_SM") ?? "";
+        string role_DM = Environment.GetEnvironmentVariable("Role_DM") ?? "";
+        string role_LDAdmin = Environment.GetEnvironmentVariable("Role_LDAdmin") ?? "";
+        string role_Finance = Environment.GetEnvironmentVariable("Role_Finance") ?? "";
+        string role_CompetencyAdmin = Environment.GetEnvironmentVariable("Role_CompetencyAdmin") ?? "";
+        string role_RL = Environment.GetEnvironmentVariable("Role_RL") ?? "";
 
-        string delivery_recommend = System.Configuration.ConfigurationManager.AppSettings["D_Recommend"].ToString();
-        string practice_recommend = System.Configuration.ConfigurationManager.AppSettings["P_Recommend"].ToString();
-        string praticeAccept = System.Configuration.ConfigurationManager.AppSettings["PraticeAccept"].ToString();
-        string praticeReject = System.Configuration.ConfigurationManager.AppSettings["PraticeReject"].ToString();
-        string fulfilled = System.Configuration.ConfigurationManager.AppSettings["fulfilledStatus"].ToString();
-        string ResumePending = System.Configuration.ConfigurationManager.AppSettings["ResumePendingStatus"].ToString();
-        string emp_Assignment = System.Configuration.ConfigurationManager.AppSettings["AssignmentStatus"].ToString();
-        string qualified = System.Configuration.ConfigurationManager.AppSettings["TR_Qualified"].ToString();
-        string convertInternal = System.Configuration.ConfigurationManager.AppSettings["I_RequestType"].ToString();
-        string convertExternal = System.Configuration.ConfigurationManager.AppSettings["E_RequestType"].ToString();
-        string PendingForDHApproval = System.Configuration.ConfigurationManager.AppSettings["PendingForDHApproval"].ToString();
-        string PendingForPMApproval = System.Configuration.ConfigurationManager.AppSettings["PendingForPMApproval"].ToString();
-        string external_Accept = System.Configuration.ConfigurationManager.AppSettings["ExternalAccepted"].ToString();
-        string external_Reject = System.Configuration.ConfigurationManager.AppSettings["ExternalRejected"].ToString();
-        string requestMoreInfo = System.Configuration.ConfigurationManager.AppSettings["TR_RequestMoreInfo"].ToString();
+        string delivery_recommend = Environment.GetEnvironmentVariable("D_Recommend") ?? "";
+        string practice_recommend = Environment.GetEnvironmentVariable("P_Recommend") ?? "";
+        string praticeAccept = Environment.GetEnvironmentVariable("PraticeAccept") ?? "";
+        string praticeReject = Environment.GetEnvironmentVariable("PraticeReject") ?? "";
+        string fulfilled = Environment.GetEnvironmentVariable("fulfilledStatus") ?? "";
+        string ResumePending = Environment.GetEnvironmentVariable("ResumePendingStatus") ?? "";
+        string emp_Assignment = Environment.GetEnvironmentVariable("AssignmentStatus") ?? "";
+        string qualified = Environment.GetEnvironmentVariable("TR_Qualified") ?? "";
+        string convertInternal = Environment.GetEnvironmentVariable("I_RequestType") ?? "";
+        string convertExternal = Environment.GetEnvironmentVariable("E_RequestType") ?? "";
+        string PendingForDHApproval = Environment.GetEnvironmentVariable("PendingForDHApproval") ?? "";
+        string PendingForPMApproval = Environment.GetEnvironmentVariable("PendingForPMApproval") ?? "";
+        string external_Accept = Environment.GetEnvironmentVariable("ExternalAccepted") ?? "";
+        string external_Reject = Environment.GetEnvironmentVariable("ExternalRejected") ?? "";
+        string requestMoreInfo = Environment.GetEnvironmentVariable("TR_RequestMoreInfo") ?? "";
 
-        string tr_Terminate = System.Configuration.ConfigurationManager.AppSettings["TR_Terminate"].ToString();
-        string skill_Approved = System.Configuration.ConfigurationManager.AppSettings["Skill_Approved"].ToString();
-        string emp_status_Free = System.Configuration.ConfigurationManager.AppSettings["Emp_status_Free"].ToString();
-        string emp_ResourceStatus = System.Configuration.ConfigurationManager.AppSettings["Emp_ResourceStatus"].ToString();
-        string IsEmailSent = System.Configuration.ConfigurationManager.AppSettings["IsEmailSent"].ToString();
+        string tr_Terminate = Environment.GetEnvironmentVariable("TR_Terminate") ?? "";
+        string skill_Approved = Environment.GetEnvironmentVariable("Skill_Approved") ?? "";
+        string emp_status_Free = Environment.GetEnvironmentVariable("Emp_status_Free") ?? "";
+        string emp_ResourceStatus = Environment.GetEnvironmentVariable("Emp_ResourceStatus") ?? "";
+        string IsEmailSent = Environment.GetEnvironmentVariable("IsEmailSent") ?? "";
 
-        int clientInterviewYes = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["AddNumberofBillingDatesClientInterview"].ToString());
-        int clientInterviewNo = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["AddNumberofBillingDatesClientInterviewNo"].ToString());
-        string Submitted = System.Configuration.ConfigurationManager.AppSettings["SubmittedStatus"].ToString();
+        int clientInterviewYes = Convert.ToInt32(Environment.GetEnvironmentVariable("AddNumberofBillingDatesClientInterview") ?? "");
+        int clientInterviewNo = Convert.ToInt32(Environment.GetEnvironmentVariable("AddNumberofBillingDatesClientInterviewNo") ?? "");
+        string Submitted = Environment.GetEnvironmentVariable("SubmittedStatus") ?? "";
         /// <summary>
         /// GET: ProposeAssociate view based on HRRF number
         /// </summary>
@@ -145,7 +145,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 }
                 var employeeId = Session["EmployeeId"];
                 ViewBag.HRRFCreatedBy = hrrfCreatedBy;
-                List<string> dashBoardViewers = System.Configuration.ConfigurationManager.AppSettings["DHAndRLRoleUsers"].Split(',').ToList();
+                List<string> dashBoardViewers = Environment.GetEnvironmentVariable("DHAndRLRoleUsers") ?? "".Split(',').ToList();
                 bool flag = dashBoardViewers.Contains(employeeId.ToString());
                 if (flag)
                     ViewBag.ShowApprovalButton = true;
@@ -221,7 +221,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 IList<TRHistory> _history = new List<TRHistory>();
                 var trHistoryobj = db.HRRFHistories.Where(h => h.HRRFNumber == hrrf).OrderByDescending(c => c.ModifiedDate).ToList();
                 var trRequestStatus = db.HRRFs.Where(h => h.HRRFNumber == hrrf).ToString();
-                if (trRequestStatus == ConfigurationManager.AppSettings["Submitted"].ToString())
+                if (trRequestStatus == Environment.GetEnvironmentVariable("Submitted") ?? "")
                 {
 
                 }
@@ -1831,7 +1831,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                                 InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(hrrfcr.HRRFCreatedBy),
                                                     "This is to inform you that " + objEmployee.FirstName + " " + objEmployee.LastName + "(" + CheckedItem + ")" + " Resource accepted for another TR so we are removing this resource from your propsed list for the " + mt.HRRFNumber,
                                                     "Proposed Resource Removing", mt.HRRFNumber, "<b>" +
-                                                    ConfigurationManager.AppSettings["ProposedResource"] + "</b>" + mt.EmpName, null);
+                                                    Environment.GetEnvironmentVariable("ProposedResource") ?? "" + "</b>" + mt.EmpName, null);
 
 
                                                 string strPrevReqStatus1 = hrrfcr.RequestStatus;
@@ -1928,13 +1928,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                         var isvalidbusinessgroup = db.IncludedBussinessGroups.Where(i => i.BusinessGroup.Contains(proposedEmpName.BusinessGroup)).FirstOrDefault();
                         var isinvalidemployetype = db.ExcludedEmployeeTypes.Where(i => i.EmployeeType.Contains(proposedEmpName.EmployeeType)).FirstOrDefault();
                         //added ops team in cc
-                        InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrProposedResources"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["ProposedResource"] + "</b>" + proposedEmpName.FirstName + proposedEmpName.LastName, ConfigurationManager.AppSettings["ITS-OPS"]);
+                        InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrProposedResources") ?? "", Environment.GetEnvironmentVariable("TrProposedRes_NOtification") ?? "", HRRFNumber, "<b>" + Environment.GetEnvironmentVariable("ProposedResource") ?? "" + "</b>" + proposedEmpName.FirstName + proposedEmpName.LastName, Environment.GetEnvironmentVariable("ITS-OPS") ?? "");
                         //lakshmi
                         if (isvalidbusinessgroup != null && isinvalidemployetype == null)
                         {
-                            InsertNotification(Session["EmployeeId"].ToString(), CheckedItem, ConfigurationManager.AppSettings["Proposedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["TrProposedRes_NOtification"], HRRFNumber, string.Empty, deliverymanager);
+                            InsertNotification(Session["EmployeeId"].ToString(), CheckedItem, Environment.GetEnvironmentVariable("Proposedto") ?? "" + objHRRF.ProjectName, Environment.GetEnvironmentVariable("TrProposedRes_NOtification") ?? "", HRRFNumber, string.Empty, deliverymanager);
                         }
-                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrProposedResources_by"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"], HRRFNumber, string.Empty, null);
+                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), Environment.GetEnvironmentVariable("TrProposedResources_by") ?? "", Environment.GetEnvironmentVariable("TrProposedRes_NOtification") ?? "", HRRFNumber, string.Empty, null);
 
                         #endregion
                         js.Data = true;
@@ -1994,7 +1994,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                                     InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(hrrfcr.HRRFCreatedBy),
                                         "This is to inform you that " + objEmployee.FirstName + " " + objEmployee.LastName + "(" + ProposedId + ")" + " Resource accepted for another TR so we are removing this resource from your propsed list for the " + mt.HRRFNumber,
                                         "Proposed Resource Removing", mt.HRRFNumber, "<b>" +
-                                        ConfigurationManager.AppSettings["ProposedResource"] + "</b>" + mt.EmpName, null);
+                                        Environment.GetEnvironmentVariable("ProposedResource") ?? "" + "</b>" + mt.EmpName, null);
                                     string strPrevReqStatus = hrrfcr.RequestStatus;
                                     var prop = db.ProposeAssociates.Where(i => i.HRRFNumber == mt.HRRFNumber
                                                && i.PracticeStatus == "Proposed" && i.EmpID != proposedEmpid).ToList();
@@ -2521,13 +2521,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 var isvalidbusinessgroup = db.IncludedBussinessGroups.Where(i => i.BusinessGroup.Contains(proposedEmpName.BusinessGroup)).FirstOrDefault();
                                 var isinvalidemployetype = db.ExcludedEmployeeTypes.Where(i => i.EmployeeType.Contains(proposedEmpName.EmployeeType)).FirstOrDefault();
                                 // email configure added ops team in cc
-                                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["AcceptedResource"] + ":</b>" + proposedEmpName.FirstName + proposedEmpName.LastName, ConfigurationManager.AppSettings["ITS-OPS"]+","+ ConfigurationManager.AppSettings["Assurance"]);
+                                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrAcceptedResources") ?? "", Environment.GetEnvironmentVariable("TrProposedResAce_NOtification") ?? "", HRRFNumber, "<b>" + Environment.GetEnvironmentVariable("AcceptedResource") ?? "" + ":</b>" + proposedEmpName.FirstName + proposedEmpName.LastName, Environment.GetEnvironmentVariable("ITS-OPS") ?? ""+","+ Environment.GetEnvironmentVariable("Assurance") ?? "");
                                 //lakshmi
                                 if (isvalidbusinessgroup != null && isinvalidemployetype == null)
                                 {
-                                    InsertNotification(Session["EmployeeId"].ToString(), proposedEmpid, ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["AcceptedResource"], HRRFNumber, string.Empty, null);
+                                    InsertNotification(Session["EmployeeId"].ToString(), proposedEmpid, Environment.GetEnvironmentVariable("Acceptedto") ?? "" + objHRRF.ProjectName, Environment.GetEnvironmentVariable("AcceptedResource") ?? "", HRRFNumber, string.Empty, null);
                                 }
-                                InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"] + objHRRF.ProjectName, HRRFNumber, string.Empty, null);
+                                InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), Environment.GetEnvironmentVariable("TrAcceptedResources_by") ?? "", Environment.GetEnvironmentVariable("TrProposedRes_NOtification") ?? "" + objHRRF.ProjectName, HRRFNumber, string.Empty, null);
                             }
                         }
                     }
@@ -2539,7 +2539,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         strAlreadyAcceptedList.Add(empName);
                     }
                     DataSet retVal = new DataSet();
-                    string ConnectionString = ConfigurationManager.ConnectionStrings["ADOConnectionString"].ConnectionString;
+                    string ConnectionString = System.Environment.GetEnvironmentVariable("ADO_CONNECTION_STRING") ?? ConfigurationManager.ConnectionStrings["ADOConnectionString"].ConnectionString;
                     //EntityConnection entityConn = (EntityConnection)db.Database.Connection;
                     SqlConnection sqlConn = new SqlConnection(ConnectionString);
                     try
@@ -2686,9 +2686,9 @@ namespace Trianz.Enterprise.Operations.Controllers
         //                        db.SaveChanges();
         //                        var proposedEmpName = db.Employees.Where(p => p.EmployeeId == propsedEmployeeid).FirstOrDefault();
         //                        // email configure
-        //                        InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"], HRRFNumber, ConfigurationManager.AppSettings["AcceptedResource"] + proposedEmpName.FirstName + proposedEmpName.LastName);
-        //                        InsertNotification(Session["EmployeeId"].ToString(), proposedEmpid, ConfigurationManager.AppSettings["Acceptedto"], ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, HRRFNumber, string.Empty);
-        //                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"] + objHRRF.ProjectName, HRRFNumber, string.Empty);
+        //                        InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrAcceptedResources") ?? ConfigurationManager.AppSettings["TrAcceptedResources"], Environment.GetEnvironmentVariable("TrProposedResAce_NOtification") ?? ConfigurationManager.AppSettings["TrProposedResAce_NOtification"], HRRFNumber, Environment.GetEnvironmentVariable("AcceptedResource") ?? ConfigurationManager.AppSettings["AcceptedResource"] + proposedEmpName.FirstName + proposedEmpName.LastName);
+        //                        InsertNotification(Session["EmployeeId"].ToString(), proposedEmpid, Environment.GetEnvironmentVariable("Acceptedto") ?? ConfigurationManager.AppSettings["Acceptedto"], Environment.GetEnvironmentVariable("Acceptedto") ?? ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, HRRFNumber, string.Empty);
+        //                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), Environment.GetEnvironmentVariable("TrAcceptedResources_by") ?? ConfigurationManager.AppSettings["TrAcceptedResources_by"], Environment.GetEnvironmentVariable("TrProposedRes_NOtification") ?? ConfigurationManager.AppSettings["TrProposedRes_NOtification"] + objHRRF.ProjectName, HRRFNumber, string.Empty);
         //                    }
         //                }
         //            }
@@ -2769,8 +2769,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                         int empid = Convert.ToInt32(pid);
                         var proposedEmpName = db.Employees.Where(p => p.EmployeeId == empid).FirstOrDefault();
 
-                        InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrRejectedResources"], ConfigurationManager.AppSettings["TrProposedResRej_NOtification"], HRRFNumber, ConfigurationManager.AppSettings["RejectedResource"] + proposedEmpName.FirstName + proposedEmpName.LastName + "<br><b>" + ConfigurationManager.AppSettings["Remarks"] + "</b>" + _Msg, null);
-                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrRejectedResources_by"], ConfigurationManager.AppSettings["TrProposedResRej_NOtification"], HRRFNumber, "<br><b>" + ConfigurationManager.AppSettings["Remarks"] + "</b>" + _Msg, null);
+                        InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrRejectedResources") ?? "", Environment.GetEnvironmentVariable("TrProposedResRej_NOtification") ?? "", HRRFNumber, Environment.GetEnvironmentVariable("RejectedResource") ?? "" + proposedEmpName.FirstName + proposedEmpName.LastName + "<br><b>" + Environment.GetEnvironmentVariable("Remarks") ?? "" + "</b>" + _Msg, null);
+                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), Environment.GetEnvironmentVariable("TrRejectedResources_by") ?? "", Environment.GetEnvironmentVariable("TrProposedResRej_NOtification") ?? "", HRRFNumber, "<br><b>" + Environment.GetEnvironmentVariable("Remarks") ?? "" + "</b>" + _Msg, null);
                     }
                 }
 
@@ -2861,7 +2861,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 objHrrfHistory.HistoryDescription = HRRFNumber + " - " + "has been Qualified";
                 objHrrfHistory.ModifiedBy = Convert.ToInt32(Session["EmployeeId"]);
                 objHrrfHistory.ModifiedDate = DateTime.Now;
-                objHrrfHistory.PrevRequestStatus = ConfigurationManager.AppSettings["TR_Submitted"].ToString();
+                objHrrfHistory.PrevRequestStatus = Environment.GetEnvironmentVariable("TR_Submitted") ?? "";
                 db.HRRFHistories.Add(objHrrfHistory);
                 db.SaveChanges();
 
@@ -2887,24 +2887,24 @@ namespace Trianz.Enterprise.Operations.Controllers
                                 deliverymanager = deliverymanager + "," + (projectDetails.ProjectManagerId).ToString();
                         }
                         // mail to TR Created By
-                        InsertNotification(Convert.ToString(Session["EmployeeId"]), Convert.ToString(hrrfResultQualify.HRRFCreatedBy), ConfigurationManager.AppSettings["TrQualified"] + " <b>" + strQualifiedBy + "</b>" + ".", ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty, deliverymanager);
+                        InsertNotification(Convert.ToString(Session["EmployeeId"]), Convert.ToString(hrrfResultQualify.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrQualified") ?? "" + " <b>" + strQualifiedBy + "</b>" + ".", Environment.GetEnvironmentVariable("TrQualified_NOtification") ?? "", HRRFNumber, string.Empty, deliverymanager);
 
                         List<string> lstRecipients = new List<string>();
 
                         lstRecipients.Add(Session["EmployeeId"].ToString()); // mail to self
-                        ConfigurationManager.AppSettings["ITS-OPS"].Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
+                        Environment.GetEnvironmentVariable("ITS-OPS") ?? "".Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
 
                         foreach (string recipient in lstRecipients.Distinct())
                         {
-                            InsertNotification(Convert.ToString(Session["EmployeeId"]), recipient, ConfigurationManager.AppSettings["TrQualified_By"] + " <b>" + strQualifiedBy + " </b>" + ".", ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty, null);
+                            InsertNotification(Convert.ToString(Session["EmployeeId"]), recipient, Environment.GetEnvironmentVariable("TrQualified_By") ?? "" + " <b>" + strQualifiedBy + " </b>" + ".", Environment.GetEnvironmentVariable("TrQualified_NOtification") ?? "", HRRFNumber, string.Empty, null);
                         }
                     }
                 }
 
                 //var qualifybyname = db.Employees.Where(q => q.EmployeeId == objHrrfHistory.ModifiedBy).FirstOrDefault();
 
-                //InsertNotification(Convert.ToString(Session["EmployeeId"]), Convert.ToString(hrrfResultQualify.HRRFCreatedBy), ConfigurationManager.AppSettings["TrQualified"] + qualifybyname.FirstName + " " + qualifybyname.LastName + ".", ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty);
-                //InsertNotification(Convert.ToString(Session["EmployeeId"]), Convert.ToString(Session["EmployeeId"]), ConfigurationManager.AppSettings["TrQualified_By"] + qualifybyname.FirstName + " " + qualifybyname.LastName + ".", ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty);
+                //InsertNotification(Convert.ToString(Session["EmployeeId"]), Convert.ToString(hrrfResultQualify.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrQualified") ?? ConfigurationManager.AppSettings["TrQualified"] + qualifybyname.FirstName + " " + qualifybyname.LastName + ".", Environment.GetEnvironmentVariable("TrQualified_NOtification") ?? ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty);
+                //InsertNotification(Convert.ToString(Session["EmployeeId"]), Convert.ToString(Session["EmployeeId"]), Environment.GetEnvironmentVariable("TrQualified_By") ?? ConfigurationManager.AppSettings["TrQualified_By"] + qualifybyname.FirstName + " " + qualifybyname.LastName + ".", Environment.GetEnvironmentVariable("TrQualified_NOtification") ?? ConfigurationManager.AppSettings["TrQualified_NOtification"], HRRFNumber, string.Empty);
 
                 var viewResult = new ValidationModel()
                 {
@@ -2966,15 +2966,15 @@ namespace Trianz.Enterprise.Operations.Controllers
             tblNotification.NotificationDate = System.DateTime.Now;
             tblNotification.NotificationFrom = Convert.ToInt32(From);
             tblNotification.NotificationTo = Convert.ToInt32(To);
-            var Body = NotificationMsg + ConfigurationManager.AppSettings["TRNUMber"].ToString() + HrrfNumber + "<br/> <b> Job Description: </b>" + hrrfResultQualify.JobDescription + "<br/><br/>" + MailingContent(HrrfNumber) + Remarks;
+            var Body = NotificationMsg + Environment.GetEnvironmentVariable("TRNUMber") ?? "" + HrrfNumber + "<br/> <b> Job Description: </b>" + hrrfResultQualify.JobDescription + "<br/><br/>" + MailingContent(HrrfNumber) + Remarks;
             tblNotification.IsActive = true;
             tblNotification.AssetID = HrrfNumber;
-            tblNotification.ApplicationCode = ConfigurationManager.AppSettings["AppCodeTR"].ToString();
+            tblNotification.ApplicationCode = Environment.GetEnvironmentVariable("AppCodeTR") ?? "";
             tblNotification.IsFromGroupID = true;
             tblNotification.FromGroupID = "donotreply_Talento@trianz.com";
             tblNotification.CC = cc;
 
-            string talentoURL = ConfigurationManager.AppSettings["Talento"];
+            string talentoURL = Environment.GetEnvironmentVariable("Talento") ?? "";
             string body = string.Empty;
             string LinktoOpen = "Please Click on link to View the details of Submitted Talent Request number #" + HrrfNumber + " : " + talentoURL;
             using (StreamReader reader = new StreamReader(Server.MapPath("~/Views/Shared/EmailTemplate.html")))
@@ -3156,26 +3156,26 @@ namespace Trianz.Enterprise.Operations.Controllers
                         strConvertToExternalBy = objEmp.FirstName.Trim() + (!string.IsNullOrWhiteSpace(objEmp.MiddleName) ? " " + objEmp.MiddleName + " " : " ") + objEmp.LastName.Trim();
                         string ApproverId = DHNameFor_Mails(objHRRF.RequestStatus, objHRRF.Practice, objHRRF.CostCenter, Convert.ToInt32(objHRRF.Grade), Convert.ToInt32(objHRRF.HRRFCreatedBy), objHRRF.HRRFNumber);
                         // mail to TR Created By
-                        InsertNotification(Convert.ToString(Session["EmployeeId"]), Convert.ToString(hrrfResultQualify.HRRFCreatedBy), ConfigurationManager.AppSettings["TrConvertToExt"] + strConvertToExternalBy + ".", ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty, null);
+                        InsertNotification(Convert.ToString(Session["EmployeeId"]), Convert.ToString(hrrfResultQualify.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrConvertToExt") ?? "" + strConvertToExternalBy + ".", Environment.GetEnvironmentVariable("TrConverttoExt_NOtification") ?? "", HRRFNumber, string.Empty, null);
 
                         List<string> lstRecipients = new List<string>();
 
                         lstRecipients.Add(Session["EmployeeId"].ToString()); // mail to self
                         lstRecipients.Add(ApproverId); // mail to DH
-                        ConfigurationManager.AppSettings["ITS-OPS"].Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
+                        Environment.GetEnvironmentVariable("ITS-OPS") ?? "".Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS
 
                         foreach (string recipient in lstRecipients.Distinct())
                         {
                             if (recipient != null && recipient != "") { 
-                                InsertNotification(Convert.ToString(Session["EmployeeId"]), recipient, ConfigurationManager.AppSettings["TrConvertToExt_By"] + strConvertToExternalBy + ".", ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty, null);
+                                InsertNotification(Convert.ToString(Session["EmployeeId"]), recipient, Environment.GetEnvironmentVariable("TrConvertToExt_By") ?? "" + strConvertToExternalBy + ".", Environment.GetEnvironmentVariable("TrConverttoExt_NOtification") ?? "", HRRFNumber, string.Empty, null);
                             }
                         }
                     }
                 }
 
-                ////EmailNotification(ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], ConfigurationManager.AppSettings["TrConvertToExt"], HRRFNumber, ConfigurationManager.AppSettings["PHRole"]);
-                //InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrConvertToExt_By"], ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
-                //InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrConvertToExt"], ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
+                ////EmailNotification(Environment.GetEnvironmentVariable("TrConverttoExt_NOtification") ?? ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], Environment.GetEnvironmentVariable("TrConvertToExt") ?? ConfigurationManager.AppSettings["TrConvertToExt"], HRRFNumber, Environment.GetEnvironmentVariable("PHRole") ?? ConfigurationManager.AppSettings["PHRole"]);
+                //InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), Environment.GetEnvironmentVariable("TrConvertToExt_By") ?? ConfigurationManager.AppSettings["TrConvertToExt_By"], Environment.GetEnvironmentVariable("TrConverttoExt_NOtification") ?? ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
+                //InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrConvertToExt") ?? ConfigurationManager.AppSettings["TrConvertToExt"], Environment.GetEnvironmentVariable("TrConverttoExt_NOtification") ?? ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
 
                 return Json("success", JsonRequestBehavior.AllowGet);
                 //return RedirectToAction("ProposeAssociate", "ProposeAssociate", new { hrrfno = HRRFNumber });
@@ -3275,14 +3275,14 @@ namespace Trianz.Enterprise.Operations.Controllers
                         List<string> lstRecipients = new List<string>();                      
                         lstRecipients.Add(Session["EmployeeId"].ToString()); // sent mail to self
                         lstRecipients.Add(objHRRF.HRRFCreatedBy.ToString()); // mail to TR Created By
-                        ConfigurationManager.AppSettings["ITS-OPS"].Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS                       
-                        ConfigurationManager.AppSettings["Mail-RL"].Split(',').ToList<string>().ForEach(RLs => lstRecipients.Add(RLs)); // mail to RL(Divya, Nithya, Parvez, Lokesh)
+                        Environment.GetEnvironmentVariable("ITS-OPS") ?? "".Split(',').ToList<string>().ForEach(Ops => lstRecipients.Add(Ops)); // mail to ITS-OPS                       
+                        Environment.GetEnvironmentVariable("Mail-RL") ?? "".Split(',').ToList<string>().ForEach(RLs => lstRecipients.Add(RLs)); // mail to RL(Divya, Nithya, Parvez, Lokesh)
                                                                                                                                         //List<string> lstRLEmp = db.RoleMasters.Where(r => r.Role == "RL" && r.ApplicationCode == "TALENTREQ").Select(r => r.EmployeeId.ToString()).ToList();
                                                                                                                                         //List<string> lstRLActiveEmp = db.Employees.Where(e => lstRLEmp.Contains(e.EmployeeId.ToString()) && e.IsActive == true && e.LocationType == strLocationType).Select(emp => emp.EmployeeId.ToString()).ToList();
                         //lstRLActiveEmp.ForEach(RLs => lstRecipients.Add(RLs)); // mail to all active RLs
                         foreach (string recipient in lstRecipients.Distinct())
                         {
-                            InsertNotification(Session["EmployeeId"].ToString(), recipient, ConfigurationManager.AppSettings["ExternalFullAccept"].ToString() + strAcceptedBy + ",", ConfigurationManager.AppSettings["TrExtFulfilAcep_NOtification"].ToString(), objHRRF.HRRFNumber, "", null);
+                            InsertNotification(Session["EmployeeId"].ToString(), recipient, Environment.GetEnvironmentVariable("ExternalFullAccept") ?? "" + strAcceptedBy + ",", Environment.GetEnvironmentVariable("TrExtFulfilAcep_NOtification") ?? "", objHRRF.HRRFNumber, "", null);
                         }
                     }
                     TempData["Message"] = "AcceptedExternal";
@@ -3351,7 +3351,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                     TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been converted to Internal", objHRRF.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
                     //saving
                     db.SaveChanges();
-                    //InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrConvertToExt_By"], ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
+                    //InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), Environment.GetEnvironmentVariable("TrConvertToExt_By") ?? ConfigurationManager.AppSettings["TrConvertToExt_By"], Environment.GetEnvironmentVariable("TrConverttoExt_NOtification") ?? ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
 
                     //return RedirectToAction("Index", "ExternalReport");
                     return Json("success", JsonRequestBehavior.AllowGet);
@@ -3541,8 +3541,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                 //saving
                 db.SaveChanges();
                 //mail notification
-                InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrRequestedForMoreInfo_BY"], ConfigurationManager.AppSettings["TrRequestedFormoreInfo_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["Remarks"] + "</b>" + data, null);
-                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrRequestedForMoreInfo"], ConfigurationManager.AppSettings["TrRequestedFormoreInfo_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["Remarks"] + "</b>" + data, null);
+                InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), Environment.GetEnvironmentVariable("TrRequestedForMoreInfo_BY") ?? "", Environment.GetEnvironmentVariable("TrRequestedFormoreInfo_NOtification") ?? "", HRRFNumber, "<b>" + Environment.GetEnvironmentVariable("Remarks") ?? "" + "</b>" + data, null);
+                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrRequestedForMoreInfo") ?? "", Environment.GetEnvironmentVariable("TrRequestedFormoreInfo_NOtification") ?? "", HRRFNumber, "<b>" + Environment.GetEnvironmentVariable("Remarks") ?? "" + "</b>" + data, null);
                 return RedirectToAction("Index", "trHome");
             }
             //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
@@ -3650,8 +3650,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                 TRScernarioHistroy(HRRFNumber, HRRFNumber + " - " + "has been Cancelled", hrrfTerminate.Remarks, Convert.ToInt32(Session["EmployeeId"]), strPrevRequestStatus);
                 //saving
                 db.SaveChanges();
-                InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrTerminate"], ConfigurationManager.AppSettings["TrTerminate_NOtification"], HRRFNumber, string.Empty, null);
-                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrTerminate"], ConfigurationManager.AppSettings["TrTerminate_NOtification"], HRRFNumber, string.Empty, null);
+                InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), Environment.GetEnvironmentVariable("TrTerminate") ?? "", Environment.GetEnvironmentVariable("TrTerminate_NOtification") ?? "", HRRFNumber, string.Empty, null);
+                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrTerminate") ?? "", Environment.GetEnvironmentVariable("TrTerminate_NOtification") ?? "", HRRFNumber, string.Empty, null);
                 return Json(HRRFNumber);
             }
             //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
@@ -3697,8 +3697,8 @@ namespace Trianz.Enterprise.Operations.Controllers
                 TRScernarioHistroy(HRRFNumber, HRRFNumber + reqstst + "(Edited:  ", null, Convert.ToInt32(Session["EmployeeId"]), reqstst);
                 //saving
                 db.SaveChanges();
-                InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), "Edited", ConfigurationManager.AppSettings["TrEdited_NOtification"], HRRFNumber, string.Empty, null);
-                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), "Edited", ConfigurationManager.AppSettings["TrEdited_NOtification"], HRRFNumber, string.Empty, null);
+                InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), "Edited", Environment.GetEnvironmentVariable("TrEdited_NOtification") ?? "", HRRFNumber, string.Empty, null);
+                InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), "Edited", Environment.GetEnvironmentVariable("TrEdited_NOtification") ?? "", HRRFNumber, string.Empty, null);
                 return Json(HRRFNumber);
             }
             //catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
@@ -3854,7 +3854,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                         db.SaveChanges();
                             
                         // Send Email notifications to respective members.
-                        //InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, ConfigurationManager.AppSettings["AcceptedResource"] + objResource.FirstName + " " + objResource.LastName);
+                        //InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrAcceptedResources") ?? ConfigurationManager.AppSettings["TrAcceptedResources"], Environment.GetEnvironmentVariable("TrProposedResAce_NOtification") ?? ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, Environment.GetEnvironmentVariable("AcceptedResource") ?? ConfigurationManager.AppSettings["AcceptedResource"] + objResource.FirstName + " " + objResource.LastName);
                         //lakshmi
                         var proposedEmpName = db.Employees.Where(p => p.EmployeeId == proseEMpID).FirstOrDefault();
                         var isvalidbusinessgroup = db.IncludedBussinessGroups.Where(i => i.BusinessGroup.Contains(proposedEmpName.BusinessGroup)).FirstOrDefault();
@@ -3862,14 +3862,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                         if (isvalidbusinessgroup != null && isinvalidemployetype == null)
                         {
-                            InsertNotification(Session["EmployeeId"].ToString(), ProposedId[0], ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty, null);
+                            InsertNotification(Session["EmployeeId"].ToString(), ProposedId[0], Environment.GetEnvironmentVariable("Acceptedto") ?? "" + objHRRF.ProjectName, Environment.GetEnvironmentVariable("TrProposedResAce_NOtification") ?? "" + " - by PM", HRRFNumber, string.Empty, null);
                         }
-                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty, null);
+                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), Environment.GetEnvironmentVariable("TrAcceptedResources_by") ?? "", Environment.GetEnvironmentVariable("TrProposedResAce_NOtification") ?? "" + " - by PM", HRRFNumber, string.Empty, null);
 
                         ProposeAssociate objProposeResource = db.ProposeAssociates.Where(pa => pa.EmpID == PropID).FirstOrDefault();
                         if (objProposeResource != null)
                         {
-                            InsertNotification(Session["EmployeeId"].ToString(), objProposeResource.ProposedBy, ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, "<b>" + ConfigurationManager.AppSettings["AcceptedResource"] + ":</b>" + objResource.FirstName + " " + objResource.LastName, ConfigurationManager.AppSettings["ITS-OPS"]+","+ ConfigurationManager.AppSettings["Assurance"]);
+                            InsertNotification(Session["EmployeeId"].ToString(), objProposeResource.ProposedBy, Environment.GetEnvironmentVariable("TrAcceptedResources") ?? "", Environment.GetEnvironmentVariable("TrProposedResAce_NOtification") ?? "" + " - by PM", HRRFNumber, "<b>" + Environment.GetEnvironmentVariable("AcceptedResource") ?? "" + ":</b>" + objResource.FirstName + " " + objResource.LastName, Environment.GetEnvironmentVariable("ITS-OPS") ?? ""+","+ Environment.GetEnvironmentVariable("Assurance") ?? "");
                         }
                     }
                 }
@@ -3915,14 +3915,14 @@ namespace Trianz.Enterprise.Operations.Controllers
 
 
                         //// Send Email notifications to respective members.
-                        ////InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, ConfigurationManager.AppSettings["AcceptedResource"] + objResource.FirstName + " " + objResource.LastName);
-                        //InsertNotification(Session["EmployeeId"].ToString(), ProposedId[0], ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty);
-                        //InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty);
+                        ////InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrAcceptedResources") ?? ConfigurationManager.AppSettings["TrAcceptedResources"], Environment.GetEnvironmentVariable("TrProposedResAce_NOtification") ?? ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, Environment.GetEnvironmentVariable("AcceptedResource") ?? ConfigurationManager.AppSettings["AcceptedResource"] + objResource.FirstName + " " + objResource.LastName);
+                        //InsertNotification(Session["EmployeeId"].ToString(), ProposedId[0], Environment.GetEnvironmentVariable("Acceptedto") ?? ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, Environment.GetEnvironmentVariable("TrProposedResAce_NOtification") ?? ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty);
+                        //InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), Environment.GetEnvironmentVariable("TrAcceptedResources_by") ?? ConfigurationManager.AppSettings["TrAcceptedResources_by"], Environment.GetEnvironmentVariable("TrProposedResAce_NOtification") ?? ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, string.Empty);
 
                         //ProposeAssociate objProposeResource = db.ProposeAssociates.Where(pa => pa.EmpID == PropID).FirstOrDefault();
                         //if (objProposeResource != null)
                         //{
-                        //    InsertNotification(Session["EmployeeId"].ToString(), objProposeResource.ProposedBy, ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, ConfigurationManager.AppSettings["AcceptedResource"] + objResource.FirstName + " " + objResource.LastName);
+                        //    InsertNotification(Session["EmployeeId"].ToString(), objProposeResource.ProposedBy, Environment.GetEnvironmentVariable("TrAcceptedResources") ?? ConfigurationManager.AppSettings["TrAcceptedResources"], Environment.GetEnvironmentVariable("TrProposedResAce_NOtification") ?? ConfigurationManager.AppSettings["TrProposedResAce_NOtification"] + " - by PM", HRRFNumber, Environment.GetEnvironmentVariable("AcceptedResource") ?? ConfigurationManager.AppSettings["AcceptedResource"] + objResource.FirstName + " " + objResource.LastName);
                         //}
                     }
                 }
@@ -3953,7 +3953,7 @@ namespace Trianz.Enterprise.Operations.Controllers
                 var Hrrffulldetails = db.HRRFs.Where(c => c.HRRFNumber == HRRFNumber).FirstOrDefault();
 
                 int? hrrfcreator = Hrrffulldetails.HRRFCreatedBy;
-                string[] strITOPS = ConfigurationManager.AppSettings["ITS-OPS"].Split(',');
+                string[] strITOPS = Environment.GetEnvironmentVariable("ITS-OPS") ?? "".Split(',');
                 var oms = (db.RoleMasters.Where(s => (s.Practice == Hrrffulldetails.Practice && s.Role == "OM" && s.ApplicationCode == "TALENTREQ") || strITOPS.Contains(s.EmployeeId.ToString().Trim())).ToList());
 
 
@@ -4464,13 +4464,13 @@ namespace Trianz.Enterprise.Operations.Controllers
                                         var isinvalidemployetype = db.ExcludedEmployeeTypes.Where(i => i.EmployeeType.Contains(proposedEmpName.EmployeeType)).FirstOrDefault();
 
                                         // email configure    added ops team in cc part                      
-                                        InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), ConfigurationManager.AppSettings["TrAcceptedResources"], ConfigurationManager.AppSettings["TrProposedResAce_NOtification"], HRRFNumber, "<b>" + ConfigurationManager.AppSettings["AcceptedResource"] + ":</b>" + proposedEmpName.FirstName + proposedEmpName.LastName, ConfigurationManager.AppSettings["ITS-OPS"]+","+ ConfigurationManager.AppSettings["Assurance"]);
+                                        InsertNotification(Session["EmployeeId"].ToString(), Convert.ToString(objHRRF.HRRFCreatedBy), Environment.GetEnvironmentVariable("TrAcceptedResources") ?? "", Environment.GetEnvironmentVariable("TrProposedResAce_NOtification") ?? "", HRRFNumber, "<b>" + Environment.GetEnvironmentVariable("AcceptedResource") ?? "" + ":</b>" + proposedEmpName.FirstName + proposedEmpName.LastName, Environment.GetEnvironmentVariable("ITS-OPS") ?? ""+","+ Environment.GetEnvironmentVariable("Assurance") ?? "");
                                         //lakshmi
                                         if (isvalidbusinessgroup != null && isinvalidemployetype == null)
                                         {
-                                            InsertNotification(Session["EmployeeId"].ToString(), proposedEmpid, ConfigurationManager.AppSettings["Acceptedto"] + objHRRF.ProjectName, ConfigurationManager.AppSettings["AcceptedResource"], HRRFNumber, string.Empty, null);
+                                            InsertNotification(Session["EmployeeId"].ToString(), proposedEmpid, Environment.GetEnvironmentVariable("Acceptedto") ?? "" + objHRRF.ProjectName, Environment.GetEnvironmentVariable("AcceptedResource") ?? "", HRRFNumber, string.Empty, null);
                                         }
-                                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrAcceptedResources_by"], ConfigurationManager.AppSettings["TrProposedRes_NOtification"] + objHRRF.ProjectName, HRRFNumber, string.Empty, null);
+                                        InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), Environment.GetEnvironmentVariable("TrAcceptedResources_by") ?? "", Environment.GetEnvironmentVariable("TrProposedRes_NOtification") ?? "" + objHRRF.ProjectName, HRRFNumber, string.Empty, null);
                                     }
                                 }
                             }
@@ -4738,7 +4738,7 @@ namespace Trianz.Enterprise.Operations.Controllers
 
                     //saving
                     db.SaveChanges();
-                    //InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), ConfigurationManager.AppSettings["TrConvertToExt_By"], ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
+                    //InsertNotification(Session["EmployeeId"].ToString(), Session["EmployeeId"].ToString(), Environment.GetEnvironmentVariable("TrConvertToExt_By") ?? ConfigurationManager.AppSettings["TrConvertToExt_By"], Environment.GetEnvironmentVariable("TrConverttoExt_NOtification") ?? ConfigurationManager.AppSettings["TrConverttoExt_NOtification"], HRRFNumber, string.Empty);
 
 
 
